@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.trello</groupId>
+        <artifactId>trelloparent</artifactId>
+        <version>1.0</version>
+    </parent>
+
+    <groupId>com.trello.infraestructure</groupId>
+    <artifactId>infraestructure</artifactId>
+    <version>1.0</version>
+    <packaging>pom</packaging>
+
+    <name>infraestructure</name>
+    <description>Modulo padre para agrupar los </description>
+
+    <url />
+    <licenses>
+        <license />
+    </licenses>
+    <developers>
+        <developer />
+    </developers>
+    <scm>
+        <connection />
+        <developerConnection />
+        <tag />
+        <url />
+    </scm>
+
+    <modules>
+
+    </modules>
+
+
+    <properties>
+
+    </properties>
+</project>
