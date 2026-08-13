@@ -15,7 +15,7 @@
     <packaging>pom</packaging>
 
     <name>infraestructure</name>
-    <description>Modulo padre para agrupar los </description>
+    <description>Modulo padre para agrupar los componentes de infraestructura de la aplicación</description>
 
     <url />
     <licenses>

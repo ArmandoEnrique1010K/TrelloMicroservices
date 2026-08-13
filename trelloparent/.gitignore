@@ -33,4 +33,4 @@ build/
 # .vscode/
 
 # Archivos ignorados por Github
-
+/postgres_data
