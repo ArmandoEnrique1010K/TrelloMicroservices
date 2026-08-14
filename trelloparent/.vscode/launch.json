@@ -9,6 +9,16 @@
             "projectName": "project",
             "args": "",
             "envFile": "${workspaceFolder}/.env"
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-IdentityApplication<identity>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.trello.identity.IdentityApplication",
+            "projectName": "identity",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
         }
     ]
 }

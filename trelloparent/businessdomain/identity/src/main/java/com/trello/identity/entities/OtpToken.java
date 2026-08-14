@@ -3,7 +3,7 @@ package com.trello.identity.entities;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-import com.trello.identity.enums.OptPurpose;
+import com.trello.identity.enums.OtpPurpose;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -23,13 +23,13 @@ public class OtpToken {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
-    private String optHash;
+    private String otpHash;
     private int attemps;
     private LocalDateTime expiresAt;
     private LocalDateTime usedAt;
 
     @Enumerated(EnumType.STRING)
-    private OptPurpose optPurpose;
+    private OtpPurpose otpPurpose;
 
     @OneToOne
     @JoinColumn(name = "user_id", nullable = false, unique = true)

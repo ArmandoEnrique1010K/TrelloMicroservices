@@ -1,0 +1,26 @@
+@startuml identity
+entity User {
+    firstName: String
+    lastName: String
+    email: String
+    password: String
+    confirmed: boolean
+}
+
+entity OtpToken {
+    otpHash: String
+    attemps: integer
+    expiresAt: LocalDateTime
+    usedAt: LocalDateTime
+}
+
+enum OtpPurpose {
+    ACCOUNT_CONFIRMATION,
+    PASSWORD_RESET
+}
+
+
+User "0..1" --- "1" OtpToken
+OtpToken "1" --- OtpPurpose
+
+@enduml
