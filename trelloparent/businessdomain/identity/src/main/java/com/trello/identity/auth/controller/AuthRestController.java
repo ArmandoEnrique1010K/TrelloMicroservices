@@ -1,4 +1,4 @@
-package com.trello.identity.controller;
+package com.trello.identity.auth.controller;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -6,11 +6,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.trello.identity.auth.dto.AccountRequest;
+import com.trello.identity.auth.dto.AccountResponse;
+import com.trello.identity.auth.service.AuthService;
 import com.trello.identity.common.StandardizedApiExceptionResponse;
-import com.trello.identity.dtos.auth.AccountRequest;
-import com.trello.identity.dtos.auth.AccountResponse;
 import com.trello.identity.exception.BusinessRuleException;
-import com.trello.identity.service.AuthService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -20,7 +20,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
-@Tag(name = "User API", description = "This API sever all functionality for managing Users")
+@Tag(name = "AUTH API", description = "This API server provides all the functionality for user authentication")
 @RestController
 @RequestMapping("/user")
 public class AuthRestController {

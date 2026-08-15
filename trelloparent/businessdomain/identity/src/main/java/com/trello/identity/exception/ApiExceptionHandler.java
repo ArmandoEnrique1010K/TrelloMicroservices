@@ -31,7 +31,7 @@ public class ApiExceptionHandler {
 
         StandardizedApiExceptionResponse standarizedApiExceptionResponse = new StandardizedApiExceptionResponse(
                 "BUSINESS",
-                "Validation error",
+                "Business rule violation",
                 ex.getCode(), ex.getMessage());
 
         return ResponseEntity.status(ex.getHttpStatus()).body(standarizedApiExceptionResponse);

@@ -1,4 +1,4 @@
-package com.trello.identity.service;
+package com.trello.identity.auth.service;
 
 import com.trello.identity.repositories.UserRepository;
 
@@ -6,12 +6,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.trello.identity.dtos.auth.AccountRequest;
-import com.trello.identity.dtos.auth.AccountResponse;
+import com.trello.identity.auth.dto.AccountRequest;
+import com.trello.identity.auth.dto.AccountResponse;
+import com.trello.identity.auth.mapper.AccountRequestMapper;
+import com.trello.identity.auth.mapper.AccountResponseMapper;
 import com.trello.identity.entities.User;
 import com.trello.identity.exception.BusinessRuleException;
-import com.trello.identity.mapper.auth.AccountRequestMapper;
-import com.trello.identity.mapper.auth.AccountResponseMapper;
 
 @Service
 public class AuthServiceImpl implements AuthService {

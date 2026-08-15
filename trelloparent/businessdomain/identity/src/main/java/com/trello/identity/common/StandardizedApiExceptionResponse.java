@@ -26,7 +26,7 @@ public class StandardizedApiExceptionResponse {
     @Schema(description = "A URI reference that identifies the specific occurrence of the problem", name = "instance", requiredMode = RequiredMode.NOT_REQUIRED, example = "/errors/authentication/not-authorized/01")
     private String instance;
 
-    @Schema(description = "Additional information about fields related to the error", name = "fields", requiredMode = RequiredMode.NOT_REQUIRED)
+    @Schema(description = "Additional information about fields related to the error", name = "fields", requiredMode = RequiredMode.NOT_REQUIRED, example = "{\"additionalProp1\":\"string\",\"additionalProp2\":\"string\"}")
     private Map<String, String> fields;
 
     public StandardizedApiExceptionResponse(

@@ -1,7 +1,7 @@
-package com.trello.identity.service;
+package com.trello.identity.auth.service;
 
-import com.trello.identity.dtos.auth.AccountRequest;
-import com.trello.identity.dtos.auth.AccountResponse;
+import com.trello.identity.auth.dto.AccountRequest;
+import com.trello.identity.auth.dto.AccountResponse;
 import com.trello.identity.exception.BusinessRuleException;
 
 public interface AuthService {
