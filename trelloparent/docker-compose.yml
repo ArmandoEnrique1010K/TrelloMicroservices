@@ -1,6 +1,8 @@
 services:
-  postgres_db:
-    container_name: trelloIdentityPostgresDB
+
+  # Base de datos - Microservicio Identity
+  identity-postgres-db:
+    container_name: identity-db
     image: postgres:15.3
 
     ports:
@@ -13,4 +15,20 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: admin
-      POSTGRES_DB: trelloIdentity
+      POSTGRES_DB: identity_db
+
+
+  # Administrador - Base de datos Identity
+  pgadmin4:
+    container_name: pgadmin4
+    image: dpage/pgadmin4
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: "admin@gmail.com"
+      PGADMIN_DEFAULT_PASSWORD: "qwerty"
+    ports:
+      - 5050:80
+    depends_on:
+      - identity-postgres-db
+
+
