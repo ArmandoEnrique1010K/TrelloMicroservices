@@ -23,6 +23,7 @@ public interface AuthenticationResponseMapper {
 
     @Mappings({
             @Mapping(target = "accessToken", ignore = true),
+            @Mapping(target = "refreshToken", ignore = true),
             @Mapping(target = "expiresIn", ignore = true),
     })
     @InheritInverseConfiguration

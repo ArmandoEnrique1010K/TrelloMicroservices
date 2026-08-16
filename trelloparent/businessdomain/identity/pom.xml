@@ -29,6 +29,11 @@
         <url />
     </scm>
 
+    <properties>
+        <org.spring.security.version>7.1.0</org.spring.security.version>
+    </properties>
+
+
     <dependencies>
         <!-- Data -->
         <dependency>
@@ -40,7 +45,25 @@
             <artifactId>postgresql</artifactId>
             <version>${postgres.version}</version>
         </dependency>
+
+        <!-- Security -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-oauth2-jose</artifactId>
+            <version>${org.spring.security.version}</version>
+        </dependency>
     </dependencies>
+
 
     <build>
         <plugins>

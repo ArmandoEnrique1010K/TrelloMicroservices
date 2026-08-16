@@ -8,6 +8,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.trello.identity.auth.dto.AccountRequest;
 import com.trello.identity.auth.dto.AccountResponse;
+import com.trello.identity.auth.dto.AuthenticationRequest;
+import com.trello.identity.auth.dto.AuthenticationResponse;
 import com.trello.identity.auth.service.AuthService;
 import com.trello.identity.common.StandardizedApiExceptionResponse;
 import com.trello.identity.exception.BusinessRuleException;
@@ -22,7 +24,7 @@ import jakarta.validation.Valid;
 
 @Tag(name = "AUTH API", description = "This API server provides all the functionality for user authentication")
 @RestController
-@RequestMapping("/user")
+@RequestMapping("/auth")
 public class AuthRestController {
     private final AuthService userService;
 
@@ -37,9 +39,16 @@ public class AuthRestController {
             @ApiResponse(responseCode = "409", description = "El usuario ya existe", content = @Content(mediaType = "application/json", schema = @Schema(implementation = BusinessRuleException.class))),
             @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
-    @PostMapping
+    @PostMapping("/createAccount")
     public ResponseEntity<?> createAccount(@Valid @RequestBody AccountRequest input) throws BusinessRuleException {
         AccountResponse response = userService.createAccount(input);
         return ResponseEntity.status(201).body(response);
     }
+
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@Valid @RequestBody AuthenticationRequest input) throws BusinessRuleException {
+        AuthenticationResponse response = userService.login(input);
+        return ResponseEntity.status(200).body(response);
+    }
+
 }
