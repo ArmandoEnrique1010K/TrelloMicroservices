@@ -1,3 +1,182 @@
+# Generación de claves RSA para JWT
+
+El microservicio `identity` utiliza un par de claves RSA para firmar y validar los tokens JWT:
+
+- `private-key.pem`: clave privada utilizada para **firmar** los JWT.
+- `public-key.pem`: clave pública utilizada para **verificar** los JWT.
+
+> **Importante:** nunca compartas ni subas `private-key.pem` al repositorio. La clave privada debe mantenerse protegida.
+
+## 1. Instalar OpenSSL
+
+Si OpenSSL todavía no está instalado, abre PowerShell y ejecuta:
+
+```powershell
+winget install openssl
+```
+
+Cuando se solicite, escribe `Y` para aceptar los términos y condiciones.
+
+Después de la instalación, **cierra PowerShell y abre una nueva terminal**.
+
+Comprueba que OpenSSL está instalado:
+
+```powershell
+winget list openssl
+```
+
+Deberías obtener una salida similar a:
+
+```text
+Name                   Id                       Version Source
+---------------------------------------------------------------
+OpenSSL 4.0.1 (64-bit) ShiningLight.OpenSSL.Dev 4.0.1   winget
+```
+
+## 2. Verificar que OpenSSL esté disponible en el PATH
+
+Ejecuta:
+
+```powershell
+where.exe openssl
+```
+
+Si no encuentra el ejecutable, puedes localizarlo con:
+
+```powershell
+Get-ChildItem "C:\Program Files" -Filter openssl.exe -Recurse -ErrorAction SilentlyContinue
+```
+
+La instalación de OpenSSL utilizada por el proyecto debe encontrarse en:
+
+```text
+C:\Program Files\OpenSSL-Win64\bin\openssl.exe
+```
+
+Comprueba directamente su versión:
+
+```powershell
+& "C:\Program Files\OpenSSL-Win64\bin\openssl.exe" version
+```
+
+Deberías obtener:
+
+```text
+OpenSSL 4.0.1 9 Jun 2026 (Library: OpenSSL 4.0.1 9 Jun 2026)
+```
+
+## 3. Agregar OpenSSL al PATH
+
+Si el comando `openssl` no es reconocido directamente desde PowerShell, agrega la siguiente ruta a las variables de entorno:
+
+```text
+C:\Program Files\OpenSSL-Win64\bin
+```
+
+Pasos:
+
+1. Presiona `Windows + R`.
+2. Ejecuta `sysdm.cpl`.
+3. Ve a **Opciones avanzadas**.
+4. Selecciona **Variables de entorno**.
+5. En **Variables de usuario**, selecciona `Path`.
+6. Pulsa **Editar**.
+7. Pulsa **Nuevo**.
+8. Agrega:
+
+```text
+C:\Program Files\OpenSSL-Win64\bin
+```
+
+9. Acepta todas las ventanas.
+10. Cierra todas las terminales abiertas.
+11. Abre una nueva terminal de PowerShell.
+
+Finalmente, verifica:
+
+```powershell
+openssl version
+```
+
+y:
+
+```powershell
+where.exe openssl
+```
+
+La segunda orden debería mostrar:
+
+```text
+C:\Program Files\OpenSSL-Win64\bin\openssl.exe
+```
+
+## 4. Generar las claves RSA
+
+Ubícate en el directorio `keys` del microservicio `identity`:
+
+```powershell
+cd businessdomain\identity\keys
+```
+
+Genera la **clave privada**:
+
+```powershell
+openssl genrsa -out private-key.pem 2048
+```
+
+Luego genera la **clave pública** a partir de la clave privada:
+
+```powershell
+openssl rsa -in private-key.pem -pubout -out public-key.pem
+```
+
+El directorio debe quedar de esta manera:
+
+```text
+businessdomain/
+└── identity/
+    └── keys/
+        ├── private-key.pem
+        └── public-key.pem
+```
+
+## 5. Verificar las claves
+
+Puedes comprobar que la clave privada se haya generado correctamente con:
+
+```powershell
+openssl rsa -in private-key.pem -check
+```
+
+Deberías obtener:
+
+```text
+RSA key ok
+```
+
+También puedes comprobar la clave pública:
+
+```powershell
+openssl rsa -pubin -in public-key.pem -text -noout
+```
+
+## 6. No subir la clave privada a Git
+
+Agrega la clave privada al `.gitignore`:
+
+```gitignore
+# JWT RSA keys
+businessdomain/identity/keys/private-key.pem
+```
+
+Si las claves se generan únicamente para desarrollo local, también puedes ignorar todo el directorio:
+
+```gitignore
+businessdomain/identity/keys/*.pem
+```
+
+En producción, la clave privada debería gestionarse mediante un mecanismo seguro de secretos y **no almacenarse directamente en el repositorio**.
+
 # Configuración de la infraestructura
 
 El microservicio **Identity** utiliza PostgreSQL como sistema de gestión de base de datos y pgAdmin 4 como herramienta para su administración.
@@ -229,7 +408,7 @@ docker compose up -d
 
 Esto es necesario porque PostgreSQL **no vuelve a ejecutar su proceso de inicialización mientras el directorio `/var/lib/postgresql/data` ya contenga un clúster existente**.
 
-> **Advertencia:** eliminar `postgres_data` elimina los datos almacenados en esa instancia de PostgreSQL. Hazlo solamente si no necesitas conservarlos.
+> ⚠️ **Advertencia:** eliminar `postgres_data` elimina los datos almacenados en esa instancia de PostgreSQL. Hazlo solamente si no necesitas conservarlos.
 
 ### Estructura de acceso
 
@@ -261,3 +440,25 @@ Al finalizar la configuración, la arquitectura local queda así:
                     │       :5050          │
                     └──────────────────────┘
 ```
+
+
+# Comprobar un password BCrypt
+
+Después de registrar un usuario desde Swagger, puedes consultar el password almacenado en PostgreSQL mediante pgAdmin4.
+
+El valor almacenado será un hash BCrypt, por ejemplo:
+
+```text
+$2a$10$...
+```
+
+Para comprobar si una contraseña corresponde con ese hash puedes utilizar:
+
+[BCrypt Generator](https://bcrypt-generator.com/?utm_source=chatgpt.com)
+
+Introduce:
+
+- **Password:** la contraseña original utilizada durante el registro.
+- **Hash:** el valor BCrypt almacenado en la columna `password` de PostgreSQL.
+
+> ⚠️ No utilices contraseñas reales o sensibles en servicios web de terceros. Para pruebas de desarrollo utiliza únicamente contraseñas ficticias.

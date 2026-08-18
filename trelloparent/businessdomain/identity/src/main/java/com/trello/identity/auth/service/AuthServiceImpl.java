@@ -4,12 +4,10 @@ import com.trello.identity.repositories.UserRepository;
 import com.trello.identity.security.AuthenticationProviderConfig;
 import com.trello.identity.security.JwtService;
 
-import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,15 +15,15 @@ import com.trello.identity.auth.dto.AccountRequest;
 import com.trello.identity.auth.dto.AccountResponse;
 import com.trello.identity.auth.dto.AuthenticationRequest;
 import com.trello.identity.auth.dto.AuthenticationResponse;
+import com.trello.identity.auth.exception.MismatchPasswordException;
+import com.trello.identity.auth.exception.UserAlreadyExistsException;
 import com.trello.identity.auth.mapper.AccountRequestMapper;
 import com.trello.identity.auth.mapper.AccountResponseMapper;
 import com.trello.identity.entities.User;
-import com.trello.identity.exception.BusinessRuleException;
 
 @Service
 public class AuthServiceImpl implements AuthService {
 
-    private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
     private final AccountRequestMapper accountRequestMapper;
     private final AccountResponseMapper accountResponseMapper;
@@ -37,29 +35,29 @@ public class AuthServiceImpl implements AuthService {
             UserRepository userRepository, AccountRequestMapper accountRequestMapper,
             AccountResponseMapper accountResponseMapper, AuthenticationManager authenticationManager,
             JwtService jwtService,
-            AuthenticationProviderConfig authenticationProviderConfig, PasswordEncoder passwordEncoder) {
+            AuthenticationProviderConfig authenticationProviderConfig) {
         this.userRepository = userRepository;
         this.accountRequestMapper = accountRequestMapper;
         this.accountResponseMapper = accountResponseMapper;
         this.authenticationManager = authenticationManager;
         this.jwtService = jwtService;
         this.authenticationProviderConfig = authenticationProviderConfig;
-        this.passwordEncoder = passwordEncoder;
     }
 
     @Transactional
     @Override
-    public AccountResponse createAccount(AccountRequest accountRequest) throws BusinessRuleException {
+    public AccountResponse createAccount(AccountRequest accountRequest) throws MismatchPasswordException,
+            UserAlreadyExistsException {
         User userToAccountRequest = accountRequestMapper.accountRequestToUser(accountRequest);
 
         if (!accountRequest.getPassword().equals(accountRequest.getPasswordConfirmation())) {
-            throw new BusinessRuleException("1025", "Error, las contraseñas no coinciden", HttpStatus.CONFLICT);
+            throw new MismatchPasswordException();
         }
 
         User existingUser = userRepository.findByEmail(userToAccountRequest.getEmail());
 
         if (existingUser != null) {
-            throw new BusinessRuleException("1025", "Error, el usuario existe", HttpStatus.CONFLICT);
+            throw new UserAlreadyExistsException();
         }
 
         userToAccountRequest
@@ -76,10 +74,12 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public AuthenticationResponse login(AuthenticationRequest authenticationRequest) throws BusinessRuleException {
+    public AuthenticationResponse login(AuthenticationRequest authenticationRequest) {
         User existingUser = userRepository.findByEmail(authenticationRequest.getEmail());
         if (existingUser == null) {
-            throw new BadCredentialsException("Credenciales incorrectas");
+            // Ignora el siguiente mensaje porque se trata de una excepcion de tipo
+            // BadCredentialsException de Spring
+            throw new BadCredentialsException("Invalid credentials");
         }
 
         Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(

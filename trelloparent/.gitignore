@@ -34,3 +34,6 @@ build/
 
 # Archivos ignorados por Github
 /postgres_data
+
+# JWT RSA keys
+businessdomain/identity/keys/*.pem

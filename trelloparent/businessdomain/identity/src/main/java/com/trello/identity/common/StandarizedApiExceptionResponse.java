@@ -17,14 +17,14 @@ public class StandarizedApiExceptionResponse {
     @Schema(description = "A short, human-readable summary of the problem", name = "title", requiredMode = RequiredMode.REQUIRED, example = "User is not authorized")
     private String title;
 
+    @Schema(description = "A unique status code", name = "status", requiredMode = RequiredMode.REQUIRED, example = "500")
+    private int status;
+
     @Schema(description = "A human-readable explanation specific to this occurrence of the problem", name = "detail", requiredMode = RequiredMode.REQUIRED, example = "The user does not have the required permissions to access the resource")
     private String detail;
 
     @Schema(description = "A URI reference that identifies the specific occurrence of the problem", name = "instance", requiredMode = RequiredMode.NOT_REQUIRED, example = "/errors/authentication/not-authorized/01")
     private String instance;
-
-    @Schema(description = "A unique error code", name = "code", requiredMode = RequiredMode.NOT_REQUIRED, example = "192")
-    private String code;
 
     @Schema(description = "A message readable to show in web client", name = "message", requiredMode = RequiredMode.REQUIRED, example = "Message to show in web client")
     private String message;
@@ -35,30 +35,34 @@ public class StandarizedApiExceptionResponse {
     public StandarizedApiExceptionResponse(
             String type,
             String title,
-            String code,
-            String message,
-            String detail) {
+            int status,
+            String detail,
+            String instance,
+            String message) {
 
         this.type = type;
         this.title = title;
-        this.code = code;
-        this.message = message;
+        this.status = status;
         this.detail = detail;
+        this.instance = instance;
+        this.message = message;
     }
 
     public StandarizedApiExceptionResponse(
             String type,
             String title,
-            String code,
-            String message,
+            int status,
             String detail,
+            String instance,
+            String message,
             Map<String, String> fields) {
 
         this.type = type;
         this.title = title;
-        this.code = code;
-        this.message = message;
+        this.status = status;
         this.detail = detail;
+        this.instance = instance;
+        this.message = message;
         this.fields = fields;
     }
 }
