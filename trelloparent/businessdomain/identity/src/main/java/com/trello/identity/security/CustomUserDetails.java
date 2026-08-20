@@ -2,18 +2,21 @@ package com.trello.identity.security;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.UUID;
 
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import com.trello.identity.entities.User;
-
 public class CustomUserDetails implements UserDetails {
 
-    private final User user;
+    private final UUID userId;
+    private final String email;
+    private final String password;
 
-    public CustomUserDetails(User user) {
-        this.user = user;
+    public CustomUserDetails(UUID userId, String email, String password) {
+        this.userId = userId;
+        this.email = email;
+        this.password = password;
     }
 
     // No se van a utilizar roles
@@ -24,12 +27,12 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public String getPassword() {
-        return user.getPassword();
+        return password;
     }
 
     @Override
     public String getUsername() {
-        return user.getEmail();
+        return email;
     }
 
     @Override
@@ -49,6 +52,11 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return user.isConfirmed();
+        return true;
+    }
+
+    // Método para devolver el ID del usuario
+    public UUID getUserId() {
+        return userId;
     }
 }

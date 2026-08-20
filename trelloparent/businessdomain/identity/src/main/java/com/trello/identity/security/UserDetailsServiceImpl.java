@@ -23,7 +23,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         User user = Optional.ofNullable(userRepository.findByEmail(email))
                 .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado"));
 
-        return new CustomUserDetails(user);
+        return new CustomUserDetails(user.getId(), user.getEmail(), user.getPassword());
     }
 
 }

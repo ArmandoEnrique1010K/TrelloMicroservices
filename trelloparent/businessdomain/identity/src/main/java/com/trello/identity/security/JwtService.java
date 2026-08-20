@@ -19,11 +19,14 @@ public class JwtService {
     public String generateAccessToken(
             Authentication authentication) {
 
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+
         Instant now = Instant.now();
 
         JwtClaimsSet claims = JwtClaimsSet.builder()
                 .issuer("trello-identity")
-                .subject(authentication.getName())
+                .subject(userDetails.getUsername())
+                .claim("userId", userDetails.getUserId())
                 .issuedAt(now)
                 .expiresAt(now.plusSeconds(900))
                 .build();
