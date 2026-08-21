@@ -31,7 +31,7 @@ public class IdentityServiceImpl implements IdentityService {
 
     // No se utiliza una excepcion para una expresion booleana
     @Override
-    public boolean existsByEmail(String email) {
+    public boolean existsUserByEmail(String email) {
         return userRepository.existsByEmail(email);
     }
 }

@@ -61,7 +61,7 @@ public class AuthServiceImpl implements AuthService {
 
         User userToAccountRequest = accountRequestMapper.accountRequestToUser(accountRequest);
 
-        if (identityService.existsByEmail(userToAccountRequest.getEmail())) {
+        if (identityService.existsUserByEmail(userToAccountRequest.getEmail())) {
             throw new UserAlreadyExistsException();
         }
 

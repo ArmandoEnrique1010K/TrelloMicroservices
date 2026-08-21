@@ -5,7 +5,6 @@ import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -16,6 +15,7 @@ import com.trello.identity.auth.exception.MismatchPasswordException;
 import com.trello.identity.auth.exception.UserAlreadyExistsException;
 import com.trello.identity.common.StandarizedApiExceptionResponse;
 import com.trello.identity.profile.exception.MismatchCheckPasswordException;
+import com.trello.identity.profile.exception.MismatchSameOldPasswordException;
 import com.trello.identity.profile.exception.MismatchUpdatePasswordException;
 
 @RestControllerAdvice
@@ -173,7 +173,7 @@ public class ApiExceptionHandler {
     // Contraseña incorrecta cuando se trata de verificar contraseña
     @ExceptionHandler(MismatchCheckPasswordException.class)
     public ResponseEntity<StandarizedApiExceptionResponse> handleMismatchCheckPassword(
-            MismatchPasswordException exception) {
+            MismatchCheckPasswordException exception) {
         HttpStatus status = HttpStatus.BAD_REQUEST;
 
         StandarizedApiExceptionResponse response = new StandarizedApiExceptionResponse(
@@ -192,7 +192,7 @@ public class ApiExceptionHandler {
     // Contraseña incorrecta cuando se trata de cambiar de contraseña
     @ExceptionHandler(MismatchUpdatePasswordException.class)
     public ResponseEntity<StandarizedApiExceptionResponse> handleMismatchUpdatePassword(
-            MismatchPasswordException exception) {
+            MismatchUpdatePasswordException exception) {
         HttpStatus status = HttpStatus.BAD_REQUEST;
 
         StandarizedApiExceptionResponse response = new StandarizedApiExceptionResponse(
@@ -202,6 +202,24 @@ public class ApiExceptionHandler {
                 "The new password confirmation does not match the new password",
                 null,
                 "Su nueva contraseña no coincide");
+
+        return ResponseEntity
+                .status(status)
+                .body(response);
+    }
+
+    // No puede utilizar su contraseña anterior como nueva contraseña
+    @ExceptionHandler(MismatchSameOldPasswordException.class)
+    public ResponseEntity<StandarizedApiExceptionResponse> handleMismatchSameOldPassword(
+            MismatchSameOldPasswordException exception) {
+        HttpStatus status = HttpStatus.BAD_REQUEST;
+        StandarizedApiExceptionResponse response = new StandarizedApiExceptionResponse(
+                "/errors/validation",
+                "Invalid request",
+                status.value(),
+                "The new password must not be the same as the old password",
+                null,
+                "No puede utilizar esta contraseña");
 
         return ResponseEntity
                 .status(status)

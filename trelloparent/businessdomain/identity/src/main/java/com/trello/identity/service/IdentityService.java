@@ -10,5 +10,6 @@ public interface IdentityService {
 
     User findUserByEmail(String email) throws UserNotFoundException;
 
-    boolean existsByEmail(String email);
+    boolean existsUserByEmail(String email);
+
 }

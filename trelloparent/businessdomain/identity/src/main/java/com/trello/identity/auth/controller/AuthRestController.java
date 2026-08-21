@@ -27,7 +27,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
-@Tag(name = "AUTH API", description = "This API server provides all the functionality for user authentication")
+@Tag(name = "AUTH API", description = "API para la autenticación y gestión de cuentas de usuario")
 @RestController
 @RequestMapping("/auth")
 public class AuthRestController {
@@ -37,7 +37,7 @@ public class AuthRestController {
         this.userService = userService;
     }
 
-    @Operation(summary = "Register a new User", description = "Registers a new user in the database")
+    @Operation(summary = "Registra un nuevo usuario", description = "Registra un nuevo usuario en la base de datos")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Usuario registrado correctamente", content = @Content(mediaType = "application/json", schema = @Schema(implementation = AccountResponse.class))),
             // Una forma de obtener el value (valor de ejemplo) es tomando el código
@@ -98,9 +98,9 @@ public class AuthRestController {
         return ResponseEntity.status(201).body(response);
     }
 
-    @Operation(summary = "Log in a user", description = "Log in with the user's credentials")
+    @Operation(summary = "Autentica al usuario", description = "Autentica al usuario con sus credenciales")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Ha iniciado sesión en la aplicación", content = @Content(mediaType = "application/json", schema = @Schema(implementation = AuthenticationResponse.class))),
+            @ApiResponse(responseCode = "200", description = "Inicio de sesión exitoso", content = @Content(mediaType = "application/json", schema = @Schema(implementation = AuthenticationResponse.class))),
             @ApiResponse(responseCode = "400", description = "Los datos enviados no son válidos", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
                             {
                       "detail": "One or more request fields are invalid",
@@ -115,7 +115,7 @@ public class AuthRestController {
                       "type": "/errors/validation"
                     }
                     """))),
-            @ApiResponse(responseCode = "401", description = "Los datos enviados no son válidos", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
+            @ApiResponse(responseCode = "401", description = "Credenciales incorrectas", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
                     {
                       "detail": "The provided credentials are invalid",
                       "fields": null,
