@@ -13,7 +13,6 @@ public interface AccountRequestMapper {
 
     @Mappings({
             @Mapping(target = "id", ignore = true),
-            @Mapping(target = "password", ignore = true),
             @Mapping(target = "confirmed", ignore = true),
             @Mapping(target = "otpToken", ignore = true),
     })

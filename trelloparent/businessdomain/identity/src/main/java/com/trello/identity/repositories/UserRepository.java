@@ -1,5 +1,6 @@
 package com.trello.identity.repositories;
 
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -8,7 +9,9 @@ import com.trello.identity.entities.User;
 
 public interface UserRepository extends JpaRepository<User, UUID> {
 
-    User findByEmail(String email);
+    Optional<User> findByEmail(String email);
+
+    boolean existsByEmail(String email);
 
     boolean existsByEmailAndConfirmed(String email, boolean confirmed);
 }

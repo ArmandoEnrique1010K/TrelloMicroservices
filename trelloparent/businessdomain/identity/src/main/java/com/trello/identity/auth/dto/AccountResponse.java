@@ -8,7 +8,7 @@ import lombok.Data;
 @Data
 @Schema(name = "AccountResponse", description = "Represents a user on database")
 public class AccountResponse {
-    @Schema(name = "id", example = "John", description = "ID of the user on database")
+    @Schema(name = "id", example = "f35...", description = "ID of the user on database")
     private UUID id;
     @Schema(name = "email", example = "example@gmail.com", description = "Email of the user on database")
     private String email;
