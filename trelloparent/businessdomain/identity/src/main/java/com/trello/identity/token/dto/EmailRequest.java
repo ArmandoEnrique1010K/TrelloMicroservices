@@ -1,0 +1,18 @@
+package com.trello.identity.token.dto;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.media.Schema.RequiredMode;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+import lombok.Data;
+
+@Data
+@Schema(name = "EmailRequest", description = "Representa el correo del usuario")
+public class EmailRequest {
+    @Schema(name = "email", requiredMode = RequiredMode.REQUIRED, example = "example@gmail.com", description = "Correo del usuario")
+    @NotBlank(message = "El correo es obligatorio")
+    @Email(message = "El correo no tiene el formato adecuado")
+    @Pattern(regexp = "^[A-Za-z0-9._%+-]+@(gmail\\.com|hotmail\\.com|outlook\\.com)$", message = "El correo debe pertenecer a Gmail, Hotmail u Outlook")
+    private String email;
+}
