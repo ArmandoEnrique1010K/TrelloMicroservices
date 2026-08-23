@@ -6,16 +6,17 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.trello.identity.entities.User;
+import com.trello.identity.exception.MismatchSameOldPasswordException;
+import com.trello.identity.exception.MismatchUpdatePasswordException;
 import com.trello.identity.exception.UserNotFoundException;
 import com.trello.identity.profile.dto.request.CheckPasswordRequest;
 import com.trello.identity.profile.dto.request.UpdatePasswordRequest;
 import com.trello.identity.profile.dto.response.ProfileResponse;
 import com.trello.identity.profile.exception.MismatchCheckPasswordException;
-import com.trello.identity.profile.exception.MismatchSameOldPasswordException;
-import com.trello.identity.profile.exception.MismatchUpdatePasswordException;
 import com.trello.identity.profile.mapper.ProfileResponseMapper;
 import com.trello.identity.repositories.UserRepository;
 import com.trello.identity.service.IdentityService;
+import com.trello.identity.token.exception.UnconfirmedAccountException;
 
 @Service
 public class ProfileServiceImpl implements ProfileService {
@@ -35,16 +36,24 @@ public class ProfileServiceImpl implements ProfileService {
     }
 
     @Override
-    public ProfileResponse getProfile(UUID userId) throws UserNotFoundException {
+    public ProfileResponse getProfile(UUID userId) throws UserNotFoundException, UnconfirmedAccountException {
         User existingUser = identityService.findUserById(userId);
+
+        if (!existingUser.isConfirmed()) {
+            throw new UnconfirmedAccountException();
+        }
+
         ProfileResponse profileResponseToUser = profileResponseMapper.userToProfileResponse(existingUser);
         return profileResponseToUser;
     }
 
     @Override
     public void checkPassword(UUID userId, CheckPasswordRequest checkPasswordRequest)
-            throws UserNotFoundException, MismatchCheckPasswordException {
+            throws UserNotFoundException, UnconfirmedAccountException, MismatchCheckPasswordException {
         User existingUser = identityService.findUserById(userId);
+        if (!existingUser.isConfirmed()) {
+            throw new UnconfirmedAccountException();
+        }
 
         if (!passwordEncoder.matches(
                 checkPasswordRequest.getCurrentPassword(),
@@ -56,9 +65,13 @@ public class ProfileServiceImpl implements ProfileService {
 
     @Override
     public void updatePassword(UUID userId, UpdatePasswordRequest updatePasswordRequest)
-            throws UserNotFoundException, MismatchCheckPasswordException, MismatchUpdatePasswordException,
+            throws UserNotFoundException,
+            UnconfirmedAccountException, MismatchCheckPasswordException, MismatchUpdatePasswordException,
             MismatchSameOldPasswordException {
         User existingUser = identityService.findUserById(userId);
+        if (!existingUser.isConfirmed()) {
+            throw new UnconfirmedAccountException();
+        }
 
         if (!passwordEncoder.matches(
                 updatePasswordRequest.getCurrentPassword(),

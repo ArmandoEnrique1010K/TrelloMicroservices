@@ -1,4 +1,4 @@
-package com.trello.identity.profile.exception;
+package com.trello.identity.exception;
 
 public class MismatchSameOldPasswordException extends Exception {
 

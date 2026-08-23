@@ -2,6 +2,7 @@ package com.trello.identity.profile.controller;
 
 import java.util.UUID;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -13,16 +14,17 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.trello.identity.common.StandarizedApiExceptionResponse;
 import com.trello.identity.common.SuccessfulResponse;
+import com.trello.identity.exception.MismatchSameOldPasswordException;
+import com.trello.identity.exception.MismatchUpdatePasswordException;
 import com.trello.identity.exception.UserNotFoundException;
 import com.trello.identity.profile.dto.request.CheckPasswordRequest;
 import com.trello.identity.profile.dto.request.UpdatePasswordRequest;
 import com.trello.identity.profile.dto.response.ProfileResponse;
 import com.trello.identity.profile.dto.response.common.SuccessfulUpdatePasswordResponse;
 import com.trello.identity.profile.exception.MismatchCheckPasswordException;
-import com.trello.identity.profile.exception.MismatchSameOldPasswordException;
-import com.trello.identity.profile.exception.MismatchUpdatePasswordException;
 import com.trello.identity.profile.service.ProfileService;
 import com.trello.identity.security.JwtUtils;
+import com.trello.identity.token.exception.UnconfirmedAccountException;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -30,6 +32,7 @@ import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -48,6 +51,8 @@ public class ProfileRestController {
     // No hace falta documentar un endpoint relacionado a si el usuario es eliminado
     // desde la base de datos mientras esta autenticado en la aplicacion
     @Operation(summary = "Obtiene el perfil del usuario", description = "Obtiene los datos del perfil del usuario autenticado")
+    // Icono de candado - significa que requiere autenticación
+    @SecurityRequirement(name = "bearerAuth")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Obtiene el perfil del usuario actual", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ProfileResponse.class))),
             @ApiResponse(responseCode = "401", description = "El usuario no esta autenticado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
@@ -59,6 +64,17 @@ public class ProfileRestController {
                         "status": 401,
                         "title": "Unauthorized",
                         "type": "/errors/authentication/not-authenticated"
+                    }
+                    """))),
+            @ApiResponse(responseCode = "401", description = "La cuenta del usuario aun no fue validada", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
+                    {
+                        "detail": "You must validate your account to perform the desired operation",
+                        "fields": null,
+                        "instance": null,
+                        "message": "Su cuenta aún no fue validada",
+                        "status": 401,
+                        "title": "Unconfirmed Account",
+                        "type": "/errors/account/unconfirmed"
                     }
                     """))),
             @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
@@ -74,14 +90,16 @@ public class ProfileRestController {
                     """))),
     })
     @GetMapping
-    public ResponseEntity<ProfileResponse> getProfile(@AuthenticationPrincipal Jwt jwt) throws UserNotFoundException {
+    public ResponseEntity<ProfileResponse> getProfile(@AuthenticationPrincipal Jwt jwt)
+            throws UserNotFoundException, UnconfirmedAccountException {
         UUID userId = JwtUtils.getUserId(jwt);
 
         ProfileResponse response = profileService.getProfile(userId);
-        return ResponseEntity.status(200).body(response);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     @Operation(summary = "Verifica la contraseña del usuario", description = "Verifica la contraseña actual del usuario autenticado")
+    @SecurityRequirement(name = "bearerAuth")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204", description = "Contraseña correcta"),
             @ApiResponse(responseCode = "400", description = "Los datos enviados no son válidos", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
@@ -121,6 +139,17 @@ public class ProfileRestController {
                         "type": "/errors/authentication/not-authenticated"
                     }
                     """))),
+            @ApiResponse(responseCode = "401", description = "La cuenta del usuario aun no fue validada", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
+                    {
+                        "detail": "You must validate your account to perform the desired operation",
+                        "fields": null,
+                        "instance": null,
+                        "message": "Su cuenta aún no fue validada",
+                        "status": 401,
+                        "title": "Unconfirmed Account",
+                        "type": "/errors/account/unconfirmed"
+                    }
+                    """))),
             @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
                     {
                       "detail": "An unexpected error occurred while processing the request",
@@ -137,14 +166,15 @@ public class ProfileRestController {
     @PostMapping("/checkPassword")
     public ResponseEntity<Void> checkPassword(@AuthenticationPrincipal Jwt jwt,
             @Valid @RequestBody CheckPasswordRequest input)
-            throws UserNotFoundException, MismatchCheckPasswordException {
+            throws UserNotFoundException, UnconfirmedAccountException, MismatchCheckPasswordException {
         UUID userId = JwtUtils.getUserId(jwt);
 
         profileService.checkPassword(userId, input);
-        return ResponseEntity.status(204).body(null);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).body(null);
     }
 
-    @Operation(summary = "Actualiza la contraseña del usuario", description = "Actualiza la contraseña del usuario en la base de datos si este recuerda su contraseña anterior")
+    @Operation(summary = "Actualiza la contraseña del usuario", description = "Actualiza la contraseña del usuario en la base de datos si el usuario recuerda su contraseña anterior")
+    @SecurityRequirement(name = "bearerAuth")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Actualización correcta de la contraseña del usuario", content = @Content(mediaType = "application/json", schema = @Schema(type = "object", implementation = SuccessfulUpdatePasswordResponse.class), examples = @ExampleObject(value = """
                     {
@@ -189,6 +219,17 @@ public class ProfileRestController {
                           "type": "/errors/validation"
                     }
                     """))),
+            @ApiResponse(responseCode = "400", description = "No puede utilizar su contraseña anterior como nueva contraseña", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
+                    {
+                          "detail": "The new password must not be the same as the old password",
+                          "fields": null,
+                          "instance": null,
+                          "message": "No puede utilizar esta contraseña",
+                          "status": 400,
+                          "title": "Invalid request",
+                          "type": "/errors/validation"
+                    }
+                    """))),
             @ApiResponse(responseCode = "401", description = "El usuario no esta autenticado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
                     {
                         "detail": "Authentication is required to access this resource",
@@ -198,6 +239,17 @@ public class ProfileRestController {
                         "status": 401,
                         "title": "Unauthorized",
                         "type": "/errors/authentication/not-authenticated"
+                    }
+                    """))),
+            @ApiResponse(responseCode = "401", description = "La cuenta del usuario aun no fue validada", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
+                    {
+                        "detail": "You must validate your account to perform the desired operation",
+                        "fields": null,
+                        "instance": null,
+                        "message": "Su cuenta aún no fue validada",
+                        "status": 401,
+                        "title": "Unconfirmed Account",
+                        "type": "/errors/account/unconfirmed"
                     }
                     """))),
             @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
@@ -215,7 +267,8 @@ public class ProfileRestController {
     @PutMapping("updatePassword")
     public ResponseEntity<SuccessfulResponse<?>> updatePassword(@AuthenticationPrincipal Jwt jwt,
             @Valid @RequestBody UpdatePasswordRequest input)
-            throws UserNotFoundException, MismatchCheckPasswordException, MismatchUpdatePasswordException,
+            throws UserNotFoundException,
+            UnconfirmedAccountException, MismatchCheckPasswordException, MismatchUpdatePasswordException,
             MismatchSameOldPasswordException {
         UUID userId = JwtUtils.getUserId(jwt);
 

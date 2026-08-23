@@ -9,4 +9,6 @@ import com.trello.identity.entities.OtpToken;
 
 public interface OtpTokenRepository extends JpaRepository<OtpToken, UUID> {
     Optional<OtpToken> findByUserId(UUID userId);
+
+    Optional<OtpToken> findByUserEmail(String email);
 }

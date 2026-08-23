@@ -19,4 +19,6 @@ public interface IdentityService {
     Optional<OtpToken> findOptionalOtpTokenByUserId(UUID userId);
 
     OtpToken findOtpTokenByUserId(UUID userId);
+
+    User findUserByOtpTokenResetToken(UUID resetToken) throws UserNotFoundException;
 }

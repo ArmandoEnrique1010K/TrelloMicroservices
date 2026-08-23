@@ -8,8 +8,8 @@ import jakarta.validation.constraints.Pattern;
 import lombok.Data;
 
 @Data
-@Schema(name = "EmailRequest", description = "Representa el correo del usuario")
-public class EmailRequest {
+@Schema(name = "SendPasswordResetTokenRequest", description = "Representa el correo del usuario al que se le enviara un token de validación")
+public class SendPasswordResetTokenRequest {
     @Schema(name = "email", requiredMode = RequiredMode.REQUIRED, example = "example@gmail.com", description = "Correo del usuario")
     @NotBlank(message = "El correo es obligatorio")
     @Email(message = "El correo no tiene el formato adecuado")

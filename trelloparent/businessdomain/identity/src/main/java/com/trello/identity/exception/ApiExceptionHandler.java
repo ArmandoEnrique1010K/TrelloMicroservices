@@ -15,9 +15,9 @@ import com.trello.identity.auth.exception.MismatchPasswordException;
 import com.trello.identity.auth.exception.UserAlreadyExistsException;
 import com.trello.identity.common.StandarizedApiExceptionResponse;
 import com.trello.identity.profile.exception.MismatchCheckPasswordException;
-import com.trello.identity.profile.exception.MismatchSameOldPasswordException;
-import com.trello.identity.profile.exception.MismatchUpdatePasswordException;
+import com.trello.identity.token.exception.ConfirmedAccountException;
 import com.trello.identity.token.exception.InvalidTokenException;
+import com.trello.identity.token.exception.UnconfirmedAccountException;
 
 @RestControllerAdvice
 public class ApiExceptionHandler {
@@ -244,4 +244,41 @@ public class ApiExceptionHandler {
                 .status(status)
                 .body(response);
     }
+
+    // Error de la cuenta que ya fue validada
+    @ExceptionHandler(ConfirmedAccountException.class)
+    public ResponseEntity<StandarizedApiExceptionResponse> handleConfirmedAccount(
+            ConfirmedAccountException exception) {
+        HttpStatus status = HttpStatus.UNAUTHORIZED;
+        StandarizedApiExceptionResponse response = new StandarizedApiExceptionResponse(
+                "/errors/account/confirmed",
+                "Confirmed Account",
+                status.value(),
+                "Your account has already been validated and cannot be validated again",
+                null,
+                "Su cuenta ya fue validada");
+
+        return ResponseEntity
+                .status(status)
+                .body(response);
+    }
+
+    // Error de la cuenta que aun no fue validada
+    @ExceptionHandler(UnconfirmedAccountException.class)
+    public ResponseEntity<StandarizedApiExceptionResponse> handleUnconfirmedAccount(
+            UnconfirmedAccountException exception) {
+        HttpStatus status = HttpStatus.UNAUTHORIZED;
+        StandarizedApiExceptionResponse response = new StandarizedApiExceptionResponse(
+                "/errors/account/unconfirmed",
+                "Unconfirmed Account",
+                status.value(),
+                "You must validate your account to perform the desired operation",
+                null,
+                "Su cuenta aún no fue validada");
+
+        return ResponseEntity
+                .status(status)
+                .body(response);
+    }
+
 }

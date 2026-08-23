@@ -18,6 +18,11 @@ public class ResetPasswordRequest {
     @Pattern(regexp = "^(?=.*[A-Z])(?=.*\\d)(?=.*[^A-Za-z0-9]).+$", message = "La nueva contraseña debe contener al menos una mayúscula, un número y un símbolo")
     private String newPassword;
 
-    @Schema(name = "id", requiredMode = RequiredMode.REQUIRED, example = "f35...", description = "Token secreto obtenido de la base de datos")
+    @Schema(name = "newPasswordConfirmation", requiredMode = RequiredMode.REQUIRED, example = "********", description = "La misma nueva contraseña del usuario")
+    @NotBlank(message = "Confirme su nueva contraseña")
+    private String newPasswordConfirmation;
+
+    @Schema(name = "resetToken", requiredMode = RequiredMode.REQUIRED, example = "f35...", description = "Token secreto obtenido de la base de datos")
+    @NotBlank(message = "El token de reinicio es obligatorio")
     private UUID resetToken;
 }

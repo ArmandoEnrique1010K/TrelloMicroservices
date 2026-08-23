@@ -51,4 +51,10 @@ public class IdentityServiceImpl implements IdentityService {
         OtpToken otpToken = otpTokenRepository.findByUserId(userId).get();
         return otpToken;
     }
+
+    @Override
+    public User findUserByOtpTokenResetToken(UUID resetToken) throws UserNotFoundException {
+        User user = userRepository.findByOtpTokenResetToken(resetToken).orElseThrow(UserNotFoundException::new);
+        return user;
+    }
 }
