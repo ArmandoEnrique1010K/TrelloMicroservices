@@ -2,10 +2,10 @@ package com.trello.identity.auth.service;
 
 import org.springframework.security.authentication.BadCredentialsException;
 
-import com.trello.identity.auth.dto.AccountRequest;
-import com.trello.identity.auth.dto.AccountResponse;
-import com.trello.identity.auth.dto.AuthenticationRequest;
-import com.trello.identity.auth.dto.AuthenticationResponse;
+import com.trello.identity.auth.dto.response.AccountResponse;
+import com.trello.identity.auth.dto.response.AuthenticationResponse;
+import com.trello.identity.auth.dto.request.AccountRequest;
+import com.trello.identity.auth.dto.request.AuthenticationRequest;
 import com.trello.identity.auth.exception.CustomBadCredentialsException;
 import com.trello.identity.auth.exception.MismatchPasswordException;
 import com.trello.identity.auth.exception.UserAlreadyExistsException;

@@ -3,7 +3,6 @@ package com.trello.identity.common;
 import java.util.Map;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.media.Schema.RequiredMode;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -11,26 +10,26 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Data
 public class StandarizedApiExceptionResponse {
-    @Schema(description = "Una referencia URI que identifica el tipo de problema", name = "type", requiredMode = RequiredMode.REQUIRED, example = "/errors/authentication/not-authorized")
+    @Schema(description = "Una referencia URI que identifica el tipo de problema", name = "type", example = "/errors/authentication/not-authorized")
     private String type;
 
-    @Schema(description = "Un resumen breve y comprensible para las personas sobre el problema", name = "title", requiredMode = RequiredMode.REQUIRED, example = "User is not authorized")
+    @Schema(description = "Un resumen breve y comprensible para las personas sobre el problema", name = "title", example = "User is not authorized")
     private String title;
 
-    @Schema(description = "Un código de estado único", name = "status", requiredMode = RequiredMode.REQUIRED, example = "500")
+    @Schema(description = "Un código de estado único", name = "status", example = "500")
     private int status;
 
-    @Schema(description = "Una explicación legible por humanos específica para esta aparición del problema", name = "detail", requiredMode = RequiredMode.REQUIRED, example = "The user does not have the required permissions to access the resource")
+    @Schema(description = "Una explicación legible por humanos específica para esta aparición del problema", name = "detail", example = "The user does not have the required permissions to access the resource")
     private String detail;
 
-    @Schema(description = "Una referencia URI que identifica la aparición específica del problema", name = "instance", requiredMode = RequiredMode.NOT_REQUIRED, example = "/errors/authentication/not-authorized/01")
+    @Schema(description = "Una referencia URI que identifica la aparición específica del problema", name = "instance", example = "/errors/authentication/not-authorized/01")
     private String instance;
 
     // Campos personalizados
-    @Schema(description = "Un mensaje legible para mostrar en el cliente web", name = "message", requiredMode = RequiredMode.REQUIRED, example = "Message to show in web client")
+    @Schema(description = "Un mensaje legible para mostrar en el cliente web", name = "message", example = "Vuelva ha iniciar sesión en la aplicación")
     private String message;
 
-    @Schema(description = "Información adicional sobre los campos relacionados con el error", name = "fields", requiredMode = RequiredMode.NOT_REQUIRED, example = "{\"additionalProp1\":\"string\",\"additionalProp2\":\"string\"}")
+    @Schema(description = "Información adicional sobre los campos relacionados con el error", name = "fields", example = "{\"campo1\":\"mensaje\",\"campo2\":\"mensaje\"}")
     private Map<String, String> fields;
 
     public StandarizedApiExceptionResponse(

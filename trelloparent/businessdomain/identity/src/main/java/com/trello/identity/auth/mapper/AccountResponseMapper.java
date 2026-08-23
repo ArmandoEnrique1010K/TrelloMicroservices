@@ -2,7 +2,7 @@ package com.trello.identity.auth.mapper;
 
 import org.mapstruct.Mapper;
 
-import com.trello.identity.auth.dto.AccountResponse;
+import com.trello.identity.auth.dto.response.AccountResponse;
 import com.trello.identity.entities.User;
 
 @Mapper(componentModel = "spring")

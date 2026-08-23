@@ -1,20 +1,24 @@
 package com.trello.identity.auth.controller;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.trello.identity.auth.dto.AccountRequest;
-import com.trello.identity.auth.dto.AccountResponse;
-import com.trello.identity.auth.dto.AuthenticationRequest;
-import com.trello.identity.auth.dto.AuthenticationResponse;
+import com.trello.identity.auth.dto.response.AccountResponse;
+import com.trello.identity.auth.dto.response.AuthenticationResponse;
+import com.trello.identity.auth.dto.response.common.SuccessfulAccountResponse;
+import com.trello.identity.auth.dto.response.common.SuccessfulAuthenticationResponse;
+import com.trello.identity.auth.dto.request.AccountRequest;
+import com.trello.identity.auth.dto.request.AuthenticationRequest;
 import com.trello.identity.auth.exception.CustomBadCredentialsException;
 import com.trello.identity.auth.exception.MismatchPasswordException;
 import com.trello.identity.auth.exception.UserAlreadyExistsException;
 import com.trello.identity.auth.service.AuthService;
 import com.trello.identity.common.StandarizedApiExceptionResponse;
+import com.trello.identity.common.SuccessfulResponse;
 import com.trello.identity.exception.BusinessRuleException;
 import com.trello.identity.exception.UserNotFoundException;
 
@@ -39,9 +43,9 @@ public class AuthRestController {
 
     @Operation(summary = "Registra un nuevo usuario", description = "Registra un nuevo usuario en la base de datos")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "201", description = "Usuario registrado correctamente", content = @Content(mediaType = "application/json", schema = @Schema(implementation = AccountResponse.class))),
             // Una forma de obtener el value (valor de ejemplo) es tomando el código
             // generado como respuesta desde la UI de Swagger
+            @ApiResponse(responseCode = "201", description = "Usuario registrado correctamente", content = @Content(mediaType = "application/json", schema = @Schema(type = "object", implementation = SuccessfulAccountResponse.class))),
             @ApiResponse(responseCode = "400", description = "Los datos enviados no son válidos", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
                     {
                         "detail": "One or more request fields are invalid",
@@ -92,15 +96,20 @@ public class AuthRestController {
                     """)))
     })
     @PostMapping("/createAccount")
-    public ResponseEntity<AccountResponse> createAccount(@Valid @RequestBody AccountRequest input)
+    public ResponseEntity<SuccessfulResponse<AccountResponse>> createAccount(@Valid @RequestBody AccountRequest input)
             throws UserNotFoundException, MismatchPasswordException, UserAlreadyExistsException {
         AccountResponse response = userService.createAccount(input);
-        return ResponseEntity.status(201).body(response);
+
+        SuccessfulResponse<AccountResponse> successfulResponse = new SuccessfulResponse<>();
+        successfulResponse.setMessage("Su cuenta ha sido creada correctamente");
+        successfulResponse.setBody(response);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(successfulResponse);
     }
 
     @Operation(summary = "Autentica al usuario", description = "Autentica al usuario con sus credenciales")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Inicio de sesión exitoso", content = @Content(mediaType = "application/json", schema = @Schema(implementation = AuthenticationResponse.class))),
+            @ApiResponse(responseCode = "200", description = "Inicio de sesión exitoso", content = @Content(mediaType = "application/json", schema = @Schema(type = "object", implementation = SuccessfulAuthenticationResponse.class))),
             @ApiResponse(responseCode = "400", description = "Los datos enviados no son válidos", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
                             {
                       "detail": "One or more request fields are invalid",
@@ -139,9 +148,15 @@ public class AuthRestController {
                     """)))
     })
     @PostMapping("/login")
-    public ResponseEntity<AuthenticationResponse> login(@Valid @RequestBody AuthenticationRequest input)
+    public ResponseEntity<SuccessfulResponse<AuthenticationResponse>> login(
+            @Valid @RequestBody AuthenticationRequest input)
             throws UserNotFoundException, BusinessRuleException, CustomBadCredentialsException {
         AuthenticationResponse response = userService.login(input);
-        return ResponseEntity.status(200).body(response);
+
+        SuccessfulResponse<AuthenticationResponse> successfulResponse = new SuccessfulResponse<>();
+        successfulResponse.setMessage("Bienvenido a TrelloApp");
+        successfulResponse.setBody(response);
+
+        return ResponseEntity.status(200).body(successfulResponse);
     }
 }

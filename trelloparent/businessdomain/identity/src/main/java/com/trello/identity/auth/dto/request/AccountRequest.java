@@ -1,4 +1,4 @@
-package com.trello.identity.auth.dto;
+package com.trello.identity.auth.dto.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.media.Schema.RequiredMode;
