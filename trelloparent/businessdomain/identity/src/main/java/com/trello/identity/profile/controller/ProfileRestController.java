@@ -12,10 +12,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.trello.identity.common.StandarizedApiExceptionResponse;
+import com.trello.identity.common.SuccessfulResponse;
 import com.trello.identity.exception.UserNotFoundException;
-import com.trello.identity.profile.dto.CheckPasswordRequest;
-import com.trello.identity.profile.dto.ProfileResponse;
-import com.trello.identity.profile.dto.UpdatePasswordRequest;
+import com.trello.identity.profile.dto.request.CheckPasswordRequest;
+import com.trello.identity.profile.dto.request.UpdatePasswordRequest;
+import com.trello.identity.profile.dto.response.ProfileResponse;
+import com.trello.identity.profile.dto.response.common.SuccessfulUpdatePasswordResponse;
 import com.trello.identity.profile.exception.MismatchCheckPasswordException;
 import com.trello.identity.profile.exception.MismatchSameOldPasswordException;
 import com.trello.identity.profile.exception.MismatchUpdatePasswordException;
@@ -47,8 +49,8 @@ public class ProfileRestController {
     // desde la base de datos mientras esta autenticado en la aplicacion
     @Operation(summary = "Obtiene el perfil del usuario", description = "Obtiene los datos del perfil del usuario autenticadoa")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Profile of the current user", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ProfileResponse.class))),
-            @ApiResponse(responseCode = "401", description = "User is not authenticated", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
+            @ApiResponse(responseCode = "200", description = "Obtiene el perfil del usuario actual", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ProfileResponse.class))),
+            @ApiResponse(responseCode = "401", description = "El usuario no esta autenticado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
                     {
                         "detail": "Authentication is required to access this resource",
                         "fields": null,
@@ -81,7 +83,7 @@ public class ProfileRestController {
 
     @Operation(summary = "Verifica la contraseña del usuario", description = "Verifica la contraseña actual del usuario autenticado")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "204", description = "Correct password"),
+            @ApiResponse(responseCode = "204", description = "Contraseña correcta"),
             @ApiResponse(responseCode = "400", description = "Los datos enviados no son válidos", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
                     {
                       "detail": "One or more request fields are invalid",
@@ -96,7 +98,7 @@ public class ProfileRestController {
                     }
                     """))),
 
-            @ApiResponse(responseCode = "400", description = "Incorrect password", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
+            @ApiResponse(responseCode = "400", description = "Contraseña incorrecta", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
                     {
                         "detail": "That is not your password",
                         "fields": null,
@@ -108,7 +110,7 @@ public class ProfileRestController {
                     }
                     """))),
 
-            @ApiResponse(responseCode = "401", description = "User is not authenticated", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
+            @ApiResponse(responseCode = "401", description = "El usuario no esta autenticado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
                     {
                         "detail": "Authentication is required to access this resource",
                         "fields": null,
@@ -133,7 +135,7 @@ public class ProfileRestController {
 
     })
     @PostMapping("/checkPassword")
-    public ResponseEntity<?> checkPassword(@AuthenticationPrincipal Jwt jwt,
+    public ResponseEntity<Void> checkPassword(@AuthenticationPrincipal Jwt jwt,
             @Valid @RequestBody CheckPasswordRequest input)
             throws UserNotFoundException, MismatchCheckPasswordException {
         UUID userId = JwtUtils.getUserId(jwt);
@@ -144,7 +146,12 @@ public class ProfileRestController {
 
     @Operation(summary = "Actualiza la contraseña del usuario", description = "Actualiza la contraseña del usuario en la base de datos si este recuerda su contraseña anterior")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "204", description = "Password changed"),
+            @ApiResponse(responseCode = "200", description = "Actualización correcta de la contraseña del usuario", content = @Content(mediaType = "application/json", schema = @Schema(type = "object", implementation = SuccessfulUpdatePasswordResponse.class), examples = @ExampleObject(value = """
+                    {
+                        "body": null,
+                        "message": "Su contraseña ha sido actualizada"
+                    }
+                    """))),
             @ApiResponse(responseCode = "400", description = "Los datos enviados no son válidos", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
                     {
                       "detail": "One or more request fields are invalid",
@@ -160,8 +167,7 @@ public class ProfileRestController {
                       "type": "/errors/validation"
                     }
                     """))),
-
-            @ApiResponse(responseCode = "400", description = "Incorrect old password", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
+            @ApiResponse(responseCode = "400", description = "Contraseña antigua incorrecta", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
                     {
                         "detail": "That is not your password",
                         "fields": null,
@@ -172,19 +178,18 @@ public class ProfileRestController {
                         "type": "/errors/validation"
                     }
                     """))),
-
             @ApiResponse(responseCode = "400", description = "Las contraseñas no coinciden", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
                     {
                           "detail": "The new password confirmation does not match the new password",
                           "fields": null,
                           "instance": null,
-                          "message": "Su nueva contraseña no coincide",
+                          "message": "Los campos de su nueva contraseña no coinciden",
                           "status": 400,
                           "title": "Invalid request",
                           "type": "/errors/validation"
                     }
                     """))),
-            @ApiResponse(responseCode = "401", description = "User is not authenticated", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
+            @ApiResponse(responseCode = "401", description = "El usuario no esta autenticado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
                     {
                         "detail": "Authentication is required to access this resource",
                         "fields": null,
@@ -208,14 +213,18 @@ public class ProfileRestController {
                     """))),
     })
     @PutMapping("updatePassword")
-    public ResponseEntity<?> updatePassword(@AuthenticationPrincipal Jwt jwt,
+    public ResponseEntity<SuccessfulResponse<?>> updatePassword(@AuthenticationPrincipal Jwt jwt,
             @Valid @RequestBody UpdatePasswordRequest input)
             throws UserNotFoundException, MismatchCheckPasswordException, MismatchUpdatePasswordException,
             MismatchSameOldPasswordException {
         UUID userId = JwtUtils.getUserId(jwt);
 
+        SuccessfulResponse<?> successfulResponse = new SuccessfulResponse<>();
+        successfulResponse.setMessage("Su contraseña ha sido actualizada");
+        successfulResponse.setBody(null);
+
         profileService.updatePassword(userId, input);
-        return ResponseEntity.status(204).body(null);
+        return ResponseEntity.status(200).body(successfulResponse);
     }
 
 }

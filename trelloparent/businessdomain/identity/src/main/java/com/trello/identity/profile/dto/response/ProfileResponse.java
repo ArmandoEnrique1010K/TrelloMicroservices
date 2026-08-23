@@ -1,4 +1,4 @@
-package com.trello.identity.profile.dto;
+package com.trello.identity.profile.dto.response;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
