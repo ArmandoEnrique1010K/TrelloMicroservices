@@ -52,7 +52,7 @@ public class AuthServiceImpl implements AuthService {
     @Transactional
     @Override
     public AccountResponse createAccount(AccountRequest accountRequest)
-            throws UserNotFoundException, MismatchPasswordException,
+            throws MismatchPasswordException,
             UserAlreadyExistsException {
 
         if (!accountRequest.getPassword().equals(accountRequest.getPasswordConfirmation())) {
@@ -80,7 +80,7 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public AuthenticationResponse login(AuthenticationRequest authenticationRequest)
-            throws UserNotFoundException, BadCredentialsException, CustomBadCredentialsException {
+            throws CustomBadCredentialsException {
 
         User existingUser;
 

@@ -47,7 +47,7 @@ public class ProfileRestController {
 
     // No hace falta documentar un endpoint relacionado a si el usuario es eliminado
     // desde la base de datos mientras esta autenticado en la aplicacion
-    @Operation(summary = "Obtiene el perfil del usuario", description = "Obtiene los datos del perfil del usuario autenticadoa")
+    @Operation(summary = "Obtiene el perfil del usuario", description = "Obtiene los datos del perfil del usuario autenticado")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Obtiene el perfil del usuario actual", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ProfileResponse.class))),
             @ApiResponse(responseCode = "401", description = "El usuario no esta autenticado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """

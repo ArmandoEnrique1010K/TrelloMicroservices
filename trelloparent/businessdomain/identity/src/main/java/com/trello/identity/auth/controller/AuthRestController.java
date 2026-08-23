@@ -19,8 +19,6 @@ import com.trello.identity.auth.exception.UserAlreadyExistsException;
 import com.trello.identity.auth.service.AuthService;
 import com.trello.identity.common.StandarizedApiExceptionResponse;
 import com.trello.identity.common.SuccessfulResponse;
-import com.trello.identity.exception.BusinessRuleException;
-import com.trello.identity.exception.UserNotFoundException;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -106,7 +104,7 @@ public class AuthRestController {
     })
     @PostMapping("/createAccount")
     public ResponseEntity<SuccessfulResponse<AccountResponse>> createAccount(@Valid @RequestBody AccountRequest input)
-            throws UserNotFoundException, MismatchPasswordException, UserAlreadyExistsException {
+            throws MismatchPasswordException, UserAlreadyExistsException {
         AccountResponse response = userService.createAccount(input);
 
         SuccessfulResponse<AccountResponse> successfulResponse = new SuccessfulResponse<>();
@@ -169,7 +167,7 @@ public class AuthRestController {
     @PostMapping("/login")
     public ResponseEntity<SuccessfulResponse<AuthenticationResponse>> login(
             @Valid @RequestBody AuthenticationRequest input)
-            throws UserNotFoundException, BusinessRuleException, CustomBadCredentialsException {
+            throws CustomBadCredentialsException {
         AuthenticationResponse response = userService.login(input);
 
         SuccessfulResponse<AuthenticationResponse> successfulResponse = new SuccessfulResponse<>();

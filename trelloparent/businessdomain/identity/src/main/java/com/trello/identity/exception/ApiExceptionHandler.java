@@ -17,6 +17,7 @@ import com.trello.identity.common.StandarizedApiExceptionResponse;
 import com.trello.identity.profile.exception.MismatchCheckPasswordException;
 import com.trello.identity.profile.exception.MismatchSameOldPasswordException;
 import com.trello.identity.profile.exception.MismatchUpdatePasswordException;
+import com.trello.identity.token.exception.InvalidTokenException;
 
 @RestControllerAdvice
 public class ApiExceptionHandler {
@@ -57,7 +58,7 @@ public class ApiExceptionHandler {
     @ExceptionHandler(UserNotFoundException.class)
     public ResponseEntity<StandarizedApiExceptionResponse> handleUserNotFoundException(
             UserNotFoundException ex) {
-        HttpStatus status = HttpStatus.BAD_REQUEST;
+        HttpStatus status = HttpStatus.NOT_FOUND;
 
         StandarizedApiExceptionResponse standarizedApiExceptionResponse = new StandarizedApiExceptionResponse(
                 "/errors/user-not-found",
@@ -226,4 +227,21 @@ public class ApiExceptionHandler {
                 .body(response);
     }
 
+    // Clasico error del token invalido o incorrecto
+    @ExceptionHandler(InvalidTokenException.class)
+    public ResponseEntity<StandarizedApiExceptionResponse> handleInvalidToken(
+            InvalidTokenException exception) {
+        HttpStatus status = HttpStatus.UNAUTHORIZED;
+        StandarizedApiExceptionResponse response = new StandarizedApiExceptionResponse(
+                "/errors/invalid-token",
+                "Invalid Token",
+                status.value(),
+                "The entered token is incorrect or invalid",
+                null,
+                "Token invalido o incorrecto");
+
+        return ResponseEntity
+                .status(status)
+                .body(response);
+    }
 }
