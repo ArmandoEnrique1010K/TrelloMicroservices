@@ -45,7 +45,16 @@ public class AuthRestController {
     @ApiResponses(value = {
             // Una forma de obtener el value (valor de ejemplo) es tomando el código
             // generado como respuesta desde la UI de Swagger
-            @ApiResponse(responseCode = "201", description = "Usuario registrado correctamente", content = @Content(mediaType = "application/json", schema = @Schema(type = "object", implementation = SuccessfulAccountResponse.class))),
+            @ApiResponse(responseCode = "201", description = "Usuario registrado correctamente", content = @Content(mediaType = "application/json", schema = @Schema(implementation = SuccessfulAccountResponse.class), examples = @ExampleObject(value = """
+                    {
+                        "body": {
+                            "confirmed": false,
+                            "email": "example@gmail.com",
+                            "id": "f35..."
+                        },
+                        "message": "Su cuenta ha sido creada correctamente"
+                    }
+                    """))),
             @ApiResponse(responseCode = "400", description = "Los datos enviados no son válidos", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
                     {
                         "detail": "One or more request fields are invalid",
@@ -85,13 +94,13 @@ public class AuthRestController {
                     """))),
             @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
                     {
-                      "detail": "An unexpected error occurred while processing the request",
-                      "fields": null,
-                      "instance": null,
-                      "message": "Ha ocurrido un error inesperado",
-                      "status": 500,
-                      "title": "Internal server error",
-                      "type": "/errors/internal-server-error"
+                        "detail": "An unexpected error occurred while processing the request",
+                        "fields": null,
+                        "instance": null,
+                        "message": "Ha ocurrido un error inesperado",
+                        "status": 500,
+                        "title": "Internal server error",
+                        "type": "/errors/internal-server-error"
                     }
                     """)))
     })
@@ -109,41 +118,51 @@ public class AuthRestController {
 
     @Operation(summary = "Autentica al usuario", description = "Autentica al usuario con sus credenciales")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Inicio de sesión exitoso", content = @Content(mediaType = "application/json", schema = @Schema(type = "object", implementation = SuccessfulAuthenticationResponse.class))),
+            @ApiResponse(responseCode = "200", description = "Inicio de sesión exitoso", content = @Content(mediaType = "application/json", schema = @Schema(implementation = SuccessfulAuthenticationResponse.class), examples = @ExampleObject(value = """
+                    {
+                        "body": {
+                            "accessToken": "eyJ...",
+                            "confirmed": true,
+                            "refreshToken": 900,
+                            "expiresIn": "eyJ..."
+                        },
+                        "message": "Bienvenido a TrelloApp"
+                    }
+                    """))),
             @ApiResponse(responseCode = "400", description = "Los datos enviados no son válidos", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
-                            {
-                      "detail": "One or more request fields are invalid",
-                      "fields": {
-                        "password": "La contraseña es obligatoria",
-                        "email": "El correo es obligatorio"
-                      },
-                      "instance": null,
-                      "message": "Complete los campos indicados",
-                      "status": 400,
-                      "title": "Invalid request",
-                      "type": "/errors/validation"
+                    {
+                        "detail": "One or more request fields are invalid",
+                        "fields": {
+                            "password": "La contraseña es obligatoria",
+                            "email": "El correo es obligatorio"
+                        },
+                        "instance": null,
+                        "message": "Complete los campos indicados",
+                        "status": 400,
+                        "title": "Invalid request",
+                        "type": "/errors/validation"
                     }
                     """))),
             @ApiResponse(responseCode = "401", description = "Credenciales incorrectas", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
                     {
-                      "detail": "The provided credentials are invalid",
-                      "fields": null,
-                      "instance": null,
-                      "message": "El email o la contraseña son incorrectos",
-                      "status": 401,
-                      "title": "Authentication failed",
-                      "type": "/errors/authentication/invalid-credentials"
+                        "detail": "The provided credentials are invalid",
+                        "fields": null,
+                        "instance": null,
+                        "message": "El email o la contraseña son incorrectos",
+                        "status": 401,
+                        "title": "Authentication failed",
+                        "type": "/errors/authentication/invalid-credentials"
                     }
                     """))),
             @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
                     {
-                      "detail": "An unexpected error occurred while processing the request",
-                      "fields": null,
-                      "instance": null,
-                      "message": "Ha ocurrido un error inesperado",
-                      "status": 500,
-                      "title": "Internal server error",
-                      "type": "/errors/internal-server-error"
+                        "detail": "An unexpected error occurred while processing the request",
+                        "fields": null,
+                        "instance": null,
+                        "message": "Ha ocurrido un error inesperado",
+                        "status": 500,
+                        "title": "Internal server error",
+                        "type": "/errors/internal-server-error"
                     }
                     """)))
     })

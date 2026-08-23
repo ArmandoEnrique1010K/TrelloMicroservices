@@ -5,6 +5,6 @@ import com.trello.identity.common.SuccessfulResponse;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-@Schema(name = "SuccessfulAccountResponse")
+@Schema(name = "SuccessfulAccountResponse", description = "Respuesta exitosa al crear una cuenta")
 public class SuccessfulAccountResponse extends SuccessfulResponse<AccountResponse> {
 }

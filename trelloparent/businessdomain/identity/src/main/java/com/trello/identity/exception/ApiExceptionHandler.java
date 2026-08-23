@@ -201,7 +201,7 @@ public class ApiExceptionHandler {
                 status.value(),
                 "The new password confirmation does not match the new password",
                 null,
-                "Su nueva contraseña no coincide");
+                "Los campos de su nueva contraseña no coinciden");
 
         return ResponseEntity
                 .status(status)
