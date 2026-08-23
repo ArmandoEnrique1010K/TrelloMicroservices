@@ -1,9 +1,11 @@
 package com.trello.identity.service;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.trello.identity.entities.OtpToken;
 import com.trello.identity.entities.User;
@@ -56,5 +58,14 @@ public class IdentityServiceImpl implements IdentityService {
     public User findUserByOtpTokenResetToken(UUID resetToken) throws UserNotFoundException {
         User user = userRepository.findByOtpTokenResetToken(resetToken).orElseThrow(UserNotFoundException::new);
         return user;
+    }
+
+    @Override
+    // Como este método se va a ejecutar automaticamente cada cierto tiempo debe
+    // tener un @Transactional
+    @Transactional
+    public void deleteAllOtpTokensExpiredOrUsed() {
+        LocalDateTime now = LocalDateTime.now();
+        otpTokenRepository.deleteExpiredOrUsedOtpTokens(now);
     }
 }
