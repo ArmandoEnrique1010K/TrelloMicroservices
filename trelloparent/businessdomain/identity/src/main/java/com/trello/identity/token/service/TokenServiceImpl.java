@@ -6,6 +6,7 @@ import java.util.UUID;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.trello.identity.entities.OtpToken;
 import com.trello.identity.entities.User;
@@ -57,13 +58,14 @@ public class TokenServiceImpl implements TokenService {
         String token = TokenUtils.generateOtp();
 
         // Recordar que hay una relacion de uno a uno entre User y OtpToken
-        OtpToken otpToken = identityService.findOtpTokenByUserId(userId);
-
         // Si no hay un OtpToken, debe crear uno, si lo hay debe modificar sus campos
-        if (otpToken == null) {
-            otpToken = new OtpToken();
-            otpToken.setUser(existingUser);
-        }
+        OtpToken otpToken = identityService
+                .findOptionalOtpTokenByUserId(userId)
+                .orElseGet(() -> {
+                    OtpToken newOtpToken = new OtpToken();
+                    newOtpToken.setUser(existingUser);
+                    return newOtpToken;
+                });
 
         otpToken.setOtpHash(passwordEncoder.encode(token));
         otpToken.setAttemps(0);
@@ -71,7 +73,6 @@ public class TokenServiceImpl implements TokenService {
         otpToken.setUsedAt(null);
         otpToken.setResetToken(null);
         otpToken.setOtpPurpose(OtpPurpose.ACCOUNT_CONFIRMATION);
-
         otpTokenRepository.save(otpToken);
         // TODO: IMPLEMENTAR UN SERVICIO DE ENVIO DE CORREO REAL
         // En este caso se imprimira en consola el token de 6 digitos
@@ -79,6 +80,16 @@ public class TokenServiceImpl implements TokenService {
 
     }
 
+    // Es necesario el uso de transactional
+    // Como hay varios save que hacen cambios en la base de datos,
+    // la operación debe ejecutarse dentro de una sola transacción
+    // para garantizar la consistencia de los datos y evitar estados parciales
+    // en caso de que la validación del token falle o se complete exitosamente.
+
+    // La propiedad noRollbackFor evita que se haga un roolback (restauración de
+    // datos) cuando cae
+    // en la excepción InvalidTokenException
+    @Transactional(noRollbackFor = InvalidTokenException.class)
     @Override
     public void validateConfirmAccountToken(UUID userId,
             ValidateConfirmAccountTokenRequest validateConfirmAccountTokenRequest)
@@ -158,14 +169,15 @@ public class TokenServiceImpl implements TokenService {
         // Genera el token de 6 digitos
         String token = TokenUtils.generateOtp();
 
-        OtpToken otpToken = identityService.findOtpTokenByUserId(userId);
+        OtpToken otpToken = identityService
+                .findOptionalOtpTokenByUserId(userId)
+                .orElseGet(() -> {
+                    OtpToken newOtpToken = new OtpToken();
+                    newOtpToken.setUser(existingUser);
+                    return newOtpToken;
+                });
 
         // Si no hay un OtpToken, debe crear uno, si lo hay debe modificar sus campos
-        if (otpToken == null) {
-            otpToken = new OtpToken();
-            otpToken.setUser(existingUser);
-        }
-
         otpToken.setOtpHash(passwordEncoder.encode(token));
         otpToken.setAttemps(0);
         otpToken.setExpiresAt(LocalDateTime.now().plusMinutes(10));

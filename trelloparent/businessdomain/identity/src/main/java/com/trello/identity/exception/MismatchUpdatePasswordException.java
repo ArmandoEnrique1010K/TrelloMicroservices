@@ -1,5 +1,5 @@
 package com.trello.identity.exception;
 
-public class MismatchUpdatePasswordException extends Exception {
+public class MismatchUpdatePasswordException extends RuntimeException {
 
 }

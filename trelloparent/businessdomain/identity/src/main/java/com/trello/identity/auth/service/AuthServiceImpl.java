@@ -10,7 +10,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.trello.identity.auth.dto.response.AccountResponse;
 import com.trello.identity.auth.dto.response.AuthenticationResponse;
@@ -49,7 +48,6 @@ public class AuthServiceImpl implements AuthService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    @Transactional
     @Override
     public AccountResponse createAccount(AccountRequest accountRequest)
             throws MismatchPasswordException,
@@ -97,18 +95,11 @@ public class AuthServiceImpl implements AuthService {
 
             AuthenticationResponse response = new AuthenticationResponse();
 
-            response.setConfirmed(existingUser.isConfirmed());
-
-            if (!existingUser.isConfirmed()) {
-                response.setAccessToken(null);
-                response.setExpiresIn(0);
-                return response;
-            }
-
             String accessToken = jwtService.generateAccessToken(authentication);
 
             response.setAccessToken(accessToken);
             response.setExpiresIn(900);
+            response.setConfirmed(existingUser.isConfirmed());
 
             return response;
 
@@ -119,8 +110,7 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public void logout() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'logout'");
-    }
+        // TODO: IMPLEMENTAR CIERRE DE SESION POR MEDIO DE COOKIE
 
+    }
 }

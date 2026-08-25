@@ -41,8 +41,11 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.web.bind.annotation.PutMapping;
 
+@Slf4j
 @Tag(name = "Token API", description = "API para la gestión de tokens de un solo uso (OTP)")
 @RestController
 @RequestMapping("/token")
@@ -112,7 +115,9 @@ public class TokenRestController {
     public ResponseEntity<SuccessfulResponse<SuccessfulSendConfirmAccountTokenResponse>> sendConfirmAccountToken(
             @AuthenticationPrincipal Jwt jwt)
             throws UserNotFoundException, ConfirmedAccountException {
+
         UUID userId = JwtUtils.getUserId(jwt);
+        log.info("USER ID: " + userId);
 
         SuccessfulResponse<SuccessfulSendConfirmAccountTokenResponse> successfulResponse = new SuccessfulResponse<>();
         successfulResponse.setMessage("Se ha enviado un token de validación a su correo");

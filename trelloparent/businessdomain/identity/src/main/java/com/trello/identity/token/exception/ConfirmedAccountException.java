@@ -1,5 +1,5 @@
 package com.trello.identity.token.exception;
 
-public class ConfirmedAccountException extends Exception {
+public class ConfirmedAccountException extends RuntimeException {
 
 }

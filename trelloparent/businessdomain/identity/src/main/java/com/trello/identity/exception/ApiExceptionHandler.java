@@ -19,6 +19,9 @@ import com.trello.identity.token.exception.ConfirmedAccountException;
 import com.trello.identity.token.exception.InvalidTokenException;
 import com.trello.identity.token.exception.UnconfirmedAccountException;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @RestControllerAdvice
 public class ApiExceptionHandler {
 
@@ -27,6 +30,7 @@ public class ApiExceptionHandler {
     public ResponseEntity<StandarizedApiExceptionResponse> handleInternalServerError(Exception ex) {
         HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
 
+        log.info(ex.toString());
         StandarizedApiExceptionResponse standarizedApiExceptionResponse = new StandarizedApiExceptionResponse(
                 "/errors/internal-server-error",
                 "Internal server error",
