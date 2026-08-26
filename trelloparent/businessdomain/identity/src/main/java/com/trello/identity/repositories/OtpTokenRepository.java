@@ -23,4 +23,18 @@ public interface OtpTokenRepository extends JpaRepository<OtpToken, UUID> {
                    OR o.usedAt IS NOT NULL
             """)
     void deleteExpiredOrUsedOtpTokens(@Param("now") LocalDateTime now);
+
+    /*
+     * Ejecuta directamente una operación DELETE sobre la base de datos.
+     *
+     * @Modifying indica a Spring Data JPA que la consulta modifica datos
+     * en lugar de realizar una consulta de lectura.
+     *
+     * Devuelve la cantidad de registros afectados:
+     * 1 -> token eliminado
+     * 0 -> no se encontró el token
+     */
+    @Modifying
+    @Query("DELETE FROM OtpToken o WHERE o.id = :id")
+    int deleteTokenById(@Param("id") UUID id);
 }

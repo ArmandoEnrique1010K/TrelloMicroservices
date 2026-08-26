@@ -23,4 +23,6 @@ public interface IdentityService {
     User findUserByOtpTokenResetToken(UUID resetToken) throws UserNotFoundException;
 
     void deleteAllOtpTokensExpiredOrUsed();
+
+    void deleteOtpTokenById(UUID otpTokenId);
 }

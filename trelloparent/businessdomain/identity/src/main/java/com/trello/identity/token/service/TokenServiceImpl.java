@@ -143,7 +143,20 @@ public class TokenServiceImpl implements TokenService {
         existingOtpToken.setAttemps(attempts);
 
         if (attempts >= maxAttempts) {
-            otpTokenRepository.delete(existingOtpToken);
+
+            /*
+             * Al alcanzar el máximo de intentos, se elimina el token mediante una
+             * consulta DELETE directa definida en el repositorio con @Modifying.
+             *
+             * La eliminación se ejecuta dentro de la transacción actual. Como el método
+             * está configurado con noRollbackFor = InvalidTokenException.class,
+             * la excepción que se lanza después del DELETE no provoca un rollback.
+             *
+             * Por lo tanto, la transacción finaliza con COMMIT y el token eliminado
+             * queda eliminado definitivamente de la base de datos.
+             */
+            identityService.deleteOtpTokenById(existingOtpToken.getId());
+
             throw new InvalidTokenException();
         }
 

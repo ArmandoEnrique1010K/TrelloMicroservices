@@ -68,4 +68,9 @@ public class IdentityServiceImpl implements IdentityService {
         LocalDateTime now = LocalDateTime.now();
         otpTokenRepository.deleteExpiredOrUsedOtpTokens(now);
     }
+
+    @Override
+    public void deleteOtpTokenById(UUID otpTokenId) {
+        otpTokenRepository.deleteTokenById(otpTokenId);
+    }
 }
