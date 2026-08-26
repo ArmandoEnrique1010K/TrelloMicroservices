@@ -30,7 +30,10 @@ public class SecurityConfig {
             "/webjars/**",
 
             "/auth/login",
-            "/auth/createAccount"
+            "/auth/createAccount",
+            "/token/send/passwordReset",
+            "/token/validate/passwordReset",
+            "/token/resetPassword"
     };
 
     @Bean

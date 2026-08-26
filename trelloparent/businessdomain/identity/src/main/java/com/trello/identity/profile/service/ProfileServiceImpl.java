@@ -14,30 +14,26 @@ import com.trello.identity.profile.dto.request.UpdatePasswordRequest;
 import com.trello.identity.profile.dto.response.ProfileResponse;
 import com.trello.identity.profile.exception.MismatchCheckPasswordException;
 import com.trello.identity.profile.mapper.ProfileResponseMapper;
-import com.trello.identity.repositories.UserRepository;
-import com.trello.identity.service.IdentityService;
+import com.trello.identity.service.UserIdentityService;
 import com.trello.identity.token.exception.UnconfirmedAccountException;
 
 @Service
 public class ProfileServiceImpl implements ProfileService {
-    private final UserRepository userRepository;
-    private final IdentityService identityService;
+    private final UserIdentityService userIdentityService;
     private final ProfileResponseMapper profileResponseMapper;
     private final PasswordEncoder passwordEncoder;
 
     public ProfileServiceImpl(
-            UserRepository userRepository,
-            IdentityService identityService, ProfileResponseMapper profileResponseMapper,
+            UserIdentityService identityService, ProfileResponseMapper profileResponseMapper,
             PasswordEncoder passwordEncoder) {
-        this.userRepository = userRepository;
-        this.identityService = identityService;
+        this.userIdentityService = identityService;
         this.profileResponseMapper = profileResponseMapper;
         this.passwordEncoder = passwordEncoder;
     }
 
     @Override
     public ProfileResponse getProfile(UUID userId) throws UserNotFoundException, UnconfirmedAccountException {
-        User existingUser = identityService.findUserById(userId);
+        User existingUser = userIdentityService.findUserById(userId);
 
         if (!existingUser.isConfirmed()) {
             throw new UnconfirmedAccountException();
@@ -50,7 +46,7 @@ public class ProfileServiceImpl implements ProfileService {
     @Override
     public void checkPassword(UUID userId, CheckPasswordRequest checkPasswordRequest)
             throws UserNotFoundException, UnconfirmedAccountException, MismatchCheckPasswordException {
-        User existingUser = identityService.findUserById(userId);
+        User existingUser = userIdentityService.findUserById(userId);
         if (!existingUser.isConfirmed()) {
             throw new UnconfirmedAccountException();
         }
@@ -68,7 +64,7 @@ public class ProfileServiceImpl implements ProfileService {
             throws UserNotFoundException,
             UnconfirmedAccountException, MismatchCheckPasswordException, MismatchUpdatePasswordException,
             MismatchSameOldPasswordException {
-        User existingUser = identityService.findUserById(userId);
+        User existingUser = userIdentityService.findUserById(userId);
         if (!existingUser.isConfirmed()) {
             throw new UnconfirmedAccountException();
         }
@@ -90,6 +86,6 @@ public class ProfileServiceImpl implements ProfileService {
 
         existingUser.setPassword(
                 passwordEncoder.encode(updatePasswordRequest.getNewPassword()));
-        userRepository.save(existingUser);
+        userIdentityService.saveUser(existingUser);
     }
 }

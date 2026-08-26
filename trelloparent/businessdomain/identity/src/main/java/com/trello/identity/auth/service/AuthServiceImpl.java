@@ -1,8 +1,7 @@
 package com.trello.identity.auth.service;
 
-import com.trello.identity.repositories.UserRepository;
 import com.trello.identity.security.JwtService;
-import com.trello.identity.service.IdentityService;
+import com.trello.identity.service.UserIdentityService;
 
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -26,8 +25,7 @@ import com.trello.identity.exception.UserNotFoundException;
 @Service
 public class AuthServiceImpl implements AuthService {
 
-    private final UserRepository userRepository;
-    private final IdentityService identityService;
+    private final UserIdentityService userIdentityService;
     private final AccountRequestMapper accountRequestMapper;
     private final AccountResponseMapper accountResponseMapper;
     private final AuthenticationManager authenticationManager;
@@ -35,12 +33,11 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordEncoder passwordEncoder;
 
     public AuthServiceImpl(
-            UserRepository userRepository, IdentityService identityService, AccountRequestMapper accountRequestMapper,
+            UserIdentityService identityService, AccountRequestMapper accountRequestMapper,
             AccountResponseMapper accountResponseMapper, AuthenticationManager authenticationManager,
             JwtService jwtService,
             PasswordEncoder passwordEncoder) {
-        this.userRepository = userRepository;
-        this.identityService = identityService;
+        this.userIdentityService = identityService;
         this.accountRequestMapper = accountRequestMapper;
         this.accountResponseMapper = accountResponseMapper;
         this.authenticationManager = authenticationManager;
@@ -59,7 +56,7 @@ public class AuthServiceImpl implements AuthService {
 
         User userToAccountRequest = accountRequestMapper.accountRequestToUser(accountRequest);
 
-        if (identityService.existsUserByEmail(userToAccountRequest.getEmail())) {
+        if (userIdentityService.existsUserByEmail(userToAccountRequest.getEmail())) {
             throw new UserAlreadyExistsException();
         }
 
@@ -69,7 +66,7 @@ public class AuthServiceImpl implements AuthService {
         // TODO: ESTE CAMPO DEBE SER GUARDADO COMO FALSE, PORQUE AUN NO SE HA CONFIRMADO
         // LA CUENTA DEL USUARIO SI TIENE AQUEL EMAIL REAL
         userToAccountRequest.setConfirmed(true);
-        User savedUser = userRepository.save(userToAccountRequest);
+        User savedUser = userIdentityService.saveUser(userToAccountRequest);
 
         AccountResponse accountResponse = accountResponseMapper.userToAccountResponse(savedUser);
 
@@ -86,7 +83,7 @@ public class AuthServiceImpl implements AuthService {
         // error en común, si cae en un UserNotFoundException o en un
         // BadCredentialsException (propio de Spring Security)
         try {
-            existingUser = identityService.findUserByEmail(authenticationRequest.getEmail());
+            existingUser = userIdentityService.findUserByEmail(authenticationRequest.getEmail());
 
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(

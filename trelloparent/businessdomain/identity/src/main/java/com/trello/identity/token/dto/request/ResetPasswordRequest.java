@@ -5,6 +5,7 @@ import java.util.UUID;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.media.Schema.RequiredMode;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
@@ -23,6 +24,6 @@ public class ResetPasswordRequest {
     private String newPasswordConfirmation;
 
     @Schema(name = "resetToken", requiredMode = RequiredMode.REQUIRED, example = "f35...", description = "Token secreto obtenido de la base de datos")
-    @NotBlank(message = "El token de reinicio es obligatorio")
+    @NotNull(message = "El token de reinicio es obligatorio")
     private UUID resetToken;
 }
