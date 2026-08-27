@@ -26,7 +26,6 @@ public class OtpToken {
     private String otpHash;
     private int attemps;
     private LocalDateTime expiresAt;
-    private LocalDateTime usedAt;
     private UUID resetToken;
 
     @Enumerated(EnumType.STRING)

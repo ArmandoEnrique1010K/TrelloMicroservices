@@ -442,6 +442,8 @@ public class TokenRestController {
             @Valid @RequestBody ResetPasswordRequest input) throws UserNotFoundException,
             UnconfirmedAccountException, MismatchUpdatePasswordException, MismatchSameOldPasswordException {
 
+        tokenService.resetPassword(input);
+
         SuccessfulResponse<SuccessfulResetPasswordResponse> successfulResponse = new SuccessfulResponse<>();
         successfulResponse.setMessage("Se ha reestablecido su contraseña");
         successfulResponse.setBody(null);

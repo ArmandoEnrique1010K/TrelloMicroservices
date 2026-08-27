@@ -33,14 +33,19 @@ public class OtpTokenIdentityServiceImpl implements OtpTokenIdentityService {
     // Como este método se va a ejecutar automaticamente cada cierto tiempo debe
     // tener un @Transactional
     @Transactional
-    public void deleteAllOtpTokensExpiredOrUsed() {
+    public void deleteAllOtpTokensExpired() {
         LocalDateTime now = LocalDateTime.now();
-        otpTokenRepository.deleteExpiredOrUsedOtpTokens(now);
+        otpTokenRepository.deleteExpiredOtpTokens(now);
     }
 
     @Override
     public void saveOtpToken(OtpToken otpToken) {
         otpTokenRepository.save(otpToken);
+    }
+
+    @Override
+    public OtpToken findOtpTokenByResetToken(UUID resetToken) {
+        return otpTokenRepository.findByResetToken(resetToken);
     }
 
 }

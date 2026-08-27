@@ -12,7 +12,9 @@ public interface OtpTokenIdentityService {
 
     void deleteOtpTokenById(UUID otpTokenId);
 
-    void deleteAllOtpTokensExpiredOrUsed();
+    void deleteAllOtpTokensExpired();
 
     void saveOtpToken(OtpToken otpToken);
+
+    OtpToken findOtpTokenByResetToken(UUID resetToken);
 }

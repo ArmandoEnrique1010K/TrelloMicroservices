@@ -21,6 +21,6 @@ public class TokenCleanupScheduler {
     @Scheduled(fixedRate = 10, timeUnit = TimeUnit.MINUTES)
     public void deleteExpiredValidatedTokens() {
         log.info("ELIMINANDO TODOS LOS TOKENS EXPIRADOS O UTILIZADOS");
-        otpTokenIdentityService.deleteAllOtpTokensExpiredOrUsed();
+        otpTokenIdentityService.deleteAllOtpTokensExpired();
     }
 }

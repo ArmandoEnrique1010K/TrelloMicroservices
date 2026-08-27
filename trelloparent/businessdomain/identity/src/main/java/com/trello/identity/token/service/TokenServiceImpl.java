@@ -67,7 +67,6 @@ public class TokenServiceImpl implements TokenService {
         otpToken.setOtpHash(passwordEncoder.encode(token));
         otpToken.setAttemps(0);
         otpToken.setExpiresAt(LocalDateTime.now().plusMinutes(10));
-        otpToken.setUsedAt(null);
         otpToken.setResetToken(null);
         otpToken.setOtpPurpose(OtpPurpose.ACCOUNT_CONFIRMATION);
         otpTokenIdentityService.saveOtpToken(otpToken);
@@ -84,8 +83,11 @@ public class TokenServiceImpl implements TokenService {
     // en caso de que la validación del token falle o se complete exitosamente.
 
     // La propiedad noRollbackFor evita que se haga un roolback (restauración de
-    // datos) cuando cae
-    // en la excepción InvalidTokenException
+    // datos) cuando cae en la excepción InvalidTokenException
+
+    // Tambien se sabe que si se llama a un metodo del repositorio que lleva la
+    // anotacion @Modifying, el metodo del servicio debe llevar la anotación
+    // @Transactional
     @Transactional(noRollbackFor = InvalidTokenException.class)
     @Override
     public void validateConfirmAccountToken(UUID userId,
@@ -116,21 +118,18 @@ public class TokenServiceImpl implements TokenService {
             throw new InvalidTokenException();
         }
 
-        // Token ya utilizado
-        if (existingOtpToken.getUsedAt() != null) {
-            throw new InvalidTokenException();
-        }
-
         // Token correcto
         if (passwordEncoder.matches(
                 tokenByUser,
                 existingOtpToken.getOtpHash())) {
-            existingOtpToken.setUsedAt(LocalDateTime.now());
             otpTokenIdentityService.saveOtpToken(existingOtpToken);
 
             // Activar cuenta del usuario
             user.setConfirmed(true);
             userIdentityService.saveUser(user);
+
+            // Borrar el token
+            otpTokenIdentityService.deleteOtpTokenById(existingOtpToken.getId());
 
             return;
         }
@@ -191,7 +190,6 @@ public class TokenServiceImpl implements TokenService {
         otpToken.setOtpHash(passwordEncoder.encode(token));
         otpToken.setAttemps(0);
         otpToken.setExpiresAt(LocalDateTime.now().plusMinutes(10));
-        otpToken.setUsedAt(null);
         otpToken.setResetToken(null);
         otpToken.setOtpPurpose(OtpPurpose.PASSWORD_RESET);
 
@@ -202,6 +200,7 @@ public class TokenServiceImpl implements TokenService {
 
     }
 
+    @Transactional(noRollbackFor = InvalidTokenException.class)
     @Override
     public ValidatePasswordResetTokenResponse validatePasswordResetToken(
             ValidatePasswordResetTokenRequest validatePasswordResetTokenRequest)
@@ -233,11 +232,6 @@ public class TokenServiceImpl implements TokenService {
             throw new InvalidTokenException();
         }
 
-        // Token ya utilizado
-        if (existingOtpToken.getUsedAt() != null) {
-            throw new InvalidTokenException();
-        }
-
         // Token correcto
         if (passwordEncoder.matches(
                 tokenByUser,
@@ -246,7 +240,6 @@ public class TokenServiceImpl implements TokenService {
             // Genera el UUID
             UUID resetToken = TokenUtils.generateResetToken();
 
-            existingOtpToken.setUsedAt(LocalDateTime.now());
             existingOtpToken.setResetToken(resetToken);
             otpTokenIdentityService.saveOtpToken(existingOtpToken);
 
@@ -271,12 +264,15 @@ public class TokenServiceImpl implements TokenService {
 
     }
 
-    // TODO: REVISAR ESTE METODO,
+    @Transactional
     @Override
     public void resetPassword(ResetPasswordRequest resetPasswordRequest) throws UserNotFoundException,
             UnconfirmedAccountException, MismatchUpdatePasswordException, MismatchSameOldPasswordException {
 
         UUID resetToken = resetPasswordRequest.getResetToken();
+
+        // Buscar token por UUID
+        OtpToken existingOtpToken = otpTokenIdentityService.findOtpTokenByResetToken(resetToken);
 
         User existingUser = userIdentityService.findUserByOtpTokenResetToken(resetToken);
 
@@ -289,12 +285,18 @@ public class TokenServiceImpl implements TokenService {
             throw new MismatchUpdatePasswordException();
         }
 
-        if (passwordEncoder.matches(existingUser.getPassword(), resetPasswordRequest.getNewPassword())) {
+        if (passwordEncoder.matches(
+                resetPasswordRequest.getNewPassword(),
+                existingUser.getPassword())) {
             throw new MismatchSameOldPasswordException();
         }
 
-        existingUser.setPassword(resetPasswordRequest.getNewPassword());
+        existingUser.setPassword(
+                passwordEncoder.encode(resetPasswordRequest.getNewPassword()));
         userIdentityService.saveUser(existingUser);
+
+        // Borrar el token
+        otpTokenIdentityService.deleteOtpTokenById(existingOtpToken.getId());
     }
 
 }

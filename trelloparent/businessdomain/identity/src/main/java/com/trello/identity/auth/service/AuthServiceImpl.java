@@ -63,9 +63,7 @@ public class AuthServiceImpl implements AuthService {
         userToAccountRequest
                 .setPassword(passwordEncoder.encode(accountRequest.getPassword()));
 
-        // TODO: ESTE CAMPO DEBE SER GUARDADO COMO FALSE, PORQUE AUN NO SE HA CONFIRMADO
-        // LA CUENTA DEL USUARIO SI TIENE AQUEL EMAIL REAL
-        userToAccountRequest.setConfirmed(true);
+        userToAccountRequest.setConfirmed(false);
         User savedUser = userIdentityService.saveUser(userToAccountRequest);
 
         AccountResponse accountResponse = accountResponseMapper.userToAccountResponse(savedUser);
