@@ -14,6 +14,7 @@ public interface AccountRequestMapper {
             @Mapping(target = "id", ignore = true),
             @Mapping(target = "confirmed", ignore = true),
             @Mapping(target = "otpToken", ignore = true),
+            @Mapping(target = "refreshTokens", ignore = true)
     })
     User accountRequestToUser(AccountRequest source);
 }

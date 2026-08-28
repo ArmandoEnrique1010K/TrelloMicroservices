@@ -1,30 +1,30 @@
 package com.trello.identity.token.service;
 
-import java.util.UUID;
-
 import com.trello.identity.exception.MismatchSameOldPasswordException;
 import com.trello.identity.exception.MismatchUpdatePasswordException;
 import com.trello.identity.exception.UserNotFoundException;
-import com.trello.identity.token.dto.request.SendPasswordResetTokenRequest;
+import com.trello.identity.token.dto.request.SendTokenRequest;
 import com.trello.identity.token.dto.request.ResetPasswordRequest;
-import com.trello.identity.token.dto.request.ValidateConfirmAccountTokenRequest;
-import com.trello.identity.token.dto.request.ValidatePasswordResetTokenRequest;
+import com.trello.identity.token.dto.request.ValidateTokenRequest;
 import com.trello.identity.token.dto.response.ValidatePasswordResetTokenResponse;
 import com.trello.identity.token.exception.ConfirmedAccountException;
 import com.trello.identity.token.exception.InvalidTokenException;
 import com.trello.identity.token.exception.UnconfirmedAccountException;
 
 public interface TokenService {
-    void sendConfirmAccountToken(UUID userId) throws UserNotFoundException, ConfirmedAccountException;
+    void sendConfirmAccountToken(
+            SendTokenRequest sendTokenRequest)
+            throws UserNotFoundException, ConfirmedAccountException;
 
-    void validateConfirmAccountToken(UUID userId, ValidateConfirmAccountTokenRequest validateConfirmAccountTokenRequest)
+    void validateConfirmAccountToken(
+            ValidateTokenRequest validateTokenRequest)
             throws InvalidTokenException, UserNotFoundException, ConfirmedAccountException;
 
-    void sendPasswordResetToken(SendPasswordResetTokenRequest sendPasswordResetTokenRequest)
+    void sendPasswordResetToken(SendTokenRequest sendTokenRequest)
             throws UserNotFoundException, UnconfirmedAccountException;
 
     ValidatePasswordResetTokenResponse validatePasswordResetToken(
-            ValidatePasswordResetTokenRequest validatePasswordResetTokenRequest)
+            ValidateTokenRequest validateTokenRequest)
             throws InvalidTokenException, UserNotFoundException, UnconfirmedAccountException;
 
     // Reestablece la contraseña si no recuerda su contraseña anterior

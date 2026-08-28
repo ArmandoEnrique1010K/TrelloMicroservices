@@ -70,7 +70,7 @@ public class ApiExceptionHandler {
                 status.value(),
                 "The user was not found in the system",
                 null,
-                "No se pudo encontrar al usuario");
+                "Ha ocurrido un error inesperado");
 
         return ResponseEntity.status(status).body(standarizedApiExceptionResponse);
     }
@@ -87,7 +87,7 @@ public class ApiExceptionHandler {
                 status.value(),
                 "The user was not found in the system",
                 null,
-                "No se pudo encontrar al usuario");
+                "Ha ocurrido un error inesperado");
 
         return ResponseEntity.status(status).body(standarizedApiExceptionResponse);
     }
