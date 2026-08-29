@@ -15,10 +15,9 @@ import com.trello.identity.exception.MismatchUpdatePasswordException;
 import com.trello.identity.exception.UserNotFoundException;
 import com.trello.identity.service.OtpTokenIdentityService;
 import com.trello.identity.service.UserIdentityService;
-import com.trello.identity.token.dto.request.SendPasswordResetTokenRequest;
+import com.trello.identity.token.dto.request.SendTokenRequest;
 import com.trello.identity.token.dto.request.ResetPasswordRequest;
-import com.trello.identity.token.dto.request.ValidateConfirmAccountTokenRequest;
-import com.trello.identity.token.dto.request.ValidatePasswordResetTokenRequest;
+import com.trello.identity.token.dto.request.ValidateTokenRequest;
 import com.trello.identity.token.dto.response.ValidatePasswordResetTokenResponse;
 import com.trello.identity.token.exception.ConfirmedAccountException;
 import com.trello.identity.token.exception.InvalidTokenException;
@@ -44,8 +43,12 @@ public class TokenServiceImpl implements TokenService {
     }
 
     @Override
-    public void sendConfirmAccountToken(UUID userId) throws UserNotFoundException, ConfirmedAccountException {
-        User existingUser = userIdentityService.findUserById(userId);
+    public void sendConfirmAccountToken(
+            SendTokenRequest sendTokenRequest)
+            throws UserNotFoundException, ConfirmedAccountException {
+        // User existingUser = userIdentityService.findUserById(userId);
+
+        User existingUser = userIdentityService.findUserByEmail(sendTokenRequest.getEmail());
 
         if (existingUser.isConfirmed()) {
             throw new ConfirmedAccountException();
@@ -56,6 +59,15 @@ public class TokenServiceImpl implements TokenService {
 
         // Recordar que hay una relacion de uno a uno entre User y OtpToken
         // Si no hay un OtpToken, debe crear uno, si lo hay debe modificar sus campos
+        // OtpToken otpToken = otpTokenIdentityService
+        // .findOptionalOtpTokenByUserId(userId)
+        // .orElseGet(() -> {
+        // OtpToken newOtpToken = new OtpToken();
+        // newOtpToken.setUser(existingUser);
+        // return newOtpToken;
+        // });
+        UUID userId = existingUser.getId();
+
         OtpToken otpToken = otpTokenIdentityService
                 .findOptionalOtpTokenByUserId(userId)
                 .orElseGet(() -> {
@@ -90,20 +102,23 @@ public class TokenServiceImpl implements TokenService {
     // @Transactional
     @Transactional(noRollbackFor = InvalidTokenException.class)
     @Override
-    public void validateConfirmAccountToken(UUID userId,
-            ValidateConfirmAccountTokenRequest validateConfirmAccountTokenRequest)
+    public void validateConfirmAccountToken(
+            ValidateTokenRequest validateTokenRequest)
             throws InvalidTokenException, UserNotFoundException, ConfirmedAccountException {
         // Solamente va a tener 3 intentos de validacion del token
         final int maxAttempts = 3;
 
         // Token enviado por el usuario
-        String tokenByUser = validateConfirmAccountTokenRequest.getToken();
+
+        String email = validateTokenRequest.getEmail();
+        String tokenByUser = validateTokenRequest.getToken();
+        User user = userIdentityService.findUserByEmail(email);
+        UUID userId = user.getId();
 
         // Si no existe el token, debe lanzar una excepción
         OtpToken existingOtpToken = otpTokenIdentityService
                 .findOptionalOtpTokenByUserId(userId).orElseThrow(InvalidTokenException::new);
 
-        User user = userIdentityService.findUserById(userId);
         if (user.isConfirmed()) {
             throw new ConfirmedAccountException();
         }
@@ -162,10 +177,10 @@ public class TokenServiceImpl implements TokenService {
     }
 
     @Override
-    public void sendPasswordResetToken(SendPasswordResetTokenRequest sendPasswordResetTokenRequest)
+    public void sendPasswordResetToken(SendTokenRequest sendTokenRequest)
             throws UserNotFoundException, UnconfirmedAccountException {
 
-        String email = sendPasswordResetTokenRequest.getEmail();
+        String email = sendTokenRequest.getEmail();
 
         User existingUser = userIdentityService.findUserByEmail(email);
 
@@ -203,14 +218,14 @@ public class TokenServiceImpl implements TokenService {
     @Transactional(noRollbackFor = InvalidTokenException.class)
     @Override
     public ValidatePasswordResetTokenResponse validatePasswordResetToken(
-            ValidatePasswordResetTokenRequest validatePasswordResetTokenRequest)
+            ValidateTokenRequest validateTokenRequest)
             throws InvalidTokenException, UserNotFoundException, UnconfirmedAccountException {
         // Solamente va a tener 3 intentos de validacion del token
         final int maxAttempts = 3;
 
         // Token enviado por el usuario
-        String email = validatePasswordResetTokenRequest.getEmail();
-        String tokenByUser = validatePasswordResetTokenRequest.getToken();
+        String email = validateTokenRequest.getEmail();
+        String tokenByUser = validateTokenRequest.getToken();
         User user = userIdentityService.findUserByEmail(email);
         UUID userId = user.getId();
 
@@ -266,8 +281,9 @@ public class TokenServiceImpl implements TokenService {
 
     @Transactional
     @Override
-    public void resetPassword(ResetPasswordRequest resetPasswordRequest) throws UserNotFoundException,
-            UnconfirmedAccountException, MismatchUpdatePasswordException, MismatchSameOldPasswordException {
+    public void resetPassword(ResetPasswordRequest resetPasswordRequest)
+            throws UserNotFoundException, UnconfirmedAccountException, MismatchUpdatePasswordException,
+            MismatchSameOldPasswordException {
 
         UUID resetToken = resetPasswordRequest.getResetToken();
 

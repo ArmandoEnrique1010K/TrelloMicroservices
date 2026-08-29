@@ -124,6 +124,10 @@ public class AuthServiceImpl implements AuthService {
 
             return response;
 
+            // TODO: Implementar almacenamiento de JWT en cookies (estándar de seguridad en
+            // producción) en lugar de en el response. Actualmente se devuelven en el
+            // response para permitir pruebas en Swagger. Considerar usar HttpOnly y Secure
+            // flags en las cookies.
         } catch (UserNotFoundException | BadCredentialsException exception) {
             throw new CustomBadCredentialsException();
         }

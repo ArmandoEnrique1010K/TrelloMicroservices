@@ -129,28 +129,30 @@ public class TokenRestController {
                         "type": "/errors/validation"
                     }
                     """))),
-            @ApiResponse(responseCode = "401", description = "La cuenta del usuario ya fue validada", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
-                    {
-                        "detail": "Your account has already been validated and cannot be validated again",
-                        "fields": null,
-                        "instance": null,
-                        "message": "Su cuenta ya fue validada",
-                        "status": 401,
-                        "title": "Confirmed Account",
-                        "type": "/errors/account/confirmed"
-                    }
-                    """))),
-            @ApiResponse(responseCode = "401", description = "El token es incorrecto o invalido", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
-                    {
-                        "detail": "The entered token is incorrect or invalid",
-                        "fields": null,
-                        "instance": null,
-                        "message": "Token invalido o incorrecto",
-                        "status": 401,
-                        "title": "Invalid token",
-                        "type": "/errors/invalid-token"
-                    }
-                    """))),
+
+            @ApiResponse(responseCode = "401", description = "Error de validación del token", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = {
+                    @ExampleObject(name = "La cuenta del usuario ya fue validada", summary = "La cuenta del usuario ya fue validada", value = """
+                            {
+                                "detail": "Your account has already been validated and cannot be validated again",
+                                "fields": null,
+                                "instance": null,
+                                "message": "Su cuenta ya fue validada",
+                                "status": 401,
+                                "title": "Confirmed Account",
+                                "type": "/errors/account/confirmed"
+                            }
+                            """),
+                    @ExampleObject(name = "El token es incorrecto o invalido", summary = "El token es incorrecto o invalido", value = """
+                            {
+                                "detail": "The entered token is incorrect or invalid",
+                                "fields": null,
+                                "instance": null,
+                                "message": "Token invalido o incorrecto",
+                                "status": 401,
+                                "title": "Invalid token",
+                                "type": "/errors/invalid-token"
+                            }
+                            """) })),
             @ApiResponse(responseCode = "404", description = "El usuario no se encuentra en el sistema", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
                     {
                         "detail": "The user was not found in the system",
@@ -278,28 +280,29 @@ public class TokenRestController {
                         "type": "/errors/validation"
                     }
                     """))),
-            @ApiResponse(responseCode = "401", description = "La cuenta del usuario aún no fue validada", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
-                    {
-                        "detail": "You must validate your account to perform the desired operation",
-                        "fields": null,
-                        "instance": null,
-                        "message": "Su cuenta aún no fue validada",
-                        "status": 401,
-                        "title": "Unconfirmed Account",
-                        "type": "/errors/account/unconfirmed"
-                    }
-                    """))),
-            @ApiResponse(responseCode = "401", description = "El token es incorrecto o invalido", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
-                    {
-                        "detail": "The entered token is incorrect or invalid",
-                        "fields": null,
-                        "instance": null,
-                        "message": "Token invalido o incorrecto",
-                        "status": 401,
-                        "title": "Invalid token",
-                        "type": "/errors/invalid-token"
-                    }
-                    """))),
+            @ApiResponse(responseCode = "401", description = "Error de validación del token", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = {
+                    @ExampleObject(name = "La cuenta del usuario aún no fue validada", summary = "La cuenta del usuario aún no fue validada", value = """
+                            {
+                                "detail": "You must validate your account to perform the desired operation",
+                                "fields": null,
+                                "instance": null,
+                                "message": "Su cuenta aún no fue validada",
+                                "status": 401,
+                                "title": "Unconfirmed Account",
+                                "type": "/errors/account/unconfirmed"
+                            }
+                            """),
+                    @ExampleObject(name = "El token es incorrecto o invalido", summary = "El token es incorrecto o invalido", value = """
+                            {
+                                "detail": "The entered token is incorrect or invalid",
+                                "fields": null,
+                                "instance": null,
+                                "message": "Token invalido o incorrecto",
+                                "status": 401,
+                                "title": "Invalid token",
+                                "type": "/errors/invalid-token"
+                            }
+                            """) })),
             @ApiResponse(responseCode = "404", description = "El usuario no se encuentra en el sistema", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
                     {
                         "detail": "The user was not found in the system",
@@ -345,43 +348,45 @@ public class TokenRestController {
                         "message": "Se ha reestablecido su contraseña"
                     }
                     """))),
-            @ApiResponse(responseCode = "400", description = "Los datos enviados no son válidos", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
-                    {
-                      "detail": "One or more request fields are invalid",
-                      "fields": {
-                        "newPasswordConfirmation": "Confirme su nueva contraseña",
-                        "newPassword": "La nueva contraseña debe contener al menos una mayúscula, un número y un símbolo",
-                        "resetToken": "El token de reinicio es obligatorio"
-                      },
-                      "instance": null,
-                      "message": "Complete los campos indicados",
-                      "status": 400,
-                      "title": "Invalid request",
-                      "type": "/errors/validation"
-                    }
-                    """))),
-            @ApiResponse(responseCode = "400", description = "Las contraseñas no coinciden", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
-                    {
-                          "detail": "The new password confirmation does not match the new password",
-                          "fields": null,
-                          "instance": null,
-                          "message": "Los campos de su nueva contraseña no coinciden",
-                          "status": 400,
-                          "title": "Invalid request",
-                          "type": "/errors/validation"
-                    }
-                    """))),
-            @ApiResponse(responseCode = "400", description = "No puede utilizar su contraseña anterior como nueva contraseña", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
-                    {
-                          "detail": "The new password must not be the same as the old password",
-                          "fields": null,
-                          "instance": null,
-                          "message": "No puede utilizar esta contraseña",
-                          "status": 400,
-                          "title": "Invalid request",
-                          "type": "/errors/validation"
-                    }
-                    """))),
+            @ApiResponse(responseCode = "400", description = "Los datos enviados no son válidos", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = {
+                    @ExampleObject(name = "Errores de validación de campos", summary = "Errores de validación de campos", value = """
+                            {
+                                "detail": "One or more request fields are invalid",
+                                "fields": {
+                                    "newPasswordConfirmation": "Confirme su nueva contraseña",
+                                    "newPassword": "La nueva contraseña debe contener al menos una mayúscula, un número y un símbolo",
+                                    "resetToken": "El token de reinicio es obligatorio"
+                                },
+                                "instance": null,
+                                "message": "Complete los campos indicados",
+                                "status": 400,
+                                "title": "Invalid request",
+                                "type": "/errors/validation"
+                            }
+                            """),
+                    @ExampleObject(name = "Las contraseñas no coinciden", summary = "Las contraseñas no coinciden", value = """
+                            {
+                                "detail": "The password confirmation does not match the password",
+                                "fields": null,
+                                "instance": null,
+                                "message": "Los campos de su nueva contraseña no coinciden",
+                                "status": 400,
+                                "title": "Invalid request",
+                                "type": "/errors/validation"
+                            }
+                            """),
+                    @ExampleObject(name = "No puede utilizar su contraseña anterior como nueva contraseña", summary = "No puede utilizar su contraseña anterior como nueva contraseña", value = """
+                            {
+                                "detail": "The new password must not be the same as the old password",
+                                "fields": null,
+                                "instance": null,
+                                "message": "No puede utilizar esta contraseña",
+                                "status": 400,
+                                "title": "Invalid request",
+                                "type": "/errors/validation"
+                            }
+                            """),
+            })),
             @ApiResponse(responseCode = "401", description = "La cuenta del usuario aun no fue validada", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
                     {
                         "detail": "You must validate your account to perform the desired operation",

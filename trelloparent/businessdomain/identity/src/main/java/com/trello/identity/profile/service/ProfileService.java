@@ -9,18 +9,18 @@ import com.trello.identity.profile.dto.request.CheckPasswordRequest;
 import com.trello.identity.profile.dto.request.UpdatePasswordRequest;
 import com.trello.identity.profile.dto.response.ProfileResponse;
 import com.trello.identity.profile.exception.MismatchCheckPasswordException;
-import com.trello.identity.token.exception.UnconfirmedAccountException;
 
 public interface ProfileService {
-    ProfileResponse getProfile(UUID userId) throws UserNotFoundException, UnconfirmedAccountException;
+    ProfileResponse getProfile(UUID userId)
+            throws UserNotFoundException;
 
-    void checkPassword(UUID userId, CheckPasswordRequest checkPasswordRequest) throws UserNotFoundException,
-            UnconfirmedAccountException,
+    void checkPassword(UUID userId, CheckPasswordRequest checkPasswordRequest)
+            throws UserNotFoundException,
             MismatchCheckPasswordException;
 
     void updatePassword(UUID userId,
             UpdatePasswordRequest updatePasswordRequest)
-            throws UserNotFoundException, UnconfirmedAccountException, MismatchCheckPasswordException,
+            throws UserNotFoundException, MismatchCheckPasswordException,
             MismatchUpdatePasswordException,
             MismatchSameOldPasswordException;
 }

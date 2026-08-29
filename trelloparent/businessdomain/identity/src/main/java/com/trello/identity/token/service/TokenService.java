@@ -28,6 +28,7 @@ public interface TokenService {
             throws InvalidTokenException, UserNotFoundException, UnconfirmedAccountException;
 
     // Reestablece la contraseña si no recuerda su contraseña anterior
-    void resetPassword(ResetPasswordRequest resetPasswordRequest) throws UserNotFoundException,
-            UnconfirmedAccountException, MismatchUpdatePasswordException, MismatchSameOldPasswordException;
+    void resetPassword(ResetPasswordRequest resetPasswordRequest)
+            throws UserNotFoundException, UnconfirmedAccountException, MismatchUpdatePasswordException,
+            MismatchSameOldPasswordException;
 }
