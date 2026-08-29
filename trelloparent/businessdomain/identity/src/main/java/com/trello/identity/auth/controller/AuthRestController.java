@@ -13,12 +13,15 @@ import com.trello.identity.auth.dto.response.common.SuccessfulAccountResponse;
 import com.trello.identity.auth.dto.response.common.SuccessfulAuthenticationResponse;
 import com.trello.identity.auth.dto.request.AccountRequest;
 import com.trello.identity.auth.dto.request.AuthenticationRequest;
+import com.trello.identity.auth.dto.request.RefreshTokenRequest;
 import com.trello.identity.auth.exception.CustomBadCredentialsException;
+import com.trello.identity.auth.exception.InvalidRefreshTokenException;
 import com.trello.identity.auth.exception.MismatchPasswordException;
 import com.trello.identity.auth.exception.UserAlreadyExistsException;
 import com.trello.identity.auth.service.AuthService;
 import com.trello.identity.common.StandarizedApiExceptionResponse;
 import com.trello.identity.common.SuccessfulResponse;
+import com.trello.identity.exception.UserNotFoundException;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -33,10 +36,10 @@ import jakarta.validation.Valid;
 @RestController
 @RequestMapping("/auth")
 public class AuthRestController {
-    private final AuthService userService;
+    private final AuthService authService;
 
-    public AuthRestController(AuthService userService) {
-        this.userService = userService;
+    public AuthRestController(AuthService authService) {
+        this.authService = authService;
     }
 
     @Operation(summary = "Registra un nuevo usuario", description = "Registra un nuevo usuario en la base de datos")
@@ -53,32 +56,34 @@ public class AuthRestController {
                         "message": "Su cuenta ha sido creada correctamente"
                     }
                     """))),
-            @ApiResponse(responseCode = "400", description = "Los datos enviados no son válidos", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
-                    {
-                        "detail": "One or more request fields are invalid",
-                        "fields": {
-                            "firstName": "El nombre debe tener entre 3 y 25 caracteres",
-                            "password": "La contraseña debe contener al menos una mayúscula, un número y un símbolo",
-                            "email": "El correo debe pertenecer a Gmail, Hotmail u Outlook"
-                        },
-                        "instance": null,
-                        "message": "Complete los campos indicados",
-                        "status": 400,
-                        "title": "Invalid request",
-                        "type": "/errors/validation"
-                    }
-                    """))),
-            @ApiResponse(responseCode = "400", description = "Las contraseñas no coinciden", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
-                    {
-                        "detail": "The password confirmation does not match the password",
-                        "fields": null,
-                        "instance": null,
-                        "message": "Las contraseñas no coinciden",
-                        "status": 400,
-                        "title": "Invalid request",
-                        "type": "/errors/validation"
-                    }
-                    """))),
+            // Si un codigo de respuesta devuelve más de 1 respuesta:
+            @ApiResponse(responseCode = "400", description = "Los datos enviados no son válidos", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = {
+                    @ExampleObject(name = "Errores de validación de campos", summary = "Errores de validación de campos", value = """
+                            {
+                                "detail": "One or more request fields are invalid",
+                                "fields": {
+                                    "firstName": "El nombre debe tener entre 3 y 25 caracteres",
+                                    "password": "La contraseña debe contener al menos una mayúscula, un número y un símbolo",
+                                    "email": "El correo debe pertenecer a Gmail, Hotmail u Outlook"
+                                },
+                                "instance": null,
+                                "message": "Complete los campos indicados",
+                                "status": 400,
+                                "title": "Invalid request",
+                                "type": "/errors/validation"
+                            }
+                            """),
+                    @ExampleObject(name = "Las contraseñas no coinciden", summary = "Las contraseñas no coinciden", value = """
+                            {
+                                "detail": "The password confirmation does not match the password",
+                                "fields": null,
+                                "instance": null,
+                                "message": "Las contraseñas no coinciden",
+                                "status": 400,
+                                "title": "Invalid request",
+                                "type": "/errors/validation"
+                            }
+                            """) })),
             @ApiResponse(responseCode = "409", description = "El usuario ya existe", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
                     {
                         "detail": "An account with the provided email already exists",
@@ -105,7 +110,7 @@ public class AuthRestController {
     @PostMapping("/createAccount")
     public ResponseEntity<SuccessfulResponse<AccountResponse>> createAccount(@Valid @RequestBody AccountRequest input)
             throws MismatchPasswordException, UserAlreadyExistsException {
-        AccountResponse response = userService.createAccount(input);
+        AccountResponse response = authService.createAccount(input);
 
         SuccessfulResponse<AccountResponse> successfulResponse = new SuccessfulResponse<>();
         successfulResponse.setMessage("Su cuenta ha sido creada correctamente");
@@ -121,8 +126,8 @@ public class AuthRestController {
                         "body": {
                             "accessToken": "eyJ...",
                             "confirmed": true,
-                            "refreshToken": 900,
-                            "expiresIn": "eyJ..."
+                            "expiresIn": 900,
+                            "refreshToken": "iFs..."
                         },
                         "message": "Bienvenido a TrelloApp"
                     }
@@ -168,12 +173,65 @@ public class AuthRestController {
     public ResponseEntity<SuccessfulResponse<AuthenticationResponse>> login(
             @Valid @RequestBody AuthenticationRequest input)
             throws CustomBadCredentialsException {
-        AuthenticationResponse response = userService.login(input);
+        AuthenticationResponse response = authService.login(input);
 
         SuccessfulResponse<AuthenticationResponse> successfulResponse = new SuccessfulResponse<>();
         successfulResponse.setMessage("Bienvenido a TrelloApp");
         successfulResponse.setBody(response);
 
-        return ResponseEntity.status(200).body(successfulResponse);
+        return ResponseEntity.status(HttpStatus.OK).body(successfulResponse);
     }
+
+    @Operation(summary = "Revalida el token de autenticación", description = "Obtiene un nuevo accessToken sin tener que volver a iniciar sesión")
+
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Se ha revalidado el token de autenticación", content = @Content(mediaType = "application/json", schema = @Schema(implementation = SuccessfulAuthenticationResponse.class), examples = @ExampleObject(value = """
+                    {
+                        "body": {
+                            "accessToken": "eyJ...",
+                            "confirmed": true,
+                            "expiresIn": 2592000,
+                            "refreshToken": "iFs..."
+                        },
+                        "message": ""
+                    }
+                    """))),
+            @ApiResponse(responseCode = "401", description = "Token de revalidación invalido", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
+                    {
+                        "detail": "The refresh token is invalid or has expired",
+                        "fields": null,
+                        "instance": null,
+                        "message": "Ha ocurrido un error inesperado",
+                        "status": 401,
+                        "title": "Invalid Refresh Token",
+                        "type": "/errors/authentication/invalid-refresh-token"
+                    }
+                    """))),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
+                    {
+                        "detail": "An unexpected error occurred while processing the request",
+                        "fields": null,
+                        "instance": null,
+                        "message": "Ha ocurrido un error inesperado",
+                        "status": 500,
+                        "title": "Internal server error",
+                        "type": "/errors/internal-server-error"
+                    }
+                    """)))
+    })
+    @PostMapping("/refresh")
+    public ResponseEntity<SuccessfulResponse<AuthenticationResponse>> refreshToken(
+            @Valid @RequestBody RefreshTokenRequest request)
+            throws InvalidRefreshTokenException, UserNotFoundException {
+
+        AuthenticationResponse response = authService.refreshToken(
+                request);
+
+        SuccessfulResponse<AuthenticationResponse> successfulResponse = new SuccessfulResponse<>();
+        successfulResponse.setMessage("");
+        successfulResponse.setBody(response);
+
+        return ResponseEntity.status(HttpStatus.OK).body(successfulResponse);
+    }
+
 }

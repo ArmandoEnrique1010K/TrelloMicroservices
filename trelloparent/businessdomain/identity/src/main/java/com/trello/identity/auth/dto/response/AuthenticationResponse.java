@@ -13,8 +13,6 @@ public class AuthenticationResponse {
     @Schema(name = "accessToken", example = "eyJ...", description = "Token de acceso JWT para la sesión actual")
     private String accessToken;
 
-    // TODO: Pendiente investigar este campo para refrescar el token de
-    // autenticación
     @Schema(name = "refreshToken", example = "eyJ...", description = "Token de actualización JWT utilizado para obtener un nuevo token de acceso")
     private String refreshToken;
 

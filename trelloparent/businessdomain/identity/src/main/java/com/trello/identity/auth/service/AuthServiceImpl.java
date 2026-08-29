@@ -1,12 +1,12 @@
 package com.trello.identity.auth.service;
 
 import com.trello.identity.security.JwtService;
+import com.trello.identity.security.RefreshTokenService;
 import com.trello.identity.service.UserIdentityService;
 
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -14,7 +14,9 @@ import com.trello.identity.auth.dto.response.AccountResponse;
 import com.trello.identity.auth.dto.response.AuthenticationResponse;
 import com.trello.identity.auth.dto.request.AccountRequest;
 import com.trello.identity.auth.dto.request.AuthenticationRequest;
+import com.trello.identity.auth.dto.request.RefreshTokenRequest;
 import com.trello.identity.auth.exception.CustomBadCredentialsException;
+import com.trello.identity.auth.exception.InvalidRefreshTokenException;
 import com.trello.identity.auth.exception.MismatchPasswordException;
 import com.trello.identity.auth.exception.UserAlreadyExistsException;
 import com.trello.identity.auth.mapper.AccountRequestMapper;
@@ -25,6 +27,7 @@ import com.trello.identity.exception.UserNotFoundException;
 @Service
 public class AuthServiceImpl implements AuthService {
 
+    private final RefreshTokenService refreshTokenService;
     private final UserIdentityService userIdentityService;
     private final AccountRequestMapper accountRequestMapper;
     private final AccountResponseMapper accountResponseMapper;
@@ -36,13 +39,14 @@ public class AuthServiceImpl implements AuthService {
             UserIdentityService identityService, AccountRequestMapper accountRequestMapper,
             AccountResponseMapper accountResponseMapper, AuthenticationManager authenticationManager,
             JwtService jwtService,
-            PasswordEncoder passwordEncoder) {
+            PasswordEncoder passwordEncoder, RefreshTokenService refreshTokenService) {
         this.userIdentityService = identityService;
         this.accountRequestMapper = accountRequestMapper;
         this.accountResponseMapper = accountResponseMapper;
         this.authenticationManager = authenticationManager;
         this.jwtService = jwtService;
         this.passwordEncoder = passwordEncoder;
+        this.refreshTokenService = refreshTokenService;
     }
 
     @Override
@@ -83,18 +87,40 @@ public class AuthServiceImpl implements AuthService {
         try {
             existingUser = userIdentityService.findUserByEmail(authenticationRequest.getEmail());
 
-            Authentication authentication = authenticationManager.authenticate(
+            // Normalmente authenticate devuelve un Authentication de
+            // org.springframework.security.core, en este caso solo interesa el
+            // procedimiento de inicio de sesión
+            authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
                             authenticationRequest.getEmail(),
                             authenticationRequest.getPassword()));
 
             AuthenticationResponse response = new AuthenticationResponse();
 
-            String accessToken = jwtService.generateAccessToken(authentication);
+            response.setConfirmed(existingUser.isConfirmed());
+
+            // La cuenta todavía no fue confirmada
+            if (!existingUser.isConfirmed()) {
+                response.setAccessToken(null);
+                response.setRefreshToken(null);
+                response.setExpiresIn(0);
+
+                return response;
+            }
+
+            // Tiempo de expiración: 15 minutos
+            final long expirationTime = 60L * 15;
+
+            // Tiempo de expiración: 30 segundos
+            // final long expirationTime = 30L;
+
+            String accessToken = jwtService.generateAccessToken(existingUser.getId(), existingUser.getEmail(),
+                    expirationTime);
+            String refreshToken = refreshTokenService.createRefreshToken(existingUser);
 
             response.setAccessToken(accessToken);
-            response.setExpiresIn(900);
-            response.setConfirmed(existingUser.isConfirmed());
+            response.setRefreshToken(refreshToken);
+            response.setExpiresIn(expirationTime);
 
             return response;
 
@@ -107,5 +133,11 @@ public class AuthServiceImpl implements AuthService {
     public void logout() {
         // TODO: IMPLEMENTAR CIERRE DE SESION POR MEDIO DE COOKIE
 
+    }
+
+    @Override
+    public AuthenticationResponse refreshToken(RefreshTokenRequest request) throws InvalidRefreshTokenException {
+        return refreshTokenService.refreshAccessToken(
+                request.getRefreshToken());
     }
 }

@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import com.trello.identity.auth.exception.CustomBadCredentialsException;
+import com.trello.identity.auth.exception.InvalidRefreshTokenException;
 import com.trello.identity.auth.exception.MismatchPasswordException;
 import com.trello.identity.auth.exception.UserAlreadyExistsException;
 import com.trello.identity.common.StandarizedApiExceptionResponse;
@@ -285,4 +286,21 @@ public class ApiExceptionHandler {
                 .body(response);
     }
 
+    @ExceptionHandler(InvalidRefreshTokenException.class)
+    public ResponseEntity<StandarizedApiExceptionResponse> handleInvalidRefreshToken(
+            InvalidRefreshTokenException exception) {
+        HttpStatus status = HttpStatus.UNAUTHORIZED;
+        StandarizedApiExceptionResponse response = new StandarizedApiExceptionResponse(
+                "/errors/authentication/invalid-refresh-token",
+                "Invalid Refresh Token",
+                status.value(),
+                "The refresh token is invalid or has expired",
+                null,
+                "Ha ocurrido un error inesperado");
+
+        return ResponseEntity
+                .status(status)
+                .body(response);
+
+    }
 }
