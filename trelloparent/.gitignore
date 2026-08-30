@@ -32,6 +32,9 @@ build/
 ### VS Code ###
 # .vscode/
 
+### Obsidian ###
+.obsidian
+
 # Archivos ignorados por Github
 /postgres_data
 /postgres_data_project

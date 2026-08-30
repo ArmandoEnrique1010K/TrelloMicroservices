@@ -305,6 +305,20 @@ No se debe utilizar `localhost` como host cuando pgAdmin y PostgreSQL se encuent
 
 Después de introducir los datos, pulsa **Save**.
 
+### La base de datos `project-postgres-db`
+
+Repite nuevamente el procedimiento para registrar el servidor PostgreSQL en pgAdmin, para la nueva base de datos, en la pestaña general agregale en **name** el valor: `project-postgres-db`
+
+Y luego en la pestaña connection:
+
+| Campo                | Valor                 |
+| -------------------- | --------------------- |
+| Host name/address    | `project-postgres-db` |
+| Port                 | `5432`                |
+| Maintenance database | `project_db`          |
+| Username             | `postgres`            |
+| Password             | `admin`               |
+
 ## 6. Verificar la base de datos
 
 Una vez registrado el servidor, navega en pgAdmin:
@@ -415,28 +429,28 @@ Esto es necesario porque PostgreSQL **no vuelve a ejecutar su proceso de inicial
 Al finalizar la configuración, la arquitectura local queda así:
 
 ```text
-                    ┌──────────────────────┐
-                    │   Microservicio      │
-                    │      Identity        │
-                    │                      │
-                    │      :8081           │
-                    └──────────┬───────────┘
-                               │
-                               │ localhost:5432
-                               ▼
-                    ┌──────────────────────┐
-                    │      PostgreSQL      │
-                    │                      │
-                    │     identity_db      │
-                    │        :5432         │
-                    └──────────▲───────────┘
-                               │
-                               │ Docker Network
-                               │ identity-postgres-db
-                               │
-                    ┌──────────┴───────────┐
-                    │       pgAdmin 4      │
-                    │                      │
+                    ┌──────────────────────┐                    ┌──────────────────────┐
+                    │   Microservicio      │                    │   Microservicio      │
+                    │      Identity        │                    │      Project         │
+                    │                      │                    │                      │
+                    │      :8081           │                    │      :8082           │
+                    └──────────┬───────────┘                    └──────────┬───────────┘
+                               │                                           │
+                               │ localhost:5432                            │ localhost:5433
+                               ▼                                           ▼
+                    ┌──────────────────────┐                    ┌──────────────────────┐
+                    │      PostgreSQL      │                    │      PostgreSQL      │
+                    │                      │                    │                      │
+                    │     identity_db      │                    │      project_db      │
+                    │        :5432         │                    │        :5432         │
+                    └──────────▲───────────┘                    └──────────▲───────────┘
+                               │                                           │
+                               │ Docker Network                            │ Docker Network
+                               │ identity-postgres-db                      │ project-postgres-db
+                               │                                           │
+                    ┌──────────┴───────────┐                               │
+                    │       pgAdmin 4      │                               │
+                    │                      │───────────────────────────────┘
                     │       :5050          │
                     └──────────────────────┘
 ```
