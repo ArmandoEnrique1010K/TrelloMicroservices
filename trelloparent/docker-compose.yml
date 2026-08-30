@@ -17,6 +17,23 @@ services:
       POSTGRES_PASSWORD: admin
       POSTGRES_DB: identity_db
 
+  # Base de datos - Microservicio Project
+  project-postgres-db:
+    container_name: project-db
+    image: postgres:15.3
+
+    ports:
+      - "5433:5432"
+
+    volumes:
+      - ./dbfiles:/docker-entrypoint-initdb.d
+      - ./postgres_data_project:/var/lib/postgresql/data
+
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: project_db
+
 
   # Administrador - Base de datos Identity
   pgadmin4:
@@ -30,5 +47,4 @@ services:
       - 5050:80
     depends_on:
       - identity-postgres-db
-
-
+      - project-postgres-db
