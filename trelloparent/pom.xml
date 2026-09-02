@@ -28,6 +28,7 @@
 
     <modules>
         <module>businessdomain</module>
+        <module>infrastructure</module>
     </modules>
 
     <properties>

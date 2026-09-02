@@ -40,4 +40,4 @@ build/
 /postgres_data_project
 
 # JWT RSA keys
-businessdomain/identity/keys/*.pem
+infrastructure/keys/*.pem

@@ -7,6 +7,8 @@ El microservicio `identity` utiliza un par de claves RSA para firmar y validar l
 
 > **Importante:** nunca compartas ni subas `private-key.pem` al repositorio. La clave privada debe mantenerse protegida.
 
+Además el microservicio `Project` utiliza la clave pública para verificar el JWT que se pasa en el encabezado (header) de una petición.
+
 ## 1. Instalar OpenSSL
 
 Si OpenSSL todavía no está instalado, abre PowerShell y ejecuta:
@@ -112,10 +114,10 @@ C:\Program Files\OpenSSL-Win64\bin\openssl.exe
 
 ## 4. Generar las claves RSA
 
-Ubícate en el directorio `keys` del microservicio `identity`:
+Ubícate en el directorio `keys` del modulo `infrastructure`:
 
 ```powershell
-cd businessdomain\identity\keys
+cd infrastructure\keys
 ```
 
 Genera la **clave privada**:
@@ -133,11 +135,10 @@ openssl rsa -in private-key.pem -pubout -out public-key.pem
 El directorio debe quedar de esta manera:
 
 ```text
-businessdomain/
-└── identity/
-    └── keys/
-        ├── private-key.pem
-        └── public-key.pem
+infrastructure/
+└── keys/
+    ├── private-key.pem
+    └── public-key.pem
 ```
 
 ## 5. Verificar las claves
@@ -166,13 +167,13 @@ Agrega la clave privada al `.gitignore`:
 
 ```gitignore
 # JWT RSA keys
-businessdomain/identity/keys/private-key.pem
+infrastructure/keys/private-key.pem
 ```
 
 Si las claves se generan únicamente para desarrollo local, también puedes ignorar todo el directorio:
 
 ```gitignore
-businessdomain/identity/keys/*.pem
+infrastructure/keys/*.pem
 ```
 
 En producción, la clave privada debería gestionarse mediante un mecanismo seguro de secretos y **no almacenarse directamente en el repositorio**.

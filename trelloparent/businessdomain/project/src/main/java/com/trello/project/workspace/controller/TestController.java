@@ -32,15 +32,6 @@ public class TestController {
     }
 
     @GetMapping("/feign-jwt")
-    // public ResponseEntity<Map<String, Object>> authorization(
-    // @RequestHeader(value = "Authorization", required = false) String
-    // authorization) {
-    // Map<String, Object> response = new HashMap<>();
-
-    // response.put("received", authorization != null);
-    // response.put("authorization", authorization);
-
-    // return ResponseEntity.ok(response);
     public ResponseEntity<Map<String, Object>> testFeignJwt() {
         return ResponseEntity.ok(testClient.getJwt());
 
@@ -78,17 +69,4 @@ public class TestController {
 
         return ResponseEntity.ok(response);
     }
-    // @GetMapping("/authorization")
-    // public ResponseEntity<?> authorization() {
-
-    // JwtAuthenticationToken jwtAuthenticationToken = (JwtAuthenticationToken)
-    // SecurityContextHolder
-    // .getContext()
-    // .getAuthentication();
-
-    // String userId = jwtAuthenticationToken
-    // .getToken()
-    // .getSubject();
-    // return ResponseEntity.ok(userId);
-    // }
 }

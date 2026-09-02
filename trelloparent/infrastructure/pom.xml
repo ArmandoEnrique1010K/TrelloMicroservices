@@ -9,12 +9,12 @@
         <version>1.0</version>
     </parent>
 
-    <groupId>com.trello.infraestructure</groupId>
-    <artifactId>infraestructure</artifactId>
+    <groupId>com.trello.infrastructure</groupId>
+    <artifactId>infrastructure</artifactId>
     <version>1.0</version>
     <packaging>pom</packaging>
 
-    <name>infraestructure</name>
+    <name>infrastructure</name>
     <description>Modulo padre para agrupar los componentes de infraestructura de la aplicación</description>
 
     <url />

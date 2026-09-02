@@ -61,7 +61,7 @@ public class JwtConfig {
 
     private RSAPublicKey loadPublicKey() throws Exception {
 
-        Resource resource = new FileSystemResource("keys/public-key.pem");
+        Resource resource = new FileSystemResource(publicKeyPath);
 
         String key = new String(
                 resource.getInputStream().readAllBytes(),
@@ -83,7 +83,7 @@ public class JwtConfig {
 
     private RSAPrivateKey loadPrivateKey() throws Exception {
 
-        Resource resource = new FileSystemResource("keys/private-key.pem");
+        Resource resource = new FileSystemResource(privateKeyPath);
 
         String key = new String(
                 resource.getInputStream().readAllBytes(),
