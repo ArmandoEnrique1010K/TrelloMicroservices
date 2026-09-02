@@ -32,8 +32,14 @@ public class JwtService {
                 .issuer("trello-identity")
                 // .subject(userDetails.getUsername())
                 // .claim("userId", userDetails.getUserId())
-                .subject(email)
-                .claim("userId", userId.toString())
+
+                // El email como subject
+                // .subject(email)
+                // .claim("userId", userId.toString())
+
+                // ID del usuario como subject
+                .subject(userId.toString())
+                .claim("email", email)
                 .issuedAt(now)
                 // Expira en ... segundos
 
