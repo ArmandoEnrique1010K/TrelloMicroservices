@@ -9,5 +9,5 @@ import java.util.List;
 
 public interface WorkspaceRepository extends JpaRepository<Workspace, UUID> {
 
-    List<Workspace> findByOwnerId(UUID ownerId);
+    List<Workspace> findByOwnerUserId(UUID ownerId);
 }
