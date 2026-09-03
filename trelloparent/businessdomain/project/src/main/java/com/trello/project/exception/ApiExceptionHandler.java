@@ -20,7 +20,8 @@ public class ApiExceptionHandler {
     public ResponseEntity<StandarizedApiExceptionResponse> handleInternalServerError(Exception ex) {
         HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
 
-        log.info(ex.toString());
+        log.error("Error inesperado", ex);
+
         StandarizedApiExceptionResponse standarizedApiExceptionResponse = new StandarizedApiExceptionResponse(
                 "/errors/internal-server-error",
                 "Internal server error",

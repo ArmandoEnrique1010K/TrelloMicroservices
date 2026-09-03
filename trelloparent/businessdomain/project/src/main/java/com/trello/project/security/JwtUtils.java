@@ -1,4 +1,4 @@
-package com.trello.identity.security;
+package com.trello.project.security;
 
 import java.util.UUID;
 
@@ -8,7 +8,6 @@ public class JwtUtils {
     private JwtUtils() {
     }
 
-    // Debe obtener el Id desde el subject
     public static UUID getUserId(Jwt jwt) {
         return UUID.fromString(
                 jwt.getSubject());
