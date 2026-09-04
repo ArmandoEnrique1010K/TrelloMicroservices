@@ -6,7 +6,6 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 
 import com.trello.project.entities.Workspace;
-import com.trello.project.exception.WorkspaceNotFoundException;
 import com.trello.project.service.WorkspaceProjectService;
 import com.trello.project.workspace.dto.request.WorkspaceRequest;
 import com.trello.project.workspace.dto.response.WorkspaceResponse;
@@ -58,7 +57,7 @@ public class WorkspaceServiceImpl implements WorkspaceService {
     @Override
     public WorkspaceResponse editWorkspace(UUID ownerUserId, UUID workspaceId,
             WorkspaceRequest workspaceRequest)
-            throws WorkspaceNotFoundException, WorkspaceAlreadyExistsException {
+            throws WorkspaceAlreadyExistsException {
         String name = workspaceRequest.getName();
         String description = workspaceRequest.getDescription();
 

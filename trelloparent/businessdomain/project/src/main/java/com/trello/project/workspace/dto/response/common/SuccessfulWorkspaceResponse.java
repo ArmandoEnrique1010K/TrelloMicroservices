@@ -1,4 +1,4 @@
-package com.trello.project.workspace.dto.request.common;
+package com.trello.project.workspace.dto.response.common;
 
 import com.trello.project.common.SuccessfulResponse;
 import com.trello.project.workspace.dto.response.WorkspaceResponse;
