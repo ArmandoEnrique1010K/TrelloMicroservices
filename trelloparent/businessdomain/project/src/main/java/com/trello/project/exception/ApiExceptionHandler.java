@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import com.trello.project.common.StandarizedApiExceptionResponse;
+import com.trello.project.workspace.exception.BoardAlreadyExistsException;
 import com.trello.project.workspace.exception.WorkspaceAlreadyExistsException;
 
 import lombok.extern.slf4j.Slf4j;
@@ -79,7 +80,7 @@ public class ApiExceptionHandler {
 
     // Excepción de espacio de trabajo existente - status 409
     @ExceptionHandler(WorkspaceAlreadyExistsException.class)
-    public ResponseEntity<StandarizedApiExceptionResponse> handleUserAlreadyExists(
+    public ResponseEntity<StandarizedApiExceptionResponse> handleWorkspaceAlreadyExists(
             WorkspaceAlreadyExistsException ex) {
         HttpStatus status = HttpStatus.CONFLICT;
 
@@ -109,6 +110,42 @@ public class ApiExceptionHandler {
                 "The workspace was not found in the system",
                 null,
                 "No se ha encontrado el espacio de trabajo");
+
+        return ResponseEntity.status(status).body(standarizedApiExceptionResponse);
+    }
+
+    // Excepción de tablero existente - status 409
+    @ExceptionHandler(BoardAlreadyExistsException.class)
+    public ResponseEntity<StandarizedApiExceptionResponse> handleBoardAlreadyExists(
+            BoardAlreadyExistsException ex) {
+        HttpStatus status = HttpStatus.CONFLICT;
+
+        StandarizedApiExceptionResponse response = new StandarizedApiExceptionResponse(
+                "/errors/board/already-exists",
+                "Board already exists",
+                status.value(),
+                "A board with the provided name already exists",
+                null,
+                "Existe un tablero con ese nombre");
+
+        return ResponseEntity
+                .status(status)
+                .body(response);
+    }
+
+    // Excepción de tablero no encontrado - status 400
+    @ExceptionHandler(BoardNotFoundException.class)
+    public ResponseEntity<StandarizedApiExceptionResponse> handleBoardNotFoundException(
+            BoardNotFoundException ex) {
+        HttpStatus status = HttpStatus.BAD_REQUEST;
+
+        StandarizedApiExceptionResponse standarizedApiExceptionResponse = new StandarizedApiExceptionResponse(
+                "/errors/board-not-found",
+                "Board not found",
+                status.value(),
+                "The board was not found in the system",
+                null,
+                "No se ha encontrado el tablero");
 
         return ResponseEntity.status(status).body(standarizedApiExceptionResponse);
     }

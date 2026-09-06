@@ -15,6 +15,6 @@ public class WorkspaceResponse {
     private String name;
     @Schema(name = "description", example = "Descripción de prueba para el proyecto", description = "Descripción del espacio de trabajo en la base de datos")
     private String description;
-    @Schema(name = "createdAt", example = "2025-01-15T10:30:45", description = "Fecha de creación espacio de trabajo en la base de datos")
+    @Schema(name = "createdAt", example = "2025-01-15T10:30:45", description = "Fecha de creación del espacio de trabajo en la base de datos")
     private LocalDateTime createdAt;
 }

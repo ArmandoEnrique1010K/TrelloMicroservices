@@ -18,6 +18,4 @@ public interface WorkspaceService {
             throws WorkspaceAlreadyExistsException;
 
     void deleteWorkspace(UUID ownerUserId, UUID workspaceId);
-
-    // TODO: IMPLEMEMTAR MÉTODO PARA OBTENER LA LISTA DE BOARDS POR ID DE WORKSPACE
 }
