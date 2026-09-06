@@ -17,11 +17,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.trello.project.common.StandarizedApiExceptionResponse;
+import com.trello.project.common.SuccessfulListResponse;
 import com.trello.project.common.SuccessfulResponse;
 import com.trello.project.exception.WorkspaceNotFoundException;
 import com.trello.project.security.JwtUtils;
 import com.trello.project.workspace.dto.request.WorkspaceRequest;
 import com.trello.project.workspace.dto.response.WorkspaceResponse;
+import com.trello.project.workspace.dto.response.common.SuccessfulWorkspaceListResponse;
 import com.trello.project.workspace.dto.response.common.SuccessfulWorkspaceResponse;
 import com.trello.project.workspace.exception.WorkspaceAlreadyExistsException;
 import com.trello.project.workspace.service.WorkspaceService;
@@ -117,13 +119,32 @@ public class WorkspaceController {
         return ResponseEntity.status(HttpStatus.CREATED).body(successfulResponse);
     }
 
-    @Operation(summary = "Lista los espacios de trabajo", description = "Registra un nuevo espacio de trabajo en la base de datos")
+    @Operation(summary = "Lista los espacios de trabajo", description = "Obtiene una lista de los espacios de trabajo del usuario autenticado desde la base de datos")
     @SecurityRequirement(name = "bearerAuth")
     @ApiResponses(value = {
             // Las listas se definen en un @ArraySchema pero no se va a poder visualizar el
             // nombre de la clase "WorkspaceResponse" para especificar el tipo de cada
             // elemento de la lista en la sección "Schema" de la UI de Swagger
             @ApiResponse(responseCode = "200", description = "Obtiene la lista de espacios de trabajo del usuario autenticado", content = @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = WorkspaceResponse.class)))),
+
+            // Pero como se ha definido la clase SuccessfulListResponse, se puede devolver:
+            // @ApiResponse(responseCode = "200", description = "Obtiene la lista de
+            // espacios de trabajo del usuario autenticado", content = @Content(mediaType =
+            // "application/json", schema = @Schema(implementation =
+            // SuccessfulWorkspaceListResponse.class), examples = @ExampleObject(value = """
+            // {
+            // "body ": [
+            // {
+            // "id": "f35...",
+            // "name": "Proyecto de prueba",
+            // "description": "Descripción de prueba para el proyecto",
+            // "createdAt": "2025-01-15T10:30:45"
+            // }
+            // ],
+            // "message": ""
+            // }
+            // """))),
+
             @ApiResponse(responseCode = "401", description = "El usuario no esta autenticado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
                     {
                         "detail": "Authentication is required to access this resource",
@@ -146,7 +167,25 @@ public class WorkspaceController {
                       "type": "/errors/internal-server-error"
                     }
                     """))),
+
     })
+
+    // @GetMapping
+    // public ResponseEntity<SuccessfulListResponse<WorkspaceResponse>>
+    // listAllWorkspaces(
+    // @AuthenticationPrincipal Jwt jwt) {
+    // UUID userId = JwtUtils.getUserId(jwt);
+
+    // List<WorkspaceResponse> response =
+    // workspaceService.listAllWorkspaces(userId);
+
+    // SuccessfulListResponse<WorkspaceResponse> successfulResponse = new
+    // SuccessfulListResponse<>();
+    // successfulResponse.setMessage("");
+    // successfulResponse.setBody(response);
+
+    // return ResponseEntity.status(HttpStatus.OK).body(successfulResponse);
+    // }
     @GetMapping
     public ResponseEntity<List<WorkspaceResponse>> listAllWorkspaces(
             @AuthenticationPrincipal Jwt jwt) {
