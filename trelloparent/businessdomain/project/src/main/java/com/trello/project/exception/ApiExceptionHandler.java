@@ -97,11 +97,11 @@ public class ApiExceptionHandler {
                 .body(response);
     }
 
-    // Excepción de espacio de trabajo no encontrado - status 400
+    // Excepción de espacio de trabajo no encontrado - status 404
     @ExceptionHandler(WorkspaceNotFoundException.class)
     public ResponseEntity<StandarizedApiExceptionResponse> handleWorkspaceNotFoundException(
             WorkspaceNotFoundException ex) {
-        HttpStatus status = HttpStatus.BAD_REQUEST;
+        HttpStatus status = HttpStatus.NOT_FOUND;
 
         StandarizedApiExceptionResponse standarizedApiExceptionResponse = new StandarizedApiExceptionResponse(
                 "/errors/workspace-not-found",
@@ -133,11 +133,11 @@ public class ApiExceptionHandler {
                 .body(response);
     }
 
-    // Excepción de tablero no encontrado - status 400
+    // Excepción de tablero no encontrado - status 404
     @ExceptionHandler(BoardNotFoundException.class)
     public ResponseEntity<StandarizedApiExceptionResponse> handleBoardNotFoundException(
             BoardNotFoundException ex) {
-        HttpStatus status = HttpStatus.BAD_REQUEST;
+        HttpStatus status = HttpStatus.NOT_FOUND;
 
         StandarizedApiExceptionResponse standarizedApiExceptionResponse = new StandarizedApiExceptionResponse(
                 "/errors/board-not-found",

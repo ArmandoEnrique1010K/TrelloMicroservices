@@ -8,22 +8,22 @@ import com.trello.project.exception.BoardNotFoundException;
 import com.trello.project.exception.WorkspaceNotFoundException;
 
 public interface BoardProjectService {
-    List<Board> findAllBoardsByWorkspaceId(UUID workspaceId, UUID ownerUserId) throws WorkspaceNotFoundException;
-
-    boolean existsBoardByWorkspaceIdAndName(UUID workspaceId, UUID ownerUserId, String name)
+    List<Board> findAllBoardsByWorkspaceIdAndOwnerUserId(UUID workspaceId, UUID ownerUserId)
             throws WorkspaceNotFoundException;
+
+    boolean existsBoardByWorkspaceIdAndName(UUID workspaceId, String name);
 
     boolean existsBoardByWorkspaceIdAndNameExcludingId(
             UUID workspaceId,
             String name,
-            UUID ownerUserId,
-            UUID boardId) throws WorkspaceNotFoundException;
+            UUID boardId);
 
-    Board findBoardByIdAndWorkspaceId(UUID boardId, UUID workspaceId, UUID ownerUserId)
+    Board findBoardByIdAndOwnerUserId(UUID boardId, UUID ownerUserId)
             throws WorkspaceNotFoundException, BoardNotFoundException;
 
-    Board saveBoard(Board board, UUID ownerUserId) throws WorkspaceNotFoundException;
+    Board saveBoard(Board board);
 
-    void deleteBoardByIdAndWorkspaceId(UUID boardId, UUID workspaceId, UUID ownerUserId)
+    void deleteBoardByIdAndOwnerUserId(UUID boardId, UUID ownerUserId)
             throws WorkspaceNotFoundException, BoardNotFoundException;
+
 }

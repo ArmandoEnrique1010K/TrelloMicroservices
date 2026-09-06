@@ -23,7 +23,7 @@ public class BoardProjectServiceImpl implements BoardProjectService {
     }
 
     @Override
-    public List<Board> findAllBoardsByWorkspaceId(UUID workspaceId, UUID ownerUserId)
+    public List<Board> findAllBoardsByWorkspaceIdAndOwnerUserId(UUID workspaceId, UUID ownerUserId)
             throws WorkspaceNotFoundException {
 
         workspaceRepository.findByIdAndOwnerUserId(workspaceId, ownerUserId)
@@ -33,9 +33,8 @@ public class BoardProjectServiceImpl implements BoardProjectService {
     }
 
     @Override
-    public boolean existsBoardByWorkspaceIdAndName(UUID workspaceId, UUID ownerUserId, String name)
-            throws WorkspaceNotFoundException {
-        workspaceRepository.findByIdAndOwnerUserId(workspaceId, ownerUserId)
+    public boolean existsBoardByWorkspaceIdAndName(UUID workspaceId, String name) {
+        workspaceRepository.findById(workspaceId)
                 .orElseThrow(WorkspaceNotFoundException::new);
 
         return boardRepository.existsByWorkspaceIdAndName(workspaceId, name);
@@ -45,47 +44,43 @@ public class BoardProjectServiceImpl implements BoardProjectService {
     public boolean existsBoardByWorkspaceIdAndNameExcludingId(
             UUID workspaceId,
             String name,
-            UUID ownerUserId,
-            UUID boardId) throws WorkspaceNotFoundException {
-
-        workspaceRepository.findByIdAndOwnerUserId(workspaceId, ownerUserId)
+            UUID boardId) {
+        workspaceRepository.findById(workspaceId)
                 .orElseThrow(WorkspaceNotFoundException::new);
 
         return boardRepository.existsByWorkspaceIdAndNameAndIdNot(workspaceId, name, boardId);
     }
 
     @Override
-    public Board findBoardByIdAndWorkspaceId(UUID boardId, UUID workspaceId,
-            UUID ownerUserId) throws WorkspaceNotFoundException, BoardNotFoundException {
-        workspaceRepository.findByIdAndOwnerUserId(workspaceId, ownerUserId)
-                .orElseThrow(WorkspaceNotFoundException::new);
-
-        Board board = boardRepository.findByIdAndWorkspaceId(boardId, workspaceId)
+    public Board findBoardByIdAndOwnerUserId(UUID boardId, UUID ownerUserId)
+            throws WorkspaceNotFoundException, BoardNotFoundException {
+        Board board = boardRepository.findById(boardId)
                 .orElseThrow(BoardNotFoundException::new);
+
+        workspaceRepository.findByIdAndOwnerUserId(
+                board.getWorkspace().getId(),
+                ownerUserId).orElseThrow(WorkspaceNotFoundException::new);
 
         return board;
     }
 
     @Override
-    public Board saveBoard(Board board, UUID ownerUserId) throws WorkspaceNotFoundException {
-
-        workspaceRepository.findByIdAndOwnerUserId(board.getWorkspace().getId(), ownerUserId)
-                .orElseThrow(WorkspaceNotFoundException::new);
-
+    public Board saveBoard(Board board) {
         return boardRepository.save(board);
     }
 
     @Override
-    public void deleteBoardByIdAndWorkspaceId(UUID boardId, UUID workspaceId,
+    public void deleteBoardByIdAndOwnerUserId(UUID boardId,
             UUID ownerUserId) throws WorkspaceNotFoundException, BoardNotFoundException {
 
-        workspaceRepository.findByIdAndOwnerUserId(workspaceId, ownerUserId)
-                .orElseThrow(WorkspaceNotFoundException::new);
-
         Board board = boardRepository
-                .findByIdAndWorkspaceId(boardId, workspaceId)
+                .findById(boardId)
                 .orElseThrow(BoardNotFoundException::new);
+
+        workspaceRepository.findByIdAndOwnerUserId(board.getWorkspace().getId(), ownerUserId)
+                .orElseThrow(WorkspaceNotFoundException::new);
 
         boardRepository.delete(board);
     }
+
 }

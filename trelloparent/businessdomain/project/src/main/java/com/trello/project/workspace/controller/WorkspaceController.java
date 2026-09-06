@@ -17,13 +17,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.trello.project.common.StandarizedApiExceptionResponse;
-import com.trello.project.common.SuccessfulListResponse;
+// import com.trello.project.common.SuccessfulListResponse;
 import com.trello.project.common.SuccessfulResponse;
 import com.trello.project.exception.WorkspaceNotFoundException;
 import com.trello.project.security.JwtUtils;
 import com.trello.project.workspace.dto.request.WorkspaceRequest;
 import com.trello.project.workspace.dto.response.WorkspaceResponse;
-import com.trello.project.workspace.dto.response.common.SuccessfulWorkspaceListResponse;
+// import com.trello.project.workspace.dto.response.common.SuccessfulWorkspaceListResponse;
 import com.trello.project.workspace.dto.response.common.SuccessfulWorkspaceResponse;
 import com.trello.project.workspace.exception.WorkspaceAlreadyExistsException;
 import com.trello.project.workspace.service.WorkspaceService;
@@ -67,7 +67,19 @@ public class WorkspaceController {
                         "message": "Se ha creado el espacio de trabajo"
                     }
                     """))),
-
+            @ApiResponse(responseCode = "400", description = "Los datos enviados no son válidos", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
+                    {
+                        "detail": "One or more request fields are invalid",
+                        "fields": {
+                            "name": "El nombre debe tener entre 4 y 50 caracteres"
+                        },
+                        "instance": null,
+                        "message": "Complete los campos indicados",
+                        "status": 400,
+                        "title": "Invalid request",
+                        "type": "/errors/validation"
+                    }
+                    """))),
             @ApiResponse(responseCode = "401", description = "El usuario no esta autenticado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
                     {
                         "detail": "Authentication is required to access this resource",
@@ -208,18 +220,19 @@ public class WorkspaceController {
                         "message": "Se ha modificado el espacio de trabajo"
                     }
                     """))),
-            @ApiResponse(responseCode = "400", description = "No se ha encontrado el espacio de trabajo", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
+            @ApiResponse(responseCode = "400", description = "Los datos enviados no son válidos", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
                     {
-                        "detail": "The workspace was not found in the system",
-                        "fields": null,
+                        "detail": "One or more request fields are invalid",
+                        "fields": {
+                            "name": "El nombre debe tener entre 4 y 50 caracteres"
+                        },
                         "instance": null,
-                        "message": "No se ha encontrado el espacio de trabajo",
+                        "message": "Complete los campos indicados",
                         "status": 400,
-                        "title": "Workspace not found",
-                        "type": "/errors/workspace-not-found"
+                        "title": "Invalid request",
+                        "type": "/errors/validation"
                     }
                     """))),
-
             @ApiResponse(responseCode = "401", description = "El usuario no esta autenticado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
                     {
                         "detail": "Authentication is required to access this resource",
@@ -231,7 +244,17 @@ public class WorkspaceController {
                         "type": "/errors/authentication/not-authenticated"
                     }
                     """))),
-
+            @ApiResponse(responseCode = "404", description = "No se ha encontrado el espacio de trabajo", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
+                    {
+                        "detail": "The workspace was not found in the system",
+                        "fields": null,
+                        "instance": null,
+                        "message": "No se ha encontrado el espacio de trabajo",
+                        "status": 404,
+                        "title": "Workspace not found",
+                        "type": "/errors/workspace-not-found"
+                    }
+                    """))),
             @ApiResponse(responseCode = "409", description = "El nombre del espacio de trabajo existe", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
                     {
                         "detail": "A workspace with the provided name already exists",
@@ -243,7 +266,6 @@ public class WorkspaceController {
                         "type": "/errors/workspace/already-exists"
                     }
                     """))),
-
             @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
                     {
                       "detail": "An unexpected error occurred while processing the request",
@@ -282,17 +304,6 @@ public class WorkspaceController {
                         "message": "Se ha eliminado el espacio de trabajo"
                     }
                     """))),
-            @ApiResponse(responseCode = "400", description = "No se ha encontrado el espacio de trabajo", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
-                    {
-                        "detail": "The workspace was not found in the system",
-                        "fields": null,
-                        "instance": null,
-                        "message": "No se ha encontrado el espacio de trabajo",
-                        "status": 400,
-                        "title": "Workspace not found",
-                        "type": "/errors/workspace-not-found"
-                    }
-                    """))),
             @ApiResponse(responseCode = "401", description = "El usuario no esta autenticado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
                     {
                         "detail": "Authentication is required to access this resource",
@@ -302,6 +313,17 @@ public class WorkspaceController {
                         "status": 401,
                         "title": "Unauthorized",
                         "type": "/errors/authentication/not-authenticated"
+                    }
+                    """))),
+            @ApiResponse(responseCode = "404", description = "No se ha encontrado el espacio de trabajo", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
+                    {
+                        "detail": "The workspace was not found in the system",
+                        "fields": null,
+                        "instance": null,
+                        "message": "No se ha encontrado el espacio de trabajo",
+                        "status": 404,
+                        "title": "Workspace not found",
+                        "type": "/errors/workspace-not-found"
                     }
                     """))),
             @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
