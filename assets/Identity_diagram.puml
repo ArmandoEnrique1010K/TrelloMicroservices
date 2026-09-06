@@ -1,0 +1,47 @@
+@startuml Identity
+' Oculta todos los métodos de todas las clases
+hide methods
+' Tamaño de texto de los indices de multiplicidad
+skinparam ArrowFontSize 14
+
+entity User {
+    - id: UUID
+    - firstName: String
+    - lastName: String
+    - email: String
+    - password: String
+    - confirmed: boolean
+}
+
+entity OtpToken {
+    - id: UUID
+    - otpHash: String
+    - attemps: integer
+    - expiresAt: LocalDateTime
+    - resetToken: UUID
+}
+
+entity RefreshToken {
+    - id: UUID
+    - tokenHash: String
+    - expiresAt: LocalDateTime
+    - revokedAt: LocalDateTime
+}
+
+enum OtpPurpose {
+    ACCOUNT_CONFIRMATION,
+    PASSWORD_RESET
+}
+
+'Se utiliza 1..* para indicar "uno a muchos", no se utiliza 1..n
+'El asterisco * va del lado de la clase "dueña" o contenedora.
+User "  1" *-- "1..*  " RefreshToken
+
+'El rombo relleno (*) indica que si el usuario se elimina, sus tokens asociados (RefreshToken y OtpToken) también se destruyen (Relación de Composición).
+User "1   " *-- "0..1" OtpToken
+
+'La flecha --> indica una relación de Navigabilidad Unidireccional (o simplemente asociación dirigida)
+'Muchos tokens (0..*) apuntan a un solo propósito (1).
+OtpToken "0..*" --> "1 " OtpPurpose
+
+@enduml

@@ -1,0 +1,54 @@
+@startuml Project
+hide methods
+skinparam ArrowFontSize 14
+
+entity Workspace {
+    - id: UUID
+    - name: String
+    - description: String
+    - ownerUserId: UUID
+    - createdAt: LocalDateTime
+}
+
+entity Board {
+    - id: UUID
+    - name: String
+    - description: String
+    - ownerUserId: UUID
+    - createdAt: LocalDateTime
+}
+
+entity Invitation {
+    - id: UUID
+    - inviterUserId: UUID
+    - invitedUserId: UUID
+    - message: String
+    - createdAt: LocalDateTime
+}
+
+entity Member {
+    - id: UUID
+    - userId: UUID
+    - joinedAt: LocalDateTime
+}
+
+enum Role {
+    ADMIN
+    MEMBER
+    VIEWER
+}
+
+enum Status {
+    ACCEPTED
+    REJECTED
+    CANCELLED
+    UNCONFIRMED
+}
+
+Workspace "1" *-- "0..*" Board
+Board "1 " *-- "0..*  " Member
+Board "1  " *-- "0..*" Invitation
+Member "0..*" --> "1" Role
+Invitation "0..*" --> "1" Status
+
+@enduml
