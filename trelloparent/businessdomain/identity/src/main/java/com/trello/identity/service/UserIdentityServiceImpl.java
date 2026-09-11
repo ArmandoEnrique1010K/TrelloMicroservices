@@ -1,5 +1,6 @@
 package com.trello.identity.service;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
@@ -43,5 +44,11 @@ public class UserIdentityServiceImpl implements UserIdentityService {
     @Override
     public User saveUser(User user) {
         return userRepository.save(user);
+    }
+
+    @Override
+    public List<User> findAllUsersByKeywordEmailAndExcludingIds(String email, List<UUID> ids) {
+        return userRepository.findTop10ByEmailContainingIgnoreCaseAndIdNotInAndConfirmedTrueOrderByCreatedAtDesc(email,
+                ids);
     }
 }

@@ -1,5 +1,6 @@
 package com.trello.identity.service;
 
+import java.util.List;
 import java.util.UUID;
 
 import com.trello.identity.entities.User;
@@ -15,4 +16,6 @@ public interface UserIdentityService {
     User findUserByOtpTokenResetToken(UUID resetToken) throws UserNotFoundException;
 
     User saveUser(User user);
+
+    List<User> findAllUsersByKeywordEmailAndExcludingIds(String email, List<UUID> ids);
 }
