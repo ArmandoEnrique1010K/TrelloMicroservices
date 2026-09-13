@@ -1,5 +1,6 @@
 package com.trello.project.membership.service;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
@@ -62,6 +63,23 @@ public class InvitationServiceImpl implements InvitationService {
         InvitationResponse invitationResponse = invitationResponseMapper
                 .invitationToInvitationResponse(savedInvitation);
         return invitationResponse;
+    }
+
+    @Override
+    public List<InvitationResponse> listAllInvitationsByRecipientUserId(UUID recipientUserId) {
+        List<Invitation> listInvitations = invitationProjectService
+                .findAllInvitationsByRecipientUserId(recipientUserId);
+        return invitationResponseMapper.invitationListToInvitationResponseList(listInvitations);
+    }
+
+    @Override
+    public List<InvitationResponse> listAllInvitationsByBoardId(UUID boardId, UUID ownerUserId) {
+        // Verificar que el usuario que ha iniciado sesion en la aplicacion sea el
+        // administrador del tablero
+        boardProjectService.findBoardByIdAndOwnerUserId(boardId, ownerUserId);
+
+        List<Invitation> listInvitations = invitationProjectService.findAllInvitationsByBoardId(boardId);
+        return invitationResponseMapper.invitationListToInvitationResponseList(listInvitations);
     }
 
 }

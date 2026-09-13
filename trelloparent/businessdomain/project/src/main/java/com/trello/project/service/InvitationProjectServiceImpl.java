@@ -3,6 +3,7 @@ package com.trello.project.service;
 import com.trello.project.repositories.BoardRepository;
 import com.trello.project.repositories.InvitationRepository;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
@@ -27,11 +28,22 @@ public class InvitationProjectServiceImpl implements InvitationProjectService {
     }
 
     @Override
-    public boolean existsInvitationByBoardIdAndRecipientUserId(UUID boardId, UUID recipientUserId) {
+    public boolean existsInvitationByBoardIdAndRecipientUserId(UUID boardId, UUID recipientUserId)
+            throws BoardNotFoundException {
         // TODO: LLAMAR A UN SERVICIO PARA VERIFICAR SI EXISTE EL USUARIO EN LA BASE DE
         // DATOS
         boardRepository.findById(boardId).orElseThrow(BoardNotFoundException::new);
         return invitationRepository.existsByBoardIdAndRecipientUserId(boardId, recipientUserId);
     }
 
+    @Override
+    public List<Invitation> findAllInvitationsByRecipientUserId(UUID recipientUserId) {
+        return invitationRepository.findByRecipientUserId(recipientUserId);
+    }
+
+    @Override
+    public List<Invitation> findAllInvitationsByBoardId(UUID boardId) {
+        boardRepository.findById(boardId).orElseThrow(BoardNotFoundException::new);
+        return invitationRepository.findByBoardId(boardId);
+    }
 }
