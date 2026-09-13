@@ -15,18 +15,14 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
 import com.trello.project.common.StandarizedApiExceptionResponse;
-// import com.trello.project.common.SuccessfulListResponse;
 import com.trello.project.common.SuccessfulResponse;
-import com.trello.project.exception.WorkspaceNotFoundException;
 import com.trello.project.security.JwtUtils;
-import com.trello.project.workspace.dto.request.WorkspaceRequest;
-import com.trello.project.workspace.dto.response.WorkspaceResponse;
-// import com.trello.project.workspace.dto.response.common.SuccessfulWorkspaceListResponse;
-import com.trello.project.workspace.dto.response.common.SuccessfulWorkspaceResponse;
-import com.trello.project.workspace.exception.WorkspaceAlreadyExistsException;
-import com.trello.project.workspace.service.WorkspaceService;
+import com.trello.project.workspace.dto.request.BoardRequest;
+import com.trello.project.workspace.dto.response.BoardResponse;
+import com.trello.project.workspace.dto.response.common.SuccessfulBoardResponse;
+import com.trello.project.workspace.exception.BoardAlreadyExistsException;
+import com.trello.project.workspace.service.BoardService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -40,31 +36,28 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
-@Tag(name = "Workspace API", description = "API para la gestión de espacios de trabajo por el usuario autenticado")
+@Tag(name = "Board API", description = "API para la gestión de tableros por el usuario autenticado")
 @RestController
-@RequestMapping("/workspace")
-public class WorkspaceController {
+@RequestMapping("/board")
+public class BoardRestController {
+    private final BoardService boardService;
 
-    private final WorkspaceService workspaceService;
-
-    public WorkspaceController(WorkspaceService workspaceService) {
-        this.workspaceService = workspaceService;
+    public BoardRestController(BoardService boardService) {
+        this.boardService = boardService;
     }
 
-    @Operation(summary = "Añade un nuevo espacio de trabajo", description = "Registra un nuevo espacio de trabajo en la base de datos")
+    @Operation(summary = "Agrega un tablero", description = "Agrega un tablero al espacio de trabajo por ID en la base de datos")
     @SecurityRequirement(name = "bearerAuth")
     @ApiResponses(value = {
-            // Recordar que se va a utilizar un @ExampleObject cuando se devuelva un body y
-            // un message en la respuesta
-            @ApiResponse(responseCode = "200", description = "Se ha creado el espacio de trabajo", content = @Content(mediaType = "application/json", schema = @Schema(implementation = SuccessfulWorkspaceResponse.class), examples = @ExampleObject(value = """
+            @ApiResponse(responseCode = "200", description = "Se ha creado el espacio de trabajo", content = @Content(mediaType = "application/json", schema = @Schema(implementation = SuccessfulBoardResponse.class), examples = @ExampleObject(value = """
                     {
                         "body": {
                             "createdAt": "2026-09-03T21:47:52.333057",
-                            "description": "Descripción de prueba para el proyecto",
+                            "description": "Descripción de prueba para el tablero",
                             "id": "09901933-c12c-469f-bbfe-b51840f79d15",
-                            "name": "Proyecto de prueba"
+                            "name": "Tablero de prueba"
                         },
-                        "message": "Se ha creado el espacio de trabajo"
+                        "message": "Se agrego un nuevo tablero"
                     }
                     """))),
             @ApiResponse(responseCode = "400", description = "Los datos enviados no son válidos", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
@@ -91,19 +84,28 @@ public class WorkspaceController {
                         "type": "/errors/authentication/not-authenticated"
                     }
                     """))),
-
-            @ApiResponse(responseCode = "409", description = "El nombre del espacio de trabajo existe", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
+            @ApiResponse(responseCode = "404", description = "No se ha encontrado el espacio de trabajo", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
                     {
-                        "detail": "A workspace with the provided name already exists",
+                        "detail": "The workspace was not found in the system",
                         "fields": null,
                         "instance": null,
-                        "message": "Existe un espacio de trabajo con ese nombre",
-                        "status": 409,
-                        "title": "Workspace already exists",
-                        "type": "/errors/workspace/already-exists"
+                        "message": "No se ha encontrado el espacio de trabajo",
+                        "status": 404,
+                        "title": "Workspace not found",
+                        "type": "/errors/workspace-not-found"
                     }
                     """))),
-
+            @ApiResponse(responseCode = "409", description = "El nombre del tablero existe", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
+                    {
+                        "detail": "A board with the provided name already exists",
+                        "fields": null,
+                        "instance": null,
+                        "message": "Existe un tablero con ese nombre",
+                        "status": 409,
+                        "title": "Board already exists",
+                        "type": "/errors/board/already-exists"
+                    }
+                    """))),
             @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
                     {
                       "detail": "An unexpected error occurred while processing the request",
@@ -116,47 +118,26 @@ public class WorkspaceController {
                     }
                     """))),
     })
-    @PostMapping
-    public ResponseEntity<SuccessfulResponse<WorkspaceResponse>> createAccount(@AuthenticationPrincipal Jwt jwt,
-            @Valid @RequestBody WorkspaceRequest input)
-            throws WorkspaceAlreadyExistsException {
+    @PostMapping("/workspace/{workspaceId}")
+    public ResponseEntity<SuccessfulResponse<BoardResponse>> createBoard(@AuthenticationPrincipal Jwt jwt,
+            @Parameter(description = "ID del espacio de trabajo", required = true, example = "550e8400-e29b-41d4-a716-446655440000") @PathVariable UUID workspaceId,
+            @Valid @RequestBody BoardRequest input) throws BoardAlreadyExistsException {
+
         UUID userId = JwtUtils.getUserId(jwt);
 
-        WorkspaceResponse response = workspaceService.createWorkspace(userId, input);
+        BoardResponse response = boardService.createBoardByWorkspaceId(workspaceId, userId, input);
 
-        SuccessfulResponse<WorkspaceResponse> successfulResponse = new SuccessfulResponse<>();
-        successfulResponse.setMessage("Se ha creado el espacio de trabajo");
+        SuccessfulResponse<BoardResponse> successfulResponse = new SuccessfulResponse<>();
+        successfulResponse.setMessage("Se agrego un nuevo tablero");
         successfulResponse.setBody(response);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(successfulResponse);
     }
 
-    @Operation(summary = "Lista los espacios de trabajo", description = "Obtiene una lista de los espacios de trabajo del usuario autenticado desde la base de datos")
+    @Operation(summary = "Lista los tableros", description = "Obtiene una lista de los tableros por Id de espacio de trabajo y usuario autenticado desde la base de datos")
     @SecurityRequirement(name = "bearerAuth")
     @ApiResponses(value = {
-            // Las listas se definen en un @ArraySchema pero no se va a poder visualizar el
-            // nombre de la clase "WorkspaceResponse" para especificar el tipo de cada
-            // elemento de la lista en la sección "Schema" de la UI de Swagger
-            @ApiResponse(responseCode = "200", description = "Obtiene la lista de espacios de trabajo del usuario autenticado", content = @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = WorkspaceResponse.class)))),
-
-            // Pero como se ha definido la clase SuccessfulListResponse, se puede devolver:
-            // @ApiResponse(responseCode = "200", description = "Obtiene la lista de
-            // espacios de trabajo del usuario autenticado", content = @Content(mediaType =
-            // "application/json", schema = @Schema(implementation =
-            // SuccessfulWorkspaceListResponse.class), examples = @ExampleObject(value = """
-            // {
-            // "body ": [
-            // {
-            // "id": "f35...",
-            // "name": "Proyecto de prueba",
-            // "description": "Descripción de prueba para el proyecto",
-            // "createdAt": "2025-01-15T10:30:45"
-            // }
-            // ],
-            // "message": ""
-            // }
-            // """))),
-
+            @ApiResponse(responseCode = "200", description = "Obtiene la lista de tableros por el Id del espacio de trabajo", content = @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = BoardResponse.class)))),
             @ApiResponse(responseCode = "401", description = "El usuario no esta autenticado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
                     {
                         "detail": "Authentication is required to access this resource",
@@ -166,6 +147,17 @@ public class WorkspaceController {
                         "status": 401,
                         "title": "Unauthorized",
                         "type": "/errors/authentication/not-authenticated"
+                    }
+                    """))),
+            @ApiResponse(responseCode = "404", description = "No se ha encontrado el espacio de trabajo", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
+                    {
+                        "detail": "The workspace was not found in the system",
+                        "fields": null,
+                        "instance": null,
+                        "message": "No se ha encontrado el espacio de trabajo",
+                        "status": 404,
+                        "title": "Workspace not found",
+                        "type": "/errors/workspace-not-found"
                     }
                     """))),
             @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
@@ -179,47 +171,32 @@ public class WorkspaceController {
                       "type": "/errors/internal-server-error"
                     }
                     """))),
-
     })
-
-    // @GetMapping
-    // public ResponseEntity<SuccessfulListResponse<WorkspaceResponse>>
-    // listAllWorkspaces(
-    // @AuthenticationPrincipal Jwt jwt) {
-    // UUID userId = JwtUtils.getUserId(jwt);
-
-    // List<WorkspaceResponse> response =
-    // workspaceService.listAllWorkspaces(userId);
-
-    // SuccessfulListResponse<WorkspaceResponse> successfulResponse = new
-    // SuccessfulListResponse<>();
-    // successfulResponse.setMessage("");
-    // successfulResponse.setBody(response);
-
-    // return ResponseEntity.status(HttpStatus.OK).body(successfulResponse);
-    // }
-    @GetMapping
-    public ResponseEntity<List<WorkspaceResponse>> listAllWorkspaces(
-            @AuthenticationPrincipal Jwt jwt) {
+    @GetMapping("/workspace/{workspaceId}")
+    public ResponseEntity<List<BoardResponse>> listAllBoardsByWorkspaceId(
+            @AuthenticationPrincipal Jwt jwt,
+            @Parameter(description = "ID del espacio de trabajo", required = true, example = "550e8400-e29b-41d4-a716-446655440000") @PathVariable UUID workspaceId) {
         UUID userId = JwtUtils.getUserId(jwt);
-
-        List<WorkspaceResponse> response = workspaceService.listAllWorkspaces(userId);
+        List<BoardResponse> response = boardService.listAllBoardsByWorkspaceId(workspaceId, userId);
 
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
+    @Operation(summary = "Edita un tablero", description = "Edita los datos de un tablero en la base de datos")
+    @SecurityRequirement(name = "bearerAuth")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Se ha modificado el espacio de trabajo", content = @Content(mediaType = "application/json", schema = @Schema(implementation = SuccessfulWorkspaceResponse.class), examples = @ExampleObject(value = """
+            @ApiResponse(responseCode = "200", description = "Se ha modificado el tablero", content = @Content(mediaType = "application/json", schema = @Schema(implementation = SuccessfulBoardResponse.class), examples = @ExampleObject(value = """
                     {
                         "body": {
                             "createdAt": "2026-09-03T21:47:52.333057",
-                            "description": "Descripción modificada",
+                            "description": "Descripción de prueba para el tablero",
                             "id": "09901933-c12c-469f-bbfe-b51840f79d15",
-                            "name": "Proyecto modificado de prueba"
+                            "name": "Tablero modificado de prueba"
                         },
-                        "message": "Se ha modificado el espacio de trabajo"
+                        "message": "Se ha modificado el tablero"
                     }
                     """))),
+
             @ApiResponse(responseCode = "400", description = "Los datos enviados no son válidos", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
                     {
                         "detail": "One or more request fields are invalid",
@@ -244,26 +221,39 @@ public class WorkspaceController {
                         "type": "/errors/authentication/not-authenticated"
                     }
                     """))),
-            @ApiResponse(responseCode = "404", description = "No se ha encontrado el espacio de trabajo", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
+            @ApiResponse(responseCode = "404", description = "No se ha encontrado el recurso solicitado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = {
+                    @ExampleObject(name = "No se ha encontrado el tablero", summary = "No se ha encontrado el tablero", value = """
+                            {
+                                "detail": "The board was not found in the system",
+                                "fields": null,
+                                "instance": null,
+                                "message": "No se ha encontrado el tablero",
+                                "status": 404,
+                                "title": "Board not found",
+                                "type": "/errors/board-not-found"
+                            }
+                            """),
+                    @ExampleObject(name = "No se ha encontrado el espacio de trabajo", summary = "No se ha encontrado el espacio de trabajo", value = """
+                            {
+                                "detail": "The workspace was not found in the system",
+                                "fields": null,
+                                "instance": null,
+                                "message": "No se ha encontrado el espacio de trabajo",
+                                "status": 404,
+                                "title": "Workspace not found",
+                                "type": "/errors/workspace-not-found"
+                            }
+                            """)
+            })),
+            @ApiResponse(responseCode = "409", description = "El nombre del tablero existe", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
                     {
-                        "detail": "The workspace was not found in the system",
+                        "detail": "A board with the provided name already exists",
                         "fields": null,
                         "instance": null,
-                        "message": "No se ha encontrado el espacio de trabajo",
-                        "status": 404,
-                        "title": "Workspace not found",
-                        "type": "/errors/workspace-not-found"
-                    }
-                    """))),
-            @ApiResponse(responseCode = "409", description = "El nombre del espacio de trabajo existe", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
-                    {
-                        "detail": "A workspace with the provided name already exists",
-                        "fields": null,
-                        "instance": null,
-                        "message": "Existe un espacio de trabajo con ese nombre",
+                        "message": "Existe un tablero con ese nombre",
                         "status": 409,
-                        "title": "Workspace already exists",
-                        "type": "/errors/workspace/already-exists"
+                        "title": "Board already exists",
+                        "type": "/errors/board/already-exists"
                     }
                     """))),
             @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
@@ -278,32 +268,27 @@ public class WorkspaceController {
                     }
                     """))),
     })
-    @Operation(summary = "Edita un espacio de trabajo", description = "Edita los datos de un espacio de trabajo en la base de datos")
-    @SecurityRequirement(name = "bearerAuth")
-    @PutMapping("/{workspaceId}")
-    public ResponseEntity<SuccessfulResponse<WorkspaceResponse>> editWorkspace(
+    @PutMapping("/{boardId}")
+    public ResponseEntity<SuccessfulResponse<BoardResponse>> editBoard(
             @AuthenticationPrincipal Jwt jwt,
-            @Parameter(description = "ID del espacio de trabajo", required = true, example = "550e8400-e29b-41d4-a716-446655440000") @PathVariable UUID workspaceId,
-            @Valid @RequestBody WorkspaceRequest input)
-            throws WorkspaceNotFoundException, WorkspaceAlreadyExistsException {
+            @Parameter(description = "ID del tablero", required = true, example = "550e8400-e29b-41d4-a716-446655440000") @PathVariable UUID boardId,
+            @Valid @RequestBody BoardRequest input) {
+
         UUID userId = JwtUtils.getUserId(jwt);
 
-        WorkspaceResponse response = workspaceService.editWorkspace(userId, workspaceId, input);
+        BoardResponse response = boardService.editBoard(userId, boardId, input);
 
-        SuccessfulResponse<WorkspaceResponse> successfulResponse = new SuccessfulResponse<>();
-        successfulResponse.setMessage("Se ha modificado el espacio de trabajo");
+        SuccessfulResponse<BoardResponse> successfulResponse = new SuccessfulResponse<>();
+        successfulResponse.setMessage("Se ha modificado el tablero");
         successfulResponse.setBody(response);
 
         return ResponseEntity.status(HttpStatus.OK).body(successfulResponse);
     }
 
+    @Operation(summary = "Elimina un tablero", description = "Elimina un tablero en la base de datos")
+    @SecurityRequirement(name = "bearerAuth")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Se ha eliminado el espacio de trabajo", content = @Content(mediaType = "application/json", schema = @Schema(implementation = SuccessfulWorkspaceResponse.class), examples = @ExampleObject(value = """
-                    {
-                        "body": null,
-                        "message": "Se ha eliminado el espacio de trabajo"
-                    }
-                    """))),
+            @ApiResponse(responseCode = "200", description = "Se ha eliminado el tablero", content = @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = BoardResponse.class)))),
             @ApiResponse(responseCode = "401", description = "El usuario no esta autenticado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
                     {
                         "detail": "Authentication is required to access this resource",
@@ -315,17 +300,30 @@ public class WorkspaceController {
                         "type": "/errors/authentication/not-authenticated"
                     }
                     """))),
-            @ApiResponse(responseCode = "404", description = "No se ha encontrado el espacio de trabajo", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
-                    {
-                        "detail": "The workspace was not found in the system",
-                        "fields": null,
-                        "instance": null,
-                        "message": "No se ha encontrado el espacio de trabajo",
-                        "status": 404,
-                        "title": "Workspace not found",
-                        "type": "/errors/workspace-not-found"
-                    }
-                    """))),
+            @ApiResponse(responseCode = "404", description = "No se ha encontrado el recurso solicitado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = {
+                    @ExampleObject(name = "No se ha encontrado el tablero", summary = "No se ha encontrado el tablero", value = """
+                            {
+                                "detail": "The board was not found in the system",
+                                "fields": null,
+                                "instance": null,
+                                "message": "No se ha encontrado el tablero",
+                                "status": 404,
+                                "title": "Board not found",
+                                "type": "/errors/board-not-found"
+                            }
+                            """),
+                    @ExampleObject(name = "No se ha encontrado el espacio de trabajo", summary = "No se ha encontrado el espacio de trabajo", value = """
+                            {
+                                "detail": "The workspace was not found in the system",
+                                "fields": null,
+                                "instance": null,
+                                "message": "No se ha encontrado el espacio de trabajo",
+                                "status": 404,
+                                "title": "Workspace not found",
+                                "type": "/errors/workspace-not-found"
+                            }
+                            """)
+            })),
             @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
                     {
                       "detail": "An unexpected error occurred while processing the request",
@@ -338,19 +336,20 @@ public class WorkspaceController {
                     }
                     """))),
     })
-    @Operation(summary = "Elimina un espacio de trabajo", description = "Elimina un espacio de trabajo en la base de datos")
-    @SecurityRequirement(name = "bearerAuth")
-    @DeleteMapping("/{workspaceId}")
-    public ResponseEntity<SuccessfulResponse<WorkspaceResponse>> deleteWorkspace(@AuthenticationPrincipal Jwt jwt,
-            @Parameter(description = "ID del espacio de trabajo", required = true, example = "550e8400-e29b-41d4-a716-446655440000") @PathVariable UUID workspaceId) {
+    @DeleteMapping("/{boardId}")
+    public ResponseEntity<SuccessfulResponse<BoardResponse>> deleteBoard(
+            @AuthenticationPrincipal Jwt jwt,
+            @Parameter(description = "ID del tablero", required = true, example = "550e8400-e29b-41d4-a716-446655440000") @PathVariable UUID boardId) {
+
         UUID userId = JwtUtils.getUserId(jwt);
 
-        workspaceService.deleteWorkspace(userId, workspaceId);
+        boardService.deleteBoard(userId, boardId);
 
-        SuccessfulResponse<WorkspaceResponse> successfulResponse = new SuccessfulResponse<>();
-        successfulResponse.setMessage("Se ha eliminado el espacio de trabajo");
+        SuccessfulResponse<BoardResponse> successfulResponse = new SuccessfulResponse<>();
+        successfulResponse.setMessage("Se ha eliminado el tablero");
         successfulResponse.setBody(null);
 
         return ResponseEntity.status(HttpStatus.OK).body(successfulResponse);
     }
+
 }

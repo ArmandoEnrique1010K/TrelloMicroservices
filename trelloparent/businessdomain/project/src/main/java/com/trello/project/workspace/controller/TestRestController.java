@@ -23,11 +23,11 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequestMapping("/test")
 @RequiredArgsConstructor
-public class TestController {
+public class TestRestController {
 
     private TestClient testClient;
 
-    public TestController(TestClient testClient) {
+    public TestRestController(TestClient testClient) {
         this.testClient = testClient;
     }
 

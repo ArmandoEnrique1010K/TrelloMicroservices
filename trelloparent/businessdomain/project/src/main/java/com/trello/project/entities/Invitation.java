@@ -34,13 +34,13 @@ public class Invitation {
     private Board board;
 
     // ID del usuario emisor
-    @Column(name = "inviter_user_id", nullable = false)
-    private UUID inviterUserId;
+    @Column(name = "sender_user_id", nullable = false)
+    private UUID senderUserId;
 
     // ID del usuario receptor
     // Solamente se invita a usuarios registrados
-    @Column(name = "invited_user_id", nullable = false)
-    private UUID invitedUserId;
+    @Column(name = "recipient_user_id", nullable = false)
+    private UUID recipientUserId;
 
     private String message;
 

@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import com.trello.project.common.StandarizedApiExceptionResponse;
+import com.trello.project.membership.exception.InvitationAlreadyExistsException;
 import com.trello.project.workspace.exception.BoardAlreadyExistsException;
 import com.trello.project.workspace.exception.WorkspaceAlreadyExistsException;
 
@@ -148,6 +149,25 @@ public class ApiExceptionHandler {
                 "No se ha encontrado el tablero");
 
         return ResponseEntity.status(status).body(standarizedApiExceptionResponse);
+    }
+
+    // Excepción de invitación existente
+    @ExceptionHandler(InvitationAlreadyExistsException.class)
+    public ResponseEntity<StandarizedApiExceptionResponse> handleInvitationAlreadyExists(
+            InvitationAlreadyExistsException ex) {
+        HttpStatus status = HttpStatus.CONFLICT;
+
+        StandarizedApiExceptionResponse response = new StandarizedApiExceptionResponse(
+                "/errors/invitation/already-exists",
+                "Invitation already exists",
+                status.value(),
+                "An invitation to the user from this board already exists",
+                null,
+                "Existe una invitación al usuario que proviene de este tablero");
+
+        return ResponseEntity
+                .status(status)
+                .body(response);
     }
 
 }
