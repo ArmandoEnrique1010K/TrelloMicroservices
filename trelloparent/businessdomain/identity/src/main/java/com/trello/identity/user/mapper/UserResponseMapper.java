@@ -5,12 +5,11 @@ import java.util.List;
 import org.mapstruct.Mapper;
 
 import com.trello.identity.entities.User;
-import com.trello.identity.user.dto.UserResponse;
+import com.trello.identity.user.dto.response.UserResponse;
 
 @Mapper(componentModel = "spring")
 public interface UserResponseMapper {
-
-    UserResponse userToUserResponse(User source);
+    // UserResponse userToUserResponse(User source);
 
     List<UserResponse> userListToUserResponseList(List<User> source);
 }

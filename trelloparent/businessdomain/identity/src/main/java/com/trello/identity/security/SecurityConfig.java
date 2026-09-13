@@ -36,8 +36,7 @@ public class SecurityConfig {
             "/token/validate/confirmAccount",
             "/token/send/passwordReset",
             "/token/validate/passwordReset",
-            "/token/resetPassword",
-            "/user"
+            "/token/resetPassword"
     };
 
     @Bean

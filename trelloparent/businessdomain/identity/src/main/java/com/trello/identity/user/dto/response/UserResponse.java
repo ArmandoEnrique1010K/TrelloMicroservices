@@ -1,4 +1,4 @@
-package com.trello.identity.user.dto;
+package com.trello.identity.user.dto.response;
 
 import java.util.UUID;
 

@@ -1,5 +1,6 @@
 package com.trello.identity.user.service;
 
+import com.trello.identity.user.dto.response.UserResponse;
 import com.trello.identity.user.mapper.UserResponseMapperImpl;
 import java.util.List;
 import java.util.Set;
@@ -9,7 +10,6 @@ import org.springframework.stereotype.Service;
 
 import com.trello.identity.entities.User;
 import com.trello.identity.service.UserIdentityService;
-import com.trello.identity.user.dto.UserResponse;
 
 @Service
 public class UserServiceImpl implements UserService {
