@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import com.trello.project.common.StandarizedApiExceptionResponse;
 import com.trello.project.membership.exception.InvitationAlreadyExistsException;
+import com.trello.project.membership.exception.InvitationConfirmedException;
+import com.trello.project.membership.exception.InvitationNotFoundException;
 import com.trello.project.workspace.exception.BoardAlreadyExistsException;
 import com.trello.project.workspace.exception.WorkspaceAlreadyExistsException;
 
@@ -168,6 +170,40 @@ public class ApiExceptionHandler {
         return ResponseEntity
                 .status(status)
                 .body(response);
+    }
+
+    // Excepción de invitación no encontrada
+    @ExceptionHandler(InvitationNotFoundException.class)
+    public ResponseEntity<StandarizedApiExceptionResponse> handleInvitationNotFoundException(
+            InvitationNotFoundException ex) {
+        HttpStatus status = HttpStatus.NOT_FOUND;
+
+        StandarizedApiExceptionResponse standarizedApiExceptionResponse = new StandarizedApiExceptionResponse(
+                "/errors/invitation-not-found",
+                "Invitation not found",
+                status.value(),
+                "The invitation was not found in the system",
+                null,
+                "No se ha encontrado la invitación");
+
+        return ResponseEntity.status(status).body(standarizedApiExceptionResponse);
+    }
+
+    // Excepción de invitación que ya fue confirmada
+    @ExceptionHandler(InvitationConfirmedException.class)
+    public ResponseEntity<StandarizedApiExceptionResponse> handleInvitationConfirmedException(
+            InvitationConfirmedException ex) {
+        HttpStatus status = HttpStatus.CONFLICT;
+
+        StandarizedApiExceptionResponse standarizedApiExceptionResponse = new StandarizedApiExceptionResponse(
+                "/errors/invitation-confirmed",
+                "Invitation confirmed",
+                status.value(),
+                "The invitation has already been confirmed",
+                null,
+                "La invitación ya ha sido confirmada");
+
+        return ResponseEntity.status(status).body(standarizedApiExceptionResponse);
     }
 
 }

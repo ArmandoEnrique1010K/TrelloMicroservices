@@ -21,11 +21,23 @@ public interface InvitationService {
     List<InvitationResponse> listAllInvitationsByBoardId(UUID boardId, UUID ownerUserId);
 
     // Editar una invitación existente
+    InvitationResponse editInvitation(UUID invitationId, InvitationRequest invitationRequest, UUID ownerUserId);
 
     // Eliminar invitación
+    // Una invitación que aun no ha sido confirmada, si se elimina, se elimina la
+    // invitación del sistema
+    void deleteInvitation(UUID invitationId, UUID ownerUserId);
 
-    // Aceptar invitación
+    // Aceptar invitación (por el usuario receptor)
+    // Y agregar al usuario receptor como miembro del tablero
+
+    // Una invitación aceptada ya puede ser eliminada sin problema porque ya es un
+    // miembro del tablero
+    void acceptInvitation(UUID invitationId, UUID recipientUserId);
 
     // Rechazar invitación
+    void declineInvitation(UUID invitationId, UUID recipientUserId);
+
+    // Reenviar invitación que fue rechazada
 
 }

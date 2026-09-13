@@ -5,6 +5,7 @@ import java.util.UUID;
 
 import com.trello.project.entities.Invitation;
 import com.trello.project.exception.BoardNotFoundException;
+import com.trello.project.membership.exception.InvitationNotFoundException;
 
 public interface InvitationProjectService {
     Invitation saveInvitation(Invitation invitation);
@@ -16,4 +17,11 @@ public interface InvitationProjectService {
 
     List<Invitation> findAllInvitationsByBoardId(UUID boardId);
 
+    Invitation findInvitationByIdAndSenderUserId(UUID invitationId, UUID senderUserId)
+            throws InvitationNotFoundException;
+
+    void deleteInvitationByIdAndSenderUserId(UUID invitationId, UUID senderUserId) throws InvitationNotFoundException;
+
+    Invitation findInvitationByIdAndRecipientUserId(UUID invitationId, UUID recipientUserId)
+            throws InvitationNotFoundException;
 }

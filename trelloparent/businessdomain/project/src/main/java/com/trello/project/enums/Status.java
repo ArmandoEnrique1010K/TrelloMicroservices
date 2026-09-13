@@ -5,8 +5,6 @@ public enum Status {
     ACCEPTED,
     // Rechazado por el receptor
     REJECTED,
-    // Eliminado por el emisor
-    CANCELLED,
     // Aun no confirmado
     UNCONFIRMED
 }

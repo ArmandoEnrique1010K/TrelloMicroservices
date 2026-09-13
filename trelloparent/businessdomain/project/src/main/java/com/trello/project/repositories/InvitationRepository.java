@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.trello.project.entities.Invitation;
 import java.util.List;
+import java.util.Optional;
 
 public interface InvitationRepository extends JpaRepository<Invitation, UUID> {
 
@@ -17,5 +18,9 @@ public interface InvitationRepository extends JpaRepository<Invitation, UUID> {
     List<Invitation> findByRecipientUserId(UUID recipientUserId);
 
     List<Invitation> findByBoardId(UUID boardId);
+
+    Optional<Invitation> findByIdAndSenderUserId(UUID id, UUID senderUserId);
+
+    Optional<Invitation> findByIdAndRecipientUserId(UUID id, UUID recipientUserId);
 
 }

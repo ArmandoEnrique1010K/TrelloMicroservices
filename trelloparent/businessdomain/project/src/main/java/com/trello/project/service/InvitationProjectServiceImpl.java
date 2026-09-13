@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import com.trello.project.entities.Invitation;
 import com.trello.project.exception.BoardNotFoundException;
+import com.trello.project.membership.exception.InvitationNotFoundException;
 
 @Service
 public class InvitationProjectServiceImpl implements InvitationProjectService {
@@ -45,5 +46,32 @@ public class InvitationProjectServiceImpl implements InvitationProjectService {
     public List<Invitation> findAllInvitationsByBoardId(UUID boardId) {
         boardRepository.findById(boardId).orElseThrow(BoardNotFoundException::new);
         return invitationRepository.findByBoardId(boardId);
+    }
+
+    @Override
+    public Invitation findInvitationByIdAndSenderUserId(UUID invitationId, UUID senderUserId)
+            throws InvitationNotFoundException {
+        Invitation invitation = invitationRepository.findByIdAndSenderUserId(invitationId, senderUserId)
+                .orElseThrow(InvitationNotFoundException::new);
+        return invitation;
+    }
+
+    @Override
+    public void deleteInvitationByIdAndSenderUserId(UUID invitationId, UUID senderUserId)
+            throws InvitationNotFoundException {
+        Invitation invitation = invitationRepository.findByIdAndSenderUserId(invitationId, senderUserId)
+                .orElseThrow(InvitationNotFoundException::new);
+
+        invitationRepository.delete(invitation);
+    }
+
+    @Override
+    public Invitation findInvitationByIdAndRecipientUserId(UUID invitationId, UUID recipientUserId)
+            throws InvitationNotFoundException {
+        Invitation invitation = invitationRepository.findByIdAndRecipientUserId(invitationId,
+                recipientUserId)
+                .orElseThrow(InvitationNotFoundException::new);
+        return invitation;
+
     }
 }

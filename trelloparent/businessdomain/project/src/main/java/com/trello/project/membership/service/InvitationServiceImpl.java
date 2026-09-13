@@ -7,34 +7,39 @@ import org.springframework.stereotype.Service;
 
 import com.trello.project.entities.Board;
 import com.trello.project.entities.Invitation;
+import com.trello.project.entities.Member;
+import com.trello.project.enums.Role;
 import com.trello.project.enums.Status;
 import com.trello.project.membership.dto.request.InvitationRequest;
 import com.trello.project.membership.dto.response.InvitationResponse;
 import com.trello.project.membership.exception.InvitationAlreadyExistsException;
+import com.trello.project.membership.exception.InvitationConfirmedException;
 import com.trello.project.membership.mapper.InvitationRequestMapper;
 import com.trello.project.membership.mapper.InvitationResponseMapper;
 import com.trello.project.service.BoardProjectService;
 import com.trello.project.service.InvitationProjectService;
-import com.trello.project.service.WorkspaceProjectService;
+import com.trello.project.service.MemberProjectService;
 
 @Service
 public class InvitationServiceImpl implements InvitationService {
 
-    private final WorkspaceProjectService workspaceProjectService;
     private final BoardProjectService boardProjectService;
     private final InvitationRequestMapper invitationRequestMapper;
     private final InvitationProjectService invitationProjectService;
     private final InvitationResponseMapper invitationResponseMapper;
+    private final MemberProjectService memberProjectService;
 
-    public InvitationServiceImpl(WorkspaceProjectService workspaceProjectService,
+    public InvitationServiceImpl(
             BoardProjectService boardProjectService,
             InvitationRequestMapper invitationRequestMapper, InvitationProjectService invitationProjectService,
-            InvitationResponseMapper invitationResponseMapper) {
-        this.workspaceProjectService = workspaceProjectService;
+            InvitationResponseMapper invitationResponseMapper,
+            MemberProjectService memberProjectService) {
         this.boardProjectService = boardProjectService;
         this.invitationRequestMapper = invitationRequestMapper;
         this.invitationProjectService = invitationProjectService;
         this.invitationResponseMapper = invitationResponseMapper;
+        this.memberProjectService = memberProjectService;
+
     }
 
     @Override
@@ -80,6 +85,72 @@ public class InvitationServiceImpl implements InvitationService {
 
         List<Invitation> listInvitations = invitationProjectService.findAllInvitationsByBoardId(boardId);
         return invitationResponseMapper.invitationListToInvitationResponseList(listInvitations);
+    }
+
+    @Override
+    public InvitationResponse editInvitation(UUID invitationId, InvitationRequest invitationRequest, UUID ownerUserId) {
+        String message = invitationRequest.getMessage();
+        Role role = invitationRequest.getRole();
+
+        // Cuando busca la invitación debe asegurarse de que tambien busque por el
+        // usuario emisor
+        Invitation findedInvitation = invitationProjectService.findInvitationByIdAndSenderUserId(invitationId,
+                ownerUserId);
+
+        // Si la invitación ha sido aceptada o rechazada por el usuario receptor
+        if (findedInvitation.getStatus() != Status.UNCONFIRMED) {
+            throw new InvitationConfirmedException();
+        }
+
+        findedInvitation.setMessage(message);
+        findedInvitation.setRole(role);
+
+        Invitation saveInvitation = invitationProjectService.saveInvitation(findedInvitation);
+        InvitationResponse invitationResponse = invitationResponseMapper.invitationToInvitationResponse(saveInvitation);
+        return invitationResponse;
+    }
+
+    @Override
+    public void deleteInvitation(UUID invitationId, UUID ownerUserId) {
+        invitationProjectService.deleteInvitationByIdAndSenderUserId(invitationId, invitationId);
+    }
+
+    @Override
+    public void acceptInvitation(UUID invitationId, UUID recipientUserId) {
+        Invitation findedInvitation = invitationProjectService.findInvitationByIdAndRecipientUserId(invitationId,
+                recipientUserId);
+
+        Board findedBoard = findedInvitation.getBoard();
+
+        if (findedInvitation.getStatus() != Status.UNCONFIRMED) {
+            throw new InvitationConfirmedException();
+        }
+
+        findedInvitation.setStatus(Status.ACCEPTED);
+
+        invitationProjectService.saveInvitation(findedInvitation);
+
+        // Agregar usuario receptor como miembro del board
+        Member member = new Member();
+        member.setUserId(recipientUserId);
+        member.setRole(findedInvitation.getRole());
+        member.setBoard(findedBoard);
+
+        // Guardar member
+        memberProjectService.saveMember(member);
+    }
+
+    @Override
+    public void declineInvitation(UUID invitationId, UUID recipientUserId) {
+        Invitation findedInvitation = invitationProjectService.findInvitationByIdAndRecipientUserId(invitationId,
+                recipientUserId);
+
+        if (findedInvitation.getStatus() != Status.UNCONFIRMED) {
+            throw new InvitationConfirmedException();
+        }
+
+        findedInvitation.setStatus(Status.UNCONFIRMED);
+        invitationProjectService.saveInvitation(findedInvitation);
     }
 
 }
