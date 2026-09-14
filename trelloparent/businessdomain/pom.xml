@@ -58,7 +58,12 @@
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
-
+        <!-- Si se va a hacer un llamado a un endpoint de otro microservicio, por ejemplo desde
+        Project, llama a Identity, entonces se requiere esta dependencia -->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-loadbalancer</artifactId>
+        </dependency>
         <!-- MapStruct -->
         <dependency>
             <groupId>org.mapstruct</groupId>

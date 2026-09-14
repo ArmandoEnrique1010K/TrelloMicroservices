@@ -9,16 +9,20 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.trello.identity.common.StandarizedApiExceptionResponse;
+import com.trello.identity.common.SuccessfulResponse;
 import com.trello.identity.security.JwtUtils;
 import com.trello.identity.user.dto.response.UserResponse;
+import com.trello.identity.user.dto.response.common.SuccessfulUserResponse;
 import com.trello.identity.user.service.UserService;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
@@ -41,9 +45,8 @@ public class UserRestController {
         this.userService = userService;
     }
 
-    @Operation(summary = "Obtiene una lista de usuarios", description = "Obtiene la lista de los primeros 10 usuarios por correo e ignorando los IDs enviados de los usuarios")
+    @Operation(summary = "Obtiene una lista de usuarios con limitaciones", description = "Obtiene la lista de los primeros 10 usuarios por correo e ignorando los IDs enviados de los usuarios")
     @ApiResponses(value = {
-
             @ApiResponse(responseCode = "200", description = "Respuesta exitosa", content = @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = UserResponse.class)), examples = {
                     @ExampleObject(name = "Lista de usuarios", summary = "Se obtuvo la lista de usuarios", value = """
                             [
@@ -101,6 +104,116 @@ public class UserRestController {
         }
 
         List<UserResponse> response = userService.listAllUsersByEmailExcludingIds(email, usersIds);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @Operation(summary = "Obtiene un usuario", description = "Obtiene los datos de un usuario por ID")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Se ha obtenido el usuario", content = @Content(mediaType = "application/json", schema = @Schema(implementation = SuccessfulUserResponse.class), examples = @ExampleObject(value = """
+                    {
+                        "body": {
+                            "email": "bhawkeridge4@aboutads.info",
+                            "firstName": "whawkeridge4",
+                            "id": "a2e507fc-0cf7-4fe2-904e-818a7645d478",
+                            "lastName": "Hawkeridge"
+                        },
+                        "message": ""
+                    }
+                    """))),
+            @ApiResponse(responseCode = "401", description = "El usuario no esta autenticado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
+                    {
+                        "detail": "Authentication is required to access this resource",
+                        "fields": null,
+                        "instance": null,
+                        "message": "Ha ocurrido un error inesperado",
+                        "status": 401,
+                        "title": "Unauthorized",
+                        "type": "/errors/authentication/not-authenticated"
+                    }
+                    """))),
+            @ApiResponse(responseCode = "404", description = "El usuario no se encuentra en el sistema", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
+                    {
+                        "detail": "The user was not found in the system",
+                        "fields": null,
+                        "instance": null,
+                        "message": "Ha ocurrido un error inesperado",
+                        "status": 404,
+                        "title": "User not found",
+                        "type": "/errors/user-not-found"
+                    }
+                    """))),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
+                    {
+                      "detail": "An unexpected error occurred while processing the request",
+                      "fields": null,
+                      "instance": null,
+                      "message": "Ha ocurrido un error inesperado",
+                      "status": 500,
+                      "title": "Internal server error",
+                      "type": "/errors/internal-server-error"
+                    }
+                    """))),
+    })
+    @SecurityRequirement(name = "bearerAuth")
+    @GetMapping("/{userId}")
+    public ResponseEntity<SuccessfulResponse<UserResponse>> findUserById(
+            @Parameter(description = "ID del usuario receptor", required = true, example = "550e8400-e29b-41d4-a716-446655440000") @PathVariable("userId") UUID userId) {
+        UserResponse response = userService.findUserById(userId);
+
+        SuccessfulResponse<UserResponse> successfulResponse = new SuccessfulResponse<>();
+        successfulResponse.setMessage("");
+        successfulResponse.setBody(response);
+
+        return ResponseEntity.status(HttpStatus.OK).body(successfulResponse);
+    }
+
+    // Obtener varios usuarios por IDs enviados en query params
+
+    @Operation(summary = "Obtiene una lista de usuarios", description = "Obtiene la lista de los usuarios por IDs")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Respuesta exitosa", content = @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = UserResponse.class)), examples = {
+                    @ExampleObject(name = "Lista de usuarios", summary = "Se obtuvo la lista de usuarios", value = """
+                            [
+                                {
+                                    "email": "opiddington8@gmail.com",
+                                    "firstName": "spiddington8",
+                                    "id": "cbdd2b41-09b4-4e9b-adeb-79ce7dc0abb0",
+                                    "lastName": "Piddington"
+                                }
+                            ]
+                            """),
+                    @ExampleObject(name = "Lista vacía", summary = "No se encontraron usuarios", value = """
+                            []
+                            """) })),
+
+            @ApiResponse(responseCode = "401", description = "El usuario no esta autenticado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
+                    {
+                        "detail": "Authentication is required to access this resource",
+                        "fields": null,
+                        "instance": null,
+                        "message": "Ha ocurrido un error inesperado",
+                        "status": 401,
+                        "title": "Unauthorized",
+                        "type": "/errors/authentication/not-authenticated"
+                    }
+                    """))),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
+                    {
+                      "detail": "An unexpected error occurred while processing the request",
+                      "fields": null,
+                      "instance": null,
+                      "message": "Ha ocurrido un error inesperado",
+                      "status": 500,
+                      "title": "Internal server error",
+                      "type": "/errors/internal-server-error"
+                    }
+                    """))),
+    })
+    @SecurityRequirement(name = "bearerAuth")
+    @GetMapping("/batch")
+    public ResponseEntity<List<UserResponse>> findUsersByIds(
+            @RequestParam(required = false) List<UUID> usersIds) {
+        List<UserResponse> response = userService.listAllUsersByIds(usersIds);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 }

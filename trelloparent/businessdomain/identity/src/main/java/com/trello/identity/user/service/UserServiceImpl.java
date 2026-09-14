@@ -1,7 +1,7 @@
 package com.trello.identity.user.service;
 
 import com.trello.identity.user.dto.response.UserResponse;
-import com.trello.identity.user.mapper.UserResponseMapperImpl;
+import com.trello.identity.user.mapper.UserResponseMapper;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -13,9 +13,8 @@ import com.trello.identity.service.UserIdentityService;
 
 @Service
 public class UserServiceImpl implements UserService {
-
-    private final UserResponseMapperImpl userResponseMapperImpl;
     private final UserIdentityService userIdentityService;
+    private final UserResponseMapper userResponseMapper;
 
     // Proveedores genericos de email
     private static final Set<String> IGNORED_EMAIL_PROVIDERS = Set.of(
@@ -23,9 +22,9 @@ public class UserServiceImpl implements UserService {
             "hotmail",
             "outlook");
 
-    public UserServiceImpl(UserIdentityService userIdentityService, UserResponseMapperImpl userResponseMapperImpl) {
+    public UserServiceImpl(UserIdentityService userIdentityService, UserResponseMapper userResponseMapper) {
         this.userIdentityService = userIdentityService;
-        this.userResponseMapperImpl = userResponseMapperImpl;
+        this.userResponseMapper = userResponseMapper;
     }
 
     @Override
@@ -42,7 +41,7 @@ public class UserServiceImpl implements UserService {
 
         List<User> listUsers = userIdentityService.findAllUsersByKeywordEmailAndExcludingIds(email, ids);
 
-        return userResponseMapperImpl.userListToUserResponseList(listUsers);
+        return userResponseMapper.userListToUserResponseList(listUsers);
     }
 
     // Verifica si esta realizando una busqueda por dominio de email
@@ -55,5 +54,17 @@ public class UserServiceImpl implements UserService {
 
         return IGNORED_EMAIL_PROVIDERS.stream()
                 .anyMatch(provider -> normalizedEmail.startsWith(provider));
+    }
+
+    @Override
+    public UserResponse findUserById(UUID id) {
+        User user = userIdentityService.findUserById(id);
+        return userResponseMapper.userToUserResponse(user);
+    }
+
+    @Override
+    public List<UserResponse> listAllUsersByIds(List<UUID> ids) {
+        List<User> listUsers = userIdentityService.findAllUsersByIds(ids);
+        return userResponseMapper.userListToUserResponseList(listUsers);
     }
 }

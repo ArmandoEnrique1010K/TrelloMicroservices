@@ -20,4 +20,7 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     // primeros 10 por orden descendente por fecha de creación
     List<User> findTop10ByEmailContainingIgnoreCaseAndIdNotInAndConfirmedTrueOrderByCreatedAtDesc(String keyword,
             List<UUID> excludedIds);
+
+    // Obtener usuarios por una lista de IDs
+    List<User> findAllByIdIn(List<UUID> ids);
 }

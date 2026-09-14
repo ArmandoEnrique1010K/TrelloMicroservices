@@ -18,4 +18,6 @@ public interface UserIdentityService {
     User saveUser(User user);
 
     List<User> findAllUsersByKeywordEmailAndExcludingIds(String email, List<UUID> ids);
+
+    List<User> findAllUsersByIds(List<UUID> ids);
 }

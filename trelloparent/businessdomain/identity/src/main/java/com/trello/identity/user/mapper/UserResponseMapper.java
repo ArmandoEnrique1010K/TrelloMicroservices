@@ -9,7 +9,7 @@ import com.trello.identity.user.dto.response.UserResponse;
 
 @Mapper(componentModel = "spring")
 public interface UserResponseMapper {
-    // UserResponse userToUserResponse(User source);
+    UserResponse userToUserResponse(User source);
 
     List<UserResponse> userListToUserResponseList(List<User> source);
 }

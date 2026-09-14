@@ -51,4 +51,9 @@ public class UserIdentityServiceImpl implements UserIdentityService {
         return userRepository.findTop10ByEmailContainingIgnoreCaseAndIdNotInAndConfirmedTrueOrderByCreatedAtDesc(email,
                 ids);
     }
+
+    @Override
+    public List<User> findAllUsersByIds(List<UUID> ids) {
+        return userRepository.findAllByIdIn(ids);
+    }
 }
