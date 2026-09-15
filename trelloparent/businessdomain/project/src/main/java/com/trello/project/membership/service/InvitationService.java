@@ -5,6 +5,7 @@ import java.util.UUID;
 
 import com.trello.project.membership.dto.request.InvitationRequest;
 import com.trello.project.membership.dto.response.InvitationResponse;
+import com.trello.project.membership.dto.response.InvitationSenderUserResponse;
 import com.trello.project.membership.exception.InvitationAlreadyExistsException;
 
 public interface InvitationService {
@@ -14,7 +15,7 @@ public interface InvitationService {
 
     // Listar invitaciones por ID de usuario receptor (invitaciones recibidas por
     // usuario autenticado)
-    List<InvitationResponse> listAllInvitationsByRecipientUserId(UUID recipientUserId);
+    List<InvitationSenderUserResponse> listAllInvitationsByRecipientUserId(UUID recipientUserId);
 
     // Listar invitaciones por ID de tablero (solamente para administrador de
     // tablero)

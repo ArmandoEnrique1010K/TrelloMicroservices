@@ -21,6 +21,7 @@ import com.trello.project.common.StandarizedApiExceptionResponse;
 import com.trello.project.common.SuccessfulResponse;
 import com.trello.project.membership.dto.request.InvitationRequest;
 import com.trello.project.membership.dto.response.InvitationResponse;
+import com.trello.project.membership.dto.response.InvitationSenderUserResponse;
 import com.trello.project.membership.dto.response.common.SuccessfulInvitationResponse;
 import com.trello.project.membership.service.InvitationService;
 import com.trello.project.security.JwtUtils;
@@ -155,7 +156,30 @@ public class InvitationRestController {
     @Operation(summary = "Lista las invitaciones recibidas", description = "Obtiene una lista de las invitaciones que fuerón enviadas al usuario autenticado")
     @SecurityRequirement(name = "bearerAuth")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Obtiene la lista de las invitaciones", content = @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = InvitationResponse.class)))),
+            @ApiResponse(responseCode = "200", description = "Obtiene la lista de invitaciones", content = @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = InvitationSenderUserResponse.class)), examples = @ExampleObject(value = """
+                    [
+                        {
+                            "createdAt": "2026-09-12T21:27:09.547918",
+                            "id": "a633a216-e0d3-438f-9928-cf0a25ff63ad",
+                            "message": "Unete al tablero como observador",
+                            "recipientUser": {
+                                "email": "example@gmail.com",
+                                "firstName": "Jhon",
+                                "id": "3e54e44f-8f87-445b-8817-8c13010f5da5",
+                                "lastName": "Doe"
+                            },
+                            "role": "VIEWER",
+                            "senderUser": {
+                                "email": "enrique@gmail.com",
+                                "firstName": "Armando",
+                                "id": "af6cf6ea-05c3-4233-a546-f942386f43ad",
+                                "lastName": "Enrique"
+                            },
+                            "status": "ACCEPTED"
+                        }
+                    ]
+                    """))),
+
             @ApiResponse(responseCode = "401", description = "El usuario no esta autenticado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
                     {
                         "detail": "Authentication is required to access this resource",
@@ -180,18 +204,41 @@ public class InvitationRestController {
                     """))),
     })
     @GetMapping
-    public ResponseEntity<List<InvitationResponse>> listAllInvitationsByRecipientUserId(
+    public ResponseEntity<List<InvitationSenderUserResponse>> listAllInvitationsByRecipientUserId(
             @AuthenticationPrincipal Jwt jwt) {
         UUID userId = JwtUtils.getUserId(jwt);
 
-        List<InvitationResponse> response = invitationService.listAllInvitationsByRecipientUserId(userId);
+        List<InvitationSenderUserResponse> response = invitationService.listAllInvitationsByRecipientUserId(userId);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     @Operation(summary = "Lista las invitaciones emitidas en un tablero", description = "Obtiene una lista de las invitaciones de un tablero que fueron enviadas")
     @SecurityRequirement(name = "bearerAuth")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Obtiene la lista de invitaciones por el Id del tablero", content = @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = InvitationResponse.class)))),
+            @ApiResponse(responseCode = "200", description = "Obtiene la lista de invitaciones por el ID del tablero", content = @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = InvitationResponse.class)), examples = @ExampleObject(value = """
+                    [
+                        {
+                            "createdAt": "2026-09-12T21:27:09.547918",
+                            "id": "a633a216-e0d3-438f-9928-cf0a25ff63ad",
+                            "message": "Unete al tablero como observador",
+                            "recipientUser": {
+                                "email": "example@gmail.com",
+                                "firstName": "Jhon",
+                                "id": "3e54e44f-8f87-445b-8817-8c13010f5da5",
+                                "lastName": "Doe"
+                            },
+                            "role": "VIEWER",
+                            "senderUser": {
+                                "email": "enrique@gmail.com",
+                                "firstName": "Armando",
+                                "id": "af6cf6ea-05c3-4233-a546-f942386f43ad",
+                                "lastName": "Enrique"
+                            },
+                            "status": "ACCEPTED"
+                        }
+                    ]
+                    """))),
+
             @ApiResponse(responseCode = "401", description = "El usuario no esta autenticado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
                     {
                         "detail": "Authentication is required to access this resource",
