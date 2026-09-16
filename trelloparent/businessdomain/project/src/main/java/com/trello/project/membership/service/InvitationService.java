@@ -4,8 +4,9 @@ import java.util.List;
 import java.util.UUID;
 
 import com.trello.project.membership.dto.request.InvitationRequest;
+import com.trello.project.membership.dto.response.BoardInvitationResponse;
 import com.trello.project.membership.dto.response.InvitationResponse;
-import com.trello.project.membership.dto.response.InvitationSenderUserResponse;
+import com.trello.project.membership.dto.response.ReceivedInvitationResponse;
 import com.trello.project.membership.exception.InvitationAlreadyExistsException;
 
 public interface InvitationService {
@@ -15,11 +16,11 @@ public interface InvitationService {
 
     // Listar invitaciones por ID de usuario receptor (invitaciones recibidas por
     // usuario autenticado)
-    List<InvitationSenderUserResponse> listAllInvitationsByRecipientUserId(UUID recipientUserId);
+    List<ReceivedInvitationResponse> listAllInvitationsByRecipientUserId(UUID recipientUserId);
 
     // Listar invitaciones por ID de tablero (solamente para administrador de
     // tablero)
-    List<InvitationResponse> listAllInvitationsByBoardId(UUID boardId, UUID ownerUserId);
+    List<BoardInvitationResponse> listAllInvitationsByBoardId(UUID boardId, UUID ownerUserId);
 
     // Editar una invitación existente
     InvitationResponse editInvitation(UUID invitationId, InvitationRequest invitationRequest, UUID ownerUserId);

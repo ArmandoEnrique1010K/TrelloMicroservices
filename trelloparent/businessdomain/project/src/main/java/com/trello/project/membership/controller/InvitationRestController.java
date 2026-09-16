@@ -20,8 +20,9 @@ import org.springframework.web.bind.annotation.RestController;
 import com.trello.project.common.StandarizedApiExceptionResponse;
 import com.trello.project.common.SuccessfulResponse;
 import com.trello.project.membership.dto.request.InvitationRequest;
+import com.trello.project.membership.dto.response.BoardInvitationResponse;
 import com.trello.project.membership.dto.response.InvitationResponse;
-import com.trello.project.membership.dto.response.InvitationSenderUserResponse;
+import com.trello.project.membership.dto.response.ReceivedInvitationResponse;
 import com.trello.project.membership.dto.response.common.SuccessfulInvitationResponse;
 import com.trello.project.membership.service.InvitationService;
 import com.trello.project.security.JwtUtils;
@@ -156,26 +157,21 @@ public class InvitationRestController {
     @Operation(summary = "Lista las invitaciones recibidas", description = "Obtiene una lista de las invitaciones que fuerón enviadas al usuario autenticado")
     @SecurityRequirement(name = "bearerAuth")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Obtiene la lista de invitaciones", content = @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = InvitationSenderUserResponse.class)), examples = @ExampleObject(value = """
+            @ApiResponse(responseCode = "200", description = "Obtiene la lista de invitaciones", content = @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = ReceivedInvitationResponse.class)), examples = @ExampleObject(value = """
                     [
                         {
-                            "createdAt": "2026-09-12T21:27:09.547918",
+                            "boardName": "Primer tablero editado",
                             "id": "a633a216-e0d3-438f-9928-cf0a25ff63ad",
                             "message": "Unete al tablero como observador",
-                            "recipientUser": {
+                            "role": "VIEWER",
+                            "sendedAt": "2026-09-12T21:27:09.547918",
+                            "senderUser": {
                                 "email": "example@gmail.com",
                                 "firstName": "Jhon",
                                 "id": "3e54e44f-8f87-445b-8817-8c13010f5da5",
                                 "lastName": "Doe"
                             },
-                            "role": "VIEWER",
-                            "senderUser": {
-                                "email": "enrique@gmail.com",
-                                "firstName": "Armando",
-                                "id": "af6cf6ea-05c3-4233-a546-f942386f43ad",
-                                "lastName": "Enrique"
-                            },
-                            "status": "ACCEPTED"
+                            "workspaceName": "Proyecto de prueba"
                         }
                     ]
                     """))),
@@ -204,41 +200,34 @@ public class InvitationRestController {
                     """))),
     })
     @GetMapping
-    public ResponseEntity<List<InvitationSenderUserResponse>> listAllInvitationsByRecipientUserId(
+    public ResponseEntity<List<ReceivedInvitationResponse>> listAllInvitationsByRecipientUserId(
             @AuthenticationPrincipal Jwt jwt) {
         UUID userId = JwtUtils.getUserId(jwt);
 
-        List<InvitationSenderUserResponse> response = invitationService.listAllInvitationsByRecipientUserId(userId);
+        List<ReceivedInvitationResponse> response = invitationService.listAllInvitationsByRecipientUserId(userId);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     @Operation(summary = "Lista las invitaciones emitidas en un tablero", description = "Obtiene una lista de las invitaciones de un tablero que fueron enviadas")
     @SecurityRequirement(name = "bearerAuth")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Obtiene la lista de invitaciones por el ID del tablero", content = @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = InvitationResponse.class)), examples = @ExampleObject(value = """
+            @ApiResponse(responseCode = "200", description = "Obtiene la lista de invitaciones por el ID del tablero", content = @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = BoardInvitationResponse.class)), examples = @ExampleObject(value = """
                     [
                         {
-                            "createdAt": "2026-09-12T21:27:09.547918",
-                            "id": "a633a216-e0d3-438f-9928-cf0a25ff63ad",
-                            "message": "Unete al tablero como observador",
+                            "id": "e2bd7845-a8c2-4904-bf8f-c394fa00e6f4",
+                            "message": "Unete al tablero como miembro",
                             "recipientUser": {
-                                "email": "example@gmail.com",
-                                "firstName": "Jhon",
-                                "id": "3e54e44f-8f87-445b-8817-8c13010f5da5",
-                                "lastName": "Doe"
+                                "email": "cmclese1@canalblog.com",
+                                "firstName": "dmclese1",
+                                "id": "858d7655-6178-458f-b880-3db6aa3beff3",
+                                "lastName": "McLese"
                             },
-                            "role": "VIEWER",
-                            "senderUser": {
-                                "email": "enrique@gmail.com",
-                                "firstName": "Armando",
-                                "id": "af6cf6ea-05c3-4233-a546-f942386f43ad",
-                                "lastName": "Enrique"
-                            },
-                            "status": "ACCEPTED"
+                            "role": "ADMIN",
+                            "sendedAt": "2026-09-12T21:36:30.577825",
+                            "status": "UNCONFIRMED"
                         }
                     ]
                     """))),
-
             @ApiResponse(responseCode = "401", description = "El usuario no esta autenticado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
                     {
                         "detail": "Authentication is required to access this resource",
@@ -287,12 +276,12 @@ public class InvitationRestController {
                     """))),
     })
     @GetMapping("/board/{boardId}")
-    public ResponseEntity<List<InvitationResponse>> listAllInvitationsByBoardId(
+    public ResponseEntity<List<BoardInvitationResponse>> listAllInvitationsByBoardId(
             @AuthenticationPrincipal Jwt jwt,
             @Parameter(description = "ID del tablero", required = true, example = "550e8400-e29b-41d4-a716-446655440000") @PathVariable("boardId") UUID boardId) {
         UUID userId = JwtUtils.getUserId(jwt);
 
-        List<InvitationResponse> response = invitationService.listAllInvitationsByBoardId(boardId, userId);
+        List<BoardInvitationResponse> response = invitationService.listAllInvitationsByBoardId(boardId, userId);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 

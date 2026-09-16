@@ -35,23 +35,11 @@ public class InvitationSenderUserResponse {
     @Schema(name = "status", example = "ACCEPTED", description = "Estado de la invitación")
     private Status status;
 
-    // Campos exclusivamente para mapear los datos del usuario obtenido, debe ser
-    // ignorado por el mapper porque se requiere hacer un llamado al microservicio
-    // Identity
-    // @Schema(name = "userName", example = "Jhon", description = "Nombre del
-    // usuario")
-    // private String userName;
-    // @Schema(name = "lastName", example = "Doe", description = "Apellido del
-    // usuario")
-    // private String lastName;
-    // @Schema(name = "email", example = "example@gmail.cm", description = "Correo
-    // del usuario")
-    // private String email;
 
     // Se utiliza DTOs en lugar de texto plano
-
     @Schema(name = "senderUser", description = "Usuario emisor de la invitación")
     private UserResponse senderUser;
+    
     @Schema(name = "recipientUser", description = "Usuario receptor de la invitación")
     private UserResponse recipientUser;
 }

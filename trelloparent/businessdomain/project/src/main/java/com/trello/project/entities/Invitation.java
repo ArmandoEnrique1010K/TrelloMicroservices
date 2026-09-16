@@ -3,8 +3,6 @@ package com.trello.project.entities;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-import org.hibernate.annotations.CreationTimestamp;
-
 import com.trello.project.enums.Role;
 import com.trello.project.enums.Status;
 
@@ -53,7 +51,9 @@ public class Invitation {
     @Column(nullable = false)
     private Status status;
 
-    @CreationTimestamp
-    @Column(nullable = false, updatable = false)
-    private LocalDateTime createdAt;
+    // Fecha de envio (no es lo mismo que fecha de creación)
+    // @CreationTimestamp
+    // @Column(nullable = false, updatable = false)
+    @Column(nullable = false)
+    private LocalDateTime sendedAt;
 }

@@ -2,12 +2,11 @@ package com.trello.project.membership.service;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.Objects;
-import java.util.stream.Stream;
 
 import org.springframework.stereotype.Service;
 
@@ -19,13 +18,15 @@ import com.trello.project.entities.Member;
 import com.trello.project.enums.Role;
 import com.trello.project.enums.Status;
 import com.trello.project.membership.dto.request.InvitationRequest;
+import com.trello.project.membership.dto.response.BoardInvitationResponse;
 import com.trello.project.membership.dto.response.InvitationResponse;
-import com.trello.project.membership.dto.response.InvitationSenderUserResponse;
+import com.trello.project.membership.dto.response.ReceivedInvitationResponse;
 import com.trello.project.membership.exception.InvitationAlreadyExistsException;
 import com.trello.project.membership.exception.InvitationConfirmedException;
+import com.trello.project.membership.mapper.BoardInvitationResponseMapper;
 import com.trello.project.membership.mapper.InvitationRequestMapper;
 import com.trello.project.membership.mapper.InvitationResponseMapper;
-import com.trello.project.membership.mapper.InvitationSenderUserResponseMapper;
+import com.trello.project.membership.mapper.ReceivedInvitationResponseMapper;
 import com.trello.project.service.BoardProjectService;
 import com.trello.project.service.InvitationProjectService;
 import com.trello.project.service.MemberProjectService;
@@ -39,21 +40,26 @@ public class InvitationServiceImpl implements InvitationService {
     private final InvitationResponseMapper invitationResponseMapper;
     private final MemberProjectService memberProjectService;
     private final IdentityClientService identityClientService;
-    private final InvitationSenderUserResponseMapper invitationSenderUserResponseMapper;
+
+    //
+    private final BoardInvitationResponseMapper boardInvitationResponseMapper;
+    private final ReceivedInvitationResponseMapper receivedInvitationResponseMapper;
 
     public InvitationServiceImpl(
             BoardProjectService boardProjectService,
             InvitationRequestMapper invitationRequestMapper, InvitationProjectService invitationProjectService,
             InvitationResponseMapper invitationResponseMapper,
             MemberProjectService memberProjectService, IdentityClientService identityClientService,
-            InvitationSenderUserResponseMapper invitationSenderUserResponseMapper) {
+            BoardInvitationResponseMapper boardInvitationResponseMapper,
+            ReceivedInvitationResponseMapper receivedInvitationResponseMapper) {
         this.boardProjectService = boardProjectService;
         this.invitationRequestMapper = invitationRequestMapper;
         this.invitationProjectService = invitationProjectService;
         this.invitationResponseMapper = invitationResponseMapper;
         this.memberProjectService = memberProjectService;
         this.identityClientService = identityClientService;
-        this.invitationSenderUserResponseMapper = invitationSenderUserResponseMapper;
+        this.boardInvitationResponseMapper = boardInvitationResponseMapper;
+        this.receivedInvitationResponseMapper = receivedInvitationResponseMapper;
     }
 
     @Override
@@ -85,27 +91,31 @@ public class InvitationServiceImpl implements InvitationService {
     }
 
     @Override
-    public List<InvitationSenderUserResponse> listAllInvitationsByRecipientUserId(UUID recipientUserId) {
+    public List<ReceivedInvitationResponse> listAllInvitationsByRecipientUserId(UUID recipientUserId) {
         List<Invitation> listInvitations = invitationProjectService
                 .findAllInvitationsByRecipientUserId(recipientUserId);
 
-        List<InvitationSenderUserResponse> responses = invitationSenderUserResponseMapper
-                .invitationListToInvitationSenderUserResponseList(listInvitations);
+        List<ReceivedInvitationResponse> responses = receivedInvitationResponseMapper
+                .invitationListToReceivedInvitationResponseList(listInvitations);
 
-        // Debe enriquecer los datos para mostrar datos del usuario emisor y receptor
-        enrichWithUserData(listInvitations, responses);
+        // Debe enriquecer los datos para mostrar datos del usuario emisor
+        enrichReceivedInvitationWithUserData(listInvitations, responses);
 
         return responses;
     }
 
     @Override
-    public List<InvitationResponse> listAllInvitationsByBoardId(UUID boardId, UUID ownerUserId) {
+    public List<BoardInvitationResponse> listAllInvitationsByBoardId(UUID boardId, UUID ownerUserId) {
         // Verificar que el usuario que ha iniciado sesion en la aplicacion sea el
         // administrador del tablero
         boardProjectService.findBoardByIdAndOwnerUserId(boardId, ownerUserId);
 
         List<Invitation> listInvitations = invitationProjectService.findAllInvitationsByBoardId(boardId);
-        return invitationResponseMapper.invitationListToInvitationResponseList(listInvitations);
+        List<BoardInvitationResponse> responses = boardInvitationResponseMapper
+                .invitationListToBoardInvitationResponseList(listInvitations);
+
+        enrichBoardInvitationWithUserData(listInvitations, responses);
+        return responses;
     }
 
     @Override
@@ -174,43 +184,61 @@ public class InvitationServiceImpl implements InvitationService {
         invitationProjectService.saveInvitation(findedInvitation);
     }
 
-    // Método privado para mapear los datos del usuario obtenido
-    private void enrichWithUserData(
+    // Método para tener los datos de los usuarios por ID
+    private Map<UUID, UserResponse> getUsersById(
             List<Invitation> invitations,
-            List<InvitationSenderUserResponse> responses) {
+            Function<Invitation, UUID> userIdExtractor) {
 
         Set<UUID> userIds = invitations.stream()
-                .flatMap(invitation -> {
-                    Stream<UUID> ids = Stream.of(
-                            invitation.getSenderUserId(),
-                            invitation.getRecipientUserId());
-
-                    return ids;
-                })
+                .map(userIdExtractor)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
-        List<UserResponse> users = identityClientService.findUsersByIds(userIds);
 
-        Map<UUID, UserResponse> usersById = users.stream()
+        return identityClientService.findUsersByIds(userIds)
+                .stream()
                 .collect(Collectors.toMap(
-                        UserResponse::getId,
+                        // UserResponse::getId,
+                        user -> user.getId(),
                         Function.identity()));
+    }
+
+    // Método privado para mapear los datos del usuario obtenido
+    // Cuando se tiene las invitaciones enviadas a los distintos usuarios desde un
+    // tablero
+    private void enrichBoardInvitationWithUserData(List<Invitation> invitations,
+            List<BoardInvitationResponse> responses) {
+
+        Map<UUID, UserResponse> usersById = getUsersById(invitations,
+                // Invitation::getRecipientUserId
+                invitation -> invitation.getRecipientUserId()
+
+        );
 
         for (int i = 0; i < invitations.size(); i++) {
-
             Invitation invitation = invitations.get(i);
-            InvitationSenderUserResponse response = responses.get(i);
-
-            response.setSenderUser(
-                    mapUser(usersById.get(
-                            invitation.getSenderUserId())));
-
-            response.setRecipientUser(
-                    mapUser(usersById.get(
-                            invitation.getRecipientUserId())));
+            responses.get(i).setRecipientUser(
+                    mapUser(usersById.get(invitation.getRecipientUserId())));
         }
     }
 
+    // Método privado para mapear los datos del usuario obtenido
+    // Cuando se tiene las invitaciones recibidas del usuario autenticado
+    private void enrichReceivedInvitationWithUserData(List<Invitation> invitations,
+            List<ReceivedInvitationResponse> responses) {
+
+        Map<UUID, UserResponse> usersById = getUsersById(invitations,
+                // Invitation::getSenderUserId
+                invitation -> invitation.getSenderUserId());
+
+        for (int i = 0; i < invitations.size(); i++) {
+            Invitation invitation = invitations.get(i);
+            responses.get(i).setSenderUser(
+                    mapUser(usersById.get(invitation.getSenderUserId())));
+        }
+
+    }
+
+    // Metodo para mapear los campos de UserResponse
     private UserResponse mapUser(
             UserResponse user) {
 
