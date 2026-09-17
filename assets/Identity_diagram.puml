@@ -11,6 +11,7 @@ entity User {
     - email: String
     - password: String
     - confirmed: boolean
+    - createdAt: LocalDateTime
 }
 
 entity OtpToken {

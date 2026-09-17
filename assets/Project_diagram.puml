@@ -14,22 +14,22 @@ entity Board {
     - id: UUID
     - name: String
     - description: String
-    - ownerUserId: UUID
     - createdAt: LocalDateTime
 }
 
 entity Invitation {
     - id: UUID
-    - inviterUserId: UUID
-    - invitedUserId: UUID
+    - senderUserId: UUID
+    - recipientUserId: UUID
     - message: String
-    - createdAt: LocalDateTime
+    - sendedAt: LocalDateTime
 }
 
 entity Member {
     - id: UUID
     - userId: UUID
     - joinedAt: LocalDateTime
+    - active: boolean
 }
 
 enum Role {
@@ -41,14 +41,14 @@ enum Role {
 enum Status {
     ACCEPTED
     REJECTED
-    CANCELLED
     UNCONFIRMED
 }
 
 Workspace "1" *-- "0..*" Board
-Board "1 " *-- "0..*  " Member
+Board " 1  " *-- "0..*  " Member
 Board "1  " *-- "0..*" Invitation
-Member "0..*" --> "1" Role
+Member "0..*" --> "1  " Role
+Invitation "0..*  " --> "    1" Role
 Invitation "0..*" --> "1" Status
 
 @enduml
