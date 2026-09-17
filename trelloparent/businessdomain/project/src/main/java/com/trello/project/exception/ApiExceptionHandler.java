@@ -13,6 +13,7 @@ import com.trello.project.common.StandarizedApiExceptionResponse;
 import com.trello.project.membership.exception.InvitationAlreadyExistsException;
 import com.trello.project.membership.exception.InvitationConfirmedException;
 import com.trello.project.membership.exception.InvitationNotFoundException;
+import com.trello.project.membership.exception.MemberNotFoundException;
 import com.trello.project.workspace.exception.BoardAlreadyExistsException;
 import com.trello.project.workspace.exception.WorkspaceAlreadyExistsException;
 
@@ -202,6 +203,23 @@ public class ApiExceptionHandler {
                 "The invitation has already been confirmed",
                 null,
                 "La invitación ya ha sido confirmada");
+
+        return ResponseEntity.status(status).body(standarizedApiExceptionResponse);
+    }
+
+    // Excepción de miembro no encontrado
+    @ExceptionHandler(MemberNotFoundException.class)
+    public ResponseEntity<StandarizedApiExceptionResponse> handleMemberNotFoundException(
+            MemberNotFoundException ex) {
+        HttpStatus status = HttpStatus.NOT_FOUND;
+
+        StandarizedApiExceptionResponse standarizedApiExceptionResponse = new StandarizedApiExceptionResponse(
+                "/errors/member-not-found",
+                "Member not found",
+                status.value(),
+                "The member was not found in the system",
+                null,
+                "No se ha encontrado el miembro");
 
         return ResponseEntity.status(status).body(standarizedApiExceptionResponse);
     }
