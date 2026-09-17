@@ -9,6 +9,7 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 
 import com.trello.project.entities.Invitation;
+import com.trello.project.enums.Status;
 import com.trello.project.exception.BoardNotFoundException;
 import com.trello.project.membership.exception.InvitationNotFoundException;
 
@@ -31,15 +32,13 @@ public class InvitationProjectServiceImpl implements InvitationProjectService {
     @Override
     public boolean existsInvitationByBoardIdAndRecipientUserId(UUID boardId, UUID recipientUserId)
             throws BoardNotFoundException {
-        // TODO: LLAMAR A UN SERVICIO PARA VERIFICAR SI EXISTE EL USUARIO EN LA BASE DE
-        // DATOS
         boardRepository.findById(boardId).orElseThrow(BoardNotFoundException::new);
         return invitationRepository.existsByBoardIdAndRecipientUserId(boardId, recipientUserId);
     }
 
     @Override
-    public List<Invitation> findAllInvitationsByRecipientUserId(UUID recipientUserId) {
-        return invitationRepository.findByRecipientUserId(recipientUserId);
+    public List<Invitation> findAllUnconfirmedInvitationsByRecipientUserId(UUID recipientUserId) {
+        return invitationRepository.findByRecipientUserIdAndStatus(recipientUserId, Status.UNCONFIRMED);
     }
 
     @Override

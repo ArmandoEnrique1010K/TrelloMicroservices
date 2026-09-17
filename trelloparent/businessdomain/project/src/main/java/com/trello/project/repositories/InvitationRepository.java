@@ -5,6 +5,8 @@ import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.trello.project.entities.Invitation;
+import com.trello.project.enums.Status;
+
 import java.util.List;
 import java.util.Optional;
 
@@ -15,7 +17,7 @@ public interface InvitationRepository extends JpaRepository<Invitation, UUID> {
     // board
     boolean existsByBoardIdAndRecipientUserId(UUID boardId, UUID invitedUserId);
 
-    List<Invitation> findByRecipientUserId(UUID recipientUserId);
+    List<Invitation> findByRecipientUserIdAndStatus(UUID recipientUserId, Status status);
 
     List<Invitation> findByBoardId(UUID boardId);
 

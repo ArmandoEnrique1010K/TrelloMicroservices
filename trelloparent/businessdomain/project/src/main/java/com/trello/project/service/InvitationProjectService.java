@@ -13,14 +13,16 @@ public interface InvitationProjectService {
     boolean existsInvitationByBoardIdAndRecipientUserId(UUID boardId, UUID recipientUserId)
             throws BoardNotFoundException;
 
-    List<Invitation> findAllInvitationsByRecipientUserId(UUID recipientUserId);
+    // Listar invitaciones que aun no han sido confirmadas para el usuario receptor
+    List<Invitation> findAllUnconfirmedInvitationsByRecipientUserId(UUID recipientUserId);
 
     List<Invitation> findAllInvitationsByBoardId(UUID boardId);
 
     Invitation findInvitationByIdAndSenderUserId(UUID invitationId, UUID senderUserId)
             throws InvitationNotFoundException;
 
-    void deleteInvitationByIdAndSenderUserId(UUID invitationId, UUID senderUserId) throws InvitationNotFoundException;
+    void deleteInvitationByIdAndSenderUserId(UUID invitationId, UUID senderUserId)
+            throws InvitationNotFoundException;
 
     Invitation findInvitationByIdAndRecipientUserId(UUID invitationId, UUID recipientUserId)
             throws InvitationNotFoundException;

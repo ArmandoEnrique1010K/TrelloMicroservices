@@ -1,5 +1,6 @@
 package com.trello.project.membership.service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -40,8 +41,6 @@ public class InvitationServiceImpl implements InvitationService {
     private final InvitationResponseMapper invitationResponseMapper;
     private final MemberProjectService memberProjectService;
     private final IdentityClientService identityClientService;
-
-    //
     private final BoardInvitationResponseMapper boardInvitationResponseMapper;
     private final ReceivedInvitationResponseMapper receivedInvitationResponseMapper;
 
@@ -67,7 +66,7 @@ public class InvitationServiceImpl implements InvitationService {
             InvitationRequest invitationRequest) throws InvitationAlreadyExistsException {
 
         Board board = boardProjectService.findBoardByIdAndOwnerUserId(boardId, ownerUserId);
-        System.out.println(board.getId());
+        // System.out.println(board.getId());
 
         if (invitationProjectService.existsInvitationByBoardIdAndRecipientUserId(boardId, recipientUserId)) {
             throw new InvitationAlreadyExistsException();
@@ -83,6 +82,7 @@ public class InvitationServiceImpl implements InvitationService {
 
         invitationToInvitationRequest.setBoard(board);
         invitationToInvitationRequest.setStatus(Status.UNCONFIRMED);
+        invitationToInvitationRequest.setSendedAt(LocalDateTime.now());
 
         Invitation savedInvitation = invitationProjectService.saveInvitation(invitationToInvitationRequest);
         InvitationResponse invitationResponse = invitationResponseMapper
@@ -93,7 +93,7 @@ public class InvitationServiceImpl implements InvitationService {
     @Override
     public List<ReceivedInvitationResponse> listAllInvitationsByRecipientUserId(UUID recipientUserId) {
         List<Invitation> listInvitations = invitationProjectService
-                .findAllInvitationsByRecipientUserId(recipientUserId);
+                .findAllUnconfirmedInvitationsByRecipientUserId(recipientUserId);
 
         List<ReceivedInvitationResponse> responses = receivedInvitationResponseMapper
                 .invitationListToReceivedInvitationResponseList(listInvitations);
@@ -135,6 +135,7 @@ public class InvitationServiceImpl implements InvitationService {
 
         findedInvitation.setMessage(message);
         findedInvitation.setRole(role);
+        findedInvitation.setSendedAt(LocalDateTime.now());
 
         Invitation saveInvitation = invitationProjectService.saveInvitation(findedInvitation);
         InvitationResponse invitationResponse = invitationResponseMapper.invitationToInvitationResponse(saveInvitation);

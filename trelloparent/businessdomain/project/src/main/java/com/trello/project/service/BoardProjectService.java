@@ -26,4 +26,6 @@ public interface BoardProjectService {
     void deleteBoardByIdAndOwnerUserId(UUID boardId, UUID ownerUserId)
             throws WorkspaceNotFoundException, BoardNotFoundException;
 
+    // Encontrar tablero por ID y si es accesible por el ID del usuario
+    Board findBoardAccessibleByUser(UUID boardId, UUID userId) throws BoardNotFoundException;
 }

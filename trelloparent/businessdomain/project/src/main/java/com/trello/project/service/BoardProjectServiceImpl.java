@@ -2,11 +2,13 @@ package com.trello.project.service;
 
 import com.trello.project.repositories.WorkspaceRepository;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 
 import com.trello.project.entities.Board;
+import com.trello.project.enums.Role;
 import com.trello.project.exception.BoardNotFoundException;
 import com.trello.project.exception.WorkspaceNotFoundException;
 import com.trello.project.repositories.BoardRepository;
@@ -83,4 +85,11 @@ public class BoardProjectServiceImpl implements BoardProjectService {
         boardRepository.delete(board);
     }
 
+    @Override
+    public Board findBoardAccessibleByUser(UUID boardId, UUID userId) throws BoardNotFoundException {
+        return boardRepository.findBoardAccessibleByUser(
+                boardId,
+                userId,
+                Set.of(Role.ADMIN, Role.MEMBER)).orElseThrow(BoardNotFoundException::new);
+    }
 }
