@@ -13,6 +13,7 @@ import com.trello.project.common.StandarizedApiExceptionResponse;
 import com.trello.project.membership.exception.InvitationAlreadyExistsException;
 import com.trello.project.membership.exception.InvitationConfirmedException;
 import com.trello.project.membership.exception.InvitationNotFoundException;
+import com.trello.project.membership.exception.MemberInactiveException;
 import com.trello.project.membership.exception.MemberNotFoundException;
 import com.trello.project.workspace.exception.BoardAlreadyExistsException;
 import com.trello.project.workspace.exception.WorkspaceAlreadyExistsException;
@@ -220,6 +221,25 @@ public class ApiExceptionHandler {
                 "The member was not found in the system",
                 null,
                 "No se ha encontrado el miembro");
+
+        return ResponseEntity.status(status).body(standarizedApiExceptionResponse);
+    }
+
+    // Excepción de miembro inactivo
+    @ExceptionHandler(MemberInactiveException.class)
+    public ResponseEntity<StandarizedApiExceptionResponse> handleMemberInactiveException(
+            MemberInactiveException ex) {
+
+        // Estado 410 - Ya no esta disponible
+        HttpStatus status = HttpStatus.GONE;
+
+        StandarizedApiExceptionResponse standarizedApiExceptionResponse = new StandarizedApiExceptionResponse(
+                "/errors/member-inactive",
+                "Member inactive",
+                status.value(),
+                "The member has been removed",
+                null,
+                "Ha ocurrido un error");
 
         return ResponseEntity.status(status).body(standarizedApiExceptionResponse);
     }

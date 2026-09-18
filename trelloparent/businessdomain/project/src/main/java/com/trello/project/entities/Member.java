@@ -50,4 +50,6 @@ public class Member {
     @Column(nullable = false, updatable = false)
     private LocalDateTime joinedAt;
 
+    // Estado del miembro: si esta activo o si ya fue eliminado (borrado logico)
+    private boolean active;
 }
