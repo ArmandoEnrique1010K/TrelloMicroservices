@@ -8,7 +8,7 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 
 import com.trello.project.entities.Member;
-import com.trello.project.enums.Role;
+import com.trello.project.membership.exception.MemberInactiveException;
 import com.trello.project.membership.exception.MemberNotFoundException;
 
 @Service
@@ -29,22 +29,30 @@ public class MemberProjectServiceImpl implements MemberProjectService {
     // metodo se utiliza en MemberServiceImpl y antes de llamarlo se lanza una
     // excepción en un metodo para validar que el tablero (Board) exista
     @Override
-    public List<Member> findAllMembersByBoardId(UUID boardId) {
-        return memberRepository.findByBoardId(boardId);
+    public List<Member> findAllMembersByBoardIdAndIsOwnerUser(UUID boardId, boolean isOwnerUser) {
+        // Si es el usuario administrador del espacio de trabajo
+        if (isOwnerUser) {
+            return memberRepository.findByBoardId(boardId);
+        }
+
+        // De lo contrario solamente listara los activos
+        // Obviamente si el miembro tiene el rol de MEMBER o ADMIN
+        return memberRepository.findByActiveTrueAndBoardId(boardId);
     }
 
     @Override
-    public Member findMemberByBoardIdAndOwnerUserIdAndRole(UUID boardId, UUID ownerUserId, Role role)
+    public Member findMemberByIdAndOwnerUserId(UUID memberId, UUID ownerUserId)
             throws MemberNotFoundException {
-        return memberRepository.findByBoardIdAndBoardWorkspaceOwnerUserIdAndRole(boardId,
-                ownerUserId, role).orElseThrow(
-                        MemberNotFoundException::new);
-    }
 
-    @Override
-    public void deleteMemberById(UUID memberId, UUID ownerUserId) throws MemberNotFoundException {
-        Member member = memberRepository.findByIdAndBoardWorkspaceOwnerUserId(memberId, ownerUserId)
-                .orElseThrow(MemberNotFoundException::new);
-        memberRepository.delete(member);
+        Member member = memberRepository.findByIdAndBoardWorkspaceOwnerUserId(memberId,
+                ownerUserId).orElseThrow(
+                        MemberNotFoundException::new);
+
+        // Si el miembro esta inactivo
+        if (!member.isActive()) {
+            throw new MemberInactiveException();
+        }
+
+        return member;
     }
 }

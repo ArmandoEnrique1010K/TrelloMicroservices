@@ -7,15 +7,19 @@ import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.trello.project.entities.Member;
-import com.trello.project.enums.Role;
 
 public interface MemberRepository extends JpaRepository<Member, UUID> {
 
     List<Member> findByBoardId(UUID boardId);
 
-    boolean existsByBoardIdAndBoardWorkspaceOwnerUserIdAndRole(UUID boardId, UUID ownerUserId, Role role);
+    List<Member> findByActiveTrueAndBoardId(UUID boardId);
 
-    Optional<Member> findByBoardIdAndBoardWorkspaceOwnerUserIdAndRole(UUID boardId, UUID ownerUserId, Role role);
+    // boolean existsByBoardIdAndBoardWorkspaceOwnerUserIdAndRole(UUID boardId, UUID
+    // ownerUserId, Role role);
 
-    Optional<Member> findByIdAndBoardWorkspaceOwnerUserId(UUID boardId, UUID ownerUserId);
+    Optional<Member> findByIdAndBoardWorkspaceOwnerUserId(UUID id, UUID ownerUserId);
+
+    // Metodo para buscar miembro por ID de tablero, ID de usuario y estado del
+    // miembro en false
+    Optional<Member> findByBoardIdAndUserIdAndActiveFalse(UUID boardId, UUID userId);
 }

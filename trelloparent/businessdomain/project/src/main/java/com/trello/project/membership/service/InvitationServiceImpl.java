@@ -256,4 +256,36 @@ public class InvitationServiceImpl implements InvitationService {
 
         return response;
     }
+
+    @Override
+    public InvitationResponse resendInvitation(UUID boardId, UUID ownerUserId, UUID memberUserId,
+            InvitationRequest invitationRequest) throws InvitationAlreadyExistsException {
+
+        // Buscar si el usuario receptor esta como miembro inactivo en el tablero
+        Board board = boardProjectService.findBoardByIdAndOwnerUserIdAndInactiveUserId(boardId, ownerUserId,
+                memberUserId);
+
+        // El usuario receptor ahora es el miembro del usuario
+        // Si existe una invitación, entonces no se debe volver a enviar la invitación
+        // por segunda vez
+        if (invitationProjectService.existsInvitationByBoardIdAndRecipientUserId(boardId, memberUserId)) {
+            throw new InvitationAlreadyExistsException();
+        }
+
+        Invitation invitationToInvitationRequest = invitationRequestMapper
+                .invitationRequestToInvitation(invitationRequest);
+
+        invitationToInvitationRequest.setSenderUserId(ownerUserId);
+        invitationToInvitationRequest.setRecipientUserId(memberUserId);
+
+        invitationToInvitationRequest.setBoard(board);
+        invitationToInvitationRequest.setStatus(Status.UNCONFIRMED);
+        invitationToInvitationRequest.setSendedAt(LocalDateTime.now());
+
+        Invitation savedInvitation = invitationProjectService.saveInvitation(invitationToInvitationRequest);
+        InvitationResponse invitationResponse = invitationResponseMapper
+                .invitationToInvitationResponse(savedInvitation);
+        return invitationResponse;
+
+    }
 }

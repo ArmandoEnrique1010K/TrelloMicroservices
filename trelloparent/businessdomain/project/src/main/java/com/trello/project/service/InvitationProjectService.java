@@ -26,4 +26,7 @@ public interface InvitationProjectService {
 
     Invitation findInvitationByIdAndRecipientUserId(UUID invitationId, UUID recipientUserId)
             throws InvitationNotFoundException;
+
+    void deleteInvitationIfExistsByBoardIdAndRecipientUserId(
+            UUID boardId, UUID recipientUserId, UUID senderUserId);
 }

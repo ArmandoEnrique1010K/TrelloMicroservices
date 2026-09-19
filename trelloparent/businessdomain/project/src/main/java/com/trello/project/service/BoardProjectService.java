@@ -6,6 +6,7 @@ import java.util.UUID;
 import com.trello.project.entities.Board;
 import com.trello.project.exception.BoardNotFoundException;
 import com.trello.project.exception.WorkspaceNotFoundException;
+import com.trello.project.membership.exception.MemberNotFoundException;
 
 public interface BoardProjectService {
     List<Board> findAllBoardsByWorkspaceIdAndOwnerUserId(UUID workspaceId, UUID ownerUserId)
@@ -28,4 +29,7 @@ public interface BoardProjectService {
 
     // Encontrar tablero por ID y si es accesible por el ID del usuario
     Board findBoardAccessibleByUser(UUID boardId, UUID userId) throws BoardNotFoundException;
+
+    Board findBoardByIdAndOwnerUserIdAndInactiveUserId(UUID boardId, UUID ownerUserId, UUID userId)
+            throws WorkspaceNotFoundException, BoardNotFoundException, MemberNotFoundException;
 }

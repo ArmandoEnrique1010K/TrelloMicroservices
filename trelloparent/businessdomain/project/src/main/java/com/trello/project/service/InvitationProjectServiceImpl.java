@@ -73,4 +73,11 @@ public class InvitationProjectServiceImpl implements InvitationProjectService {
         return invitation;
 
     }
+
+    // Un delete que no encuentra coincidencias simplemente afecta 0 registros
+    @Override
+    public void deleteInvitationIfExistsByBoardIdAndRecipientUserId(UUID boardId, UUID recipientUserId,
+            UUID senderUserId) {
+        invitationRepository.deleteByBoardIdAndRecipientUserIdAndSenderUserId(boardId, recipientUserId, senderUserId);
+    }
 }

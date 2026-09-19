@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.UUID;
 
 import com.trello.project.entities.Member;
-import com.trello.project.enums.Role;
 import com.trello.project.membership.exception.MemberNotFoundException;
 
 public interface MemberProjectService {
@@ -16,10 +15,13 @@ public interface MemberProjectService {
     // boolean existsBoardByOwnerUserIdOrMemberUserId(UUID boardId, UUID userId);
     Member saveMember(Member member);
 
-    List<Member> findAllMembersByBoardId(UUID boardId);
+    List<Member> findAllMembersByBoardIdAndIsOwnerUser(UUID boardId, boolean isOwnerUser);
 
-    Member findMemberByBoardIdAndOwnerUserIdAndRole(UUID boardId, UUID ownerUserId, Role role)
+    Member findMemberByIdAndOwnerUserId(UUID memberId, UUID ownerUserId)
             throws MemberNotFoundException;
 
-    void deleteMemberById(UUID memberId, UUID ownerUserId) throws MemberNotFoundException;
+    // void deleteMemberById(UUID memberId, UUID ownerUserId) throws
+    // MemberNotFoundException
+    // ;
+
 }

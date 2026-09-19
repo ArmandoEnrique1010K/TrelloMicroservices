@@ -40,6 +40,8 @@ public interface InvitationService {
     // Rechazar invitación
     void declineInvitation(UUID invitationId, UUID recipientUserId);
 
-    // Reenviar invitación que fue rechazada
-
+    // Reenviar invitación
+    // Cuando un miembro ha sido desactivado y se quiere volver a activar
+    InvitationResponse resendInvitation(UUID boardId, UUID ownerUserId, UUID memberUserId,
+            InvitationRequest invitationRequest) throws InvitationAlreadyExistsException;
 }

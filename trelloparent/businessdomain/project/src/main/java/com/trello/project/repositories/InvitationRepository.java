@@ -15,7 +15,7 @@ public interface InvitationRepository extends JpaRepository<Invitation, UUID> {
     // No se toma en cuenta el usuario emisor porque un tablero tiene un solo
     // usuario encargado de enviar invitaciones que es el mismo que ha creado el
     // board
-    boolean existsByBoardIdAndRecipientUserId(UUID boardId, UUID invitedUserId);
+    boolean existsByBoardIdAndRecipientUserId(UUID boardId, UUID recipientUserId);
 
     List<Invitation> findByRecipientUserIdAndStatus(UUID recipientUserId, Status status);
 
@@ -25,4 +25,10 @@ public interface InvitationRepository extends JpaRepository<Invitation, UUID> {
 
     Optional<Invitation> findByIdAndRecipientUserId(UUID id, UUID recipientUserId);
 
+    Optional<Invitation> findByBoardIdAndRecipientUserId(UUID boardId, UUID recipientUserId);
+
+    void deleteByBoardIdAndRecipientUserIdAndSenderUserId(
+            UUID boardId,
+            UUID recipientUserId,
+            UUID senderUserId);
 }
