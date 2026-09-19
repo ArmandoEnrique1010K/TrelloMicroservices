@@ -46,8 +46,6 @@ public class TokenServiceImpl implements TokenService {
     public void sendConfirmAccountToken(
             SendTokenRequest sendTokenRequest)
             throws UserNotFoundException, ConfirmedAccountException {
-        // User existingUser = userIdentityService.findUserById(userId);
-
         User existingUser = userIdentityService.findUserByEmail(sendTokenRequest.getEmail());
 
         if (existingUser.isConfirmed()) {

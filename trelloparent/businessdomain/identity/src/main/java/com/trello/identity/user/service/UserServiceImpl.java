@@ -28,7 +28,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<UserResponse> listAllUsersByEmailExcludingIds(String email, List<UUID> ids) {
+    public List<UserResponse> listAllUsersByEmailAndExcludingIds(String email, List<UUID> ids) {
 
         String normalizedEmail = email.trim().toLowerCase();
 

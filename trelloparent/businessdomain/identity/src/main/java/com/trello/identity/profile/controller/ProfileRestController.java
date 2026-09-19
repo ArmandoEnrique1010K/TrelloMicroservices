@@ -14,13 +14,13 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.trello.identity.common.StandarizedApiExceptionResponse;
 import com.trello.identity.common.SuccessfulResponse;
+import com.trello.identity.common.SuccessfulVoidResponse;
 import com.trello.identity.exception.MismatchSameOldPasswordException;
 import com.trello.identity.exception.MismatchUpdatePasswordException;
 import com.trello.identity.exception.UserNotFoundException;
 import com.trello.identity.profile.dto.request.CheckPasswordRequest;
 import com.trello.identity.profile.dto.request.UpdatePasswordRequest;
 import com.trello.identity.profile.dto.response.ProfileResponse;
-import com.trello.identity.profile.dto.response.common.SuccessfulUpdatePasswordResponse;
 import com.trello.identity.profile.exception.MismatchCheckPasswordException;
 import com.trello.identity.profile.service.ProfileService;
 import com.trello.identity.security.JwtUtils;
@@ -53,7 +53,14 @@ public class ProfileRestController {
     // Icono de candado - significa que requiere autenticación
     @SecurityRequirement(name = "bearerAuth")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Obtiene el perfil del usuario actual", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ProfileResponse.class))),
+            // Este método devuelve una respuesta directa, no como un SucessfulResponse
+            @ApiResponse(responseCode = "200", description = "Obtiene el perfil del usuario actual", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ProfileResponse.class), examples = @ExampleObject(value = """
+                    {
+                        "email": "enrique@gmail.com",
+                        "firstName": "Armando",
+                        "lastName": "Enrique"
+                    }
+                    """))),
             @ApiResponse(responseCode = "401", description = "El usuario no esta autenticado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
                     {
                         "detail": "Authentication is required to access this resource",
@@ -89,6 +96,7 @@ public class ProfileRestController {
     @Operation(summary = "Verifica la contraseña del usuario", description = "Verifica la contraseña actual del usuario autenticado")
     @SecurityRequirement(name = "bearerAuth")
     @ApiResponses(value = {
+            // Este método no devuelve nada en la respuesta
             @ApiResponse(responseCode = "204", description = "Contraseña correcta"),
 
             @ApiResponse(responseCode = "400", description = "Los datos enviados no son válidos", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = {
@@ -153,7 +161,7 @@ public class ProfileRestController {
     @Operation(summary = "Actualiza la contraseña del usuario", description = "Actualiza la contraseña del usuario en la base de datos si el usuario recuerda su contraseña anterior")
     @SecurityRequirement(name = "bearerAuth")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Actualización correcta de la contraseña del usuario", content = @Content(mediaType = "application/json", schema = @Schema(type = "object", implementation = SuccessfulUpdatePasswordResponse.class), examples = @ExampleObject(value = """
+            @ApiResponse(responseCode = "200", description = "Actualización correcta de la contraseña del usuario", content = @Content(mediaType = "application/json", schema = @Schema(type = "object", implementation = SuccessfulVoidResponse.class), examples = @ExampleObject(value = """
                     {
                         "body": null,
                         "message": "Su contraseña ha sido actualizada"
@@ -233,13 +241,13 @@ public class ProfileRestController {
                     """))),
     })
     @PutMapping("updatePassword")
-    public ResponseEntity<SuccessfulResponse<?>> updatePassword(@AuthenticationPrincipal Jwt jwt,
+    public ResponseEntity<SuccessfulResponse<SuccessfulVoidResponse>> updatePassword(@AuthenticationPrincipal Jwt jwt,
             @Valid @RequestBody UpdatePasswordRequest input)
             throws UserNotFoundException, MismatchCheckPasswordException, MismatchUpdatePasswordException,
             MismatchSameOldPasswordException {
         UUID userId = JwtUtils.getUserId(jwt);
 
-        SuccessfulResponse<?> successfulResponse = new SuccessfulResponse<>();
+        SuccessfulResponse<SuccessfulVoidResponse> successfulResponse = new SuccessfulResponse<>();
         successfulResponse.setMessage("Su contraseña ha sido actualizada");
         successfulResponse.setBody(null);
 

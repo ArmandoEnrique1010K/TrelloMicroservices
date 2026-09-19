@@ -11,18 +11,14 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.trello.identity.common.StandarizedApiExceptionResponse;
 import com.trello.identity.common.SuccessfulResponse;
+import com.trello.identity.common.SuccessfulVoidResponse;
 import com.trello.identity.exception.MismatchSameOldPasswordException;
 import com.trello.identity.exception.MismatchUpdatePasswordException;
 import com.trello.identity.exception.UserNotFoundException;
-import com.trello.identity.profile.dto.response.common.SuccessfulUpdatePasswordResponse;
 import com.trello.identity.token.dto.request.ResetPasswordRequest;
 import com.trello.identity.token.dto.request.SendTokenRequest;
 import com.trello.identity.token.dto.request.ValidateTokenRequest;
 import com.trello.identity.token.dto.response.ValidatePasswordResetTokenResponse;
-import com.trello.identity.token.dto.response.common.SuccessfulResetPasswordResponse;
-import com.trello.identity.token.dto.response.common.SuccessfulSendConfirmAccountTokenResponse;
-import com.trello.identity.token.dto.response.common.SuccessfulSendPasswordResetTokenResponse;
-import com.trello.identity.token.dto.response.common.SuccessfulValidateConfirmAccountTokenResponse;
 import com.trello.identity.token.exception.ConfirmedAccountException;
 import com.trello.identity.token.exception.InvalidTokenException;
 import com.trello.identity.token.exception.UnconfirmedAccountException;
@@ -54,7 +50,7 @@ public class TokenRestController {
 
     @Operation(summary = "Envia un token para validar la cuenta", description = "Envia un token de 6 digitos al correo del usuario para que pueda validar su cuenta")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "201", description = "Envio correcto del token de 6 digitos al correo del usuario", content = @Content(mediaType = "application/json", schema = @Schema(type = "object", implementation = SuccessfulSendConfirmAccountTokenResponse.class), examples = @ExampleObject(value = """
+            @ApiResponse(responseCode = "201", description = "Envio correcto del token de 6 digitos al correo del usuario", content = @Content(mediaType = "application/json", schema = @Schema(type = "object", implementation = SuccessfulVoidResponse.class), examples = @ExampleObject(value = """
                     {
                         "body": null,
                         "message": "Se ha enviado un token de validación a su correo"
@@ -95,11 +91,11 @@ public class TokenRestController {
                     """))),
     })
     @PostMapping("/send/confirmAccount")
-    public ResponseEntity<SuccessfulResponse<SuccessfulSendConfirmAccountTokenResponse>> sendConfirmAccountToken(
+    public ResponseEntity<SuccessfulResponse<SuccessfulVoidResponse>> sendConfirmAccountToken(
             @Valid @RequestBody SendTokenRequest input)
             throws UserNotFoundException, ConfirmedAccountException {
 
-        SuccessfulResponse<SuccessfulSendConfirmAccountTokenResponse> successfulResponse = new SuccessfulResponse<>();
+        SuccessfulResponse<SuccessfulVoidResponse> successfulResponse = new SuccessfulResponse<>();
         successfulResponse.setMessage("Se ha enviado un token de validación a su correo");
         successfulResponse.setBody(null);
 
@@ -110,7 +106,7 @@ public class TokenRestController {
 
     @Operation(summary = "Valida el token para activar la cuenta", description = "Luego de validar el token, la cuenta del usuario será activada y podra realizar las operaciones")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Token válido", content = @Content(mediaType = "application/json", schema = @Schema(type = "object", implementation = SuccessfulSendConfirmAccountTokenResponse.class), examples = @ExampleObject(value = """
+            @ApiResponse(responseCode = "200", description = "Token válido", content = @Content(mediaType = "application/json", schema = @Schema(type = "object", implementation = SuccessfulVoidResponse.class), examples = @ExampleObject(value = """
                     {
                         "body": null,
                         "message": "Token válido, su cuenta ha sido activada"
@@ -177,12 +173,12 @@ public class TokenRestController {
                     """))),
     })
     @PostMapping("/validate/confirmAccount")
-    public ResponseEntity<SuccessfulResponse<SuccessfulValidateConfirmAccountTokenResponse>> validateConfirmAccountToken(
+    public ResponseEntity<SuccessfulResponse<SuccessfulVoidResponse>> validateConfirmAccountToken(
             @AuthenticationPrincipal Jwt jwt,
             @Valid @RequestBody ValidateTokenRequest input)
             throws InvalidTokenException, UserNotFoundException, ConfirmedAccountException {
 
-        SuccessfulResponse<SuccessfulValidateConfirmAccountTokenResponse> successfulResponse = new SuccessfulResponse<>();
+        SuccessfulResponse<SuccessfulVoidResponse> successfulResponse = new SuccessfulResponse<>();
         successfulResponse.setMessage("Token válido, su cuenta ha sido activada");
         successfulResponse.setBody(null);
 
@@ -192,7 +188,7 @@ public class TokenRestController {
 
     @Operation(summary = "Envia un token para cambiar la contraseña", description = "Envia un token de 6 digitos al correo del usuario para que pueda cambiar su contraseña si no recuerda su contraseña anterior")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "201", description = "Envio correcto del token de 6 digitos al correo del usuario", content = @Content(mediaType = "application/json", schema = @Schema(type = "object", implementation = SuccessfulSendConfirmAccountTokenResponse.class), examples = @ExampleObject(value = """
+            @ApiResponse(responseCode = "201", description = "Envio correcto del token de 6 digitos al correo del usuario", content = @Content(mediaType = "application/json", schema = @Schema(type = "object", implementation = SuccessfulVoidResponse.class), examples = @ExampleObject(value = """
                     {
                         "body": null,
                         "message": "Se ha enviado un token de validación a su correo"
@@ -246,11 +242,11 @@ public class TokenRestController {
                     """))),
     })
     @PostMapping("/send/passwordReset")
-    public ResponseEntity<SuccessfulResponse<SuccessfulSendPasswordResetTokenResponse>> sendPasswordResetToken(
+    public ResponseEntity<SuccessfulResponse<SuccessfulVoidResponse>> sendPasswordResetToken(
             @Valid @RequestBody SendTokenRequest input)
             throws UserNotFoundException, UnconfirmedAccountException {
 
-        SuccessfulResponse<SuccessfulSendPasswordResetTokenResponse> successfulResponse = new SuccessfulResponse<>();
+        SuccessfulResponse<SuccessfulVoidResponse> successfulResponse = new SuccessfulResponse<>();
         successfulResponse.setMessage("Se ha enviado un token de validación a su correo");
         successfulResponse.setBody(null);
 
@@ -260,9 +256,11 @@ public class TokenRestController {
 
     @Operation(summary = "Valida el token para cambiar la contraseña", description = "Luego de validar el token, recibira un UUID para que pueda cambiar su contraseña")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Token válido", content = @Content(mediaType = "application/json", schema = @Schema(type = "object", implementation = SuccessfulSendConfirmAccountTokenResponse.class), examples = @ExampleObject(value = """
+            @ApiResponse(responseCode = "200", description = "Token válido", content = @Content(mediaType = "application/json", schema = @Schema(type = "object", implementation = ValidatePasswordResetTokenResponse.class), examples = @ExampleObject(value = """
                     {
-                        "body": null,
+                        "body": {
+                            "resetToken": "efc..."
+                        },
                         "message": "Token válido, puede reestablecer su contraseña"
                     }
                     """))),
@@ -342,7 +340,7 @@ public class TokenRestController {
 
     @Operation(summary = "Actualiza la contraseña del usuario", description = "Reestablece la contraseña del usuario en la base de datos si el usuario no recuerda su contraseña anterior")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Actualización correcta de la contraseña del usuario", content = @Content(mediaType = "application/json", schema = @Schema(type = "object", implementation = SuccessfulUpdatePasswordResponse.class), examples = @ExampleObject(value = """
+            @ApiResponse(responseCode = "200", description = "Actualización correcta de la contraseña del usuario", content = @Content(mediaType = "application/json", schema = @Schema(type = "object", implementation = SuccessfulVoidResponse.class), examples = @ExampleObject(value = """
                     {
                         "body": null,
                         "message": "Se ha reestablecido su contraseña"
@@ -411,13 +409,13 @@ public class TokenRestController {
                     """))),
     })
     @PutMapping("/resetPassword")
-    public ResponseEntity<SuccessfulResponse<SuccessfulResetPasswordResponse>> resetPassword(
+    public ResponseEntity<SuccessfulResponse<SuccessfulVoidResponse>> resetPassword(
             @Valid @RequestBody ResetPasswordRequest input) throws UserNotFoundException,
             UnconfirmedAccountException, MismatchUpdatePasswordException, MismatchSameOldPasswordException {
 
         tokenService.resetPassword(input);
 
-        SuccessfulResponse<SuccessfulResetPasswordResponse> successfulResponse = new SuccessfulResponse<>();
+        SuccessfulResponse<SuccessfulVoidResponse> successfulResponse = new SuccessfulResponse<>();
         successfulResponse.setMessage("Se ha reestablecido su contraseña");
         successfulResponse.setBody(null);
 

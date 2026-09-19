@@ -5,6 +5,7 @@ import java.util.UUID;
 
 import com.trello.identity.enums.OtpPurpose;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -23,9 +24,16 @@ public class OtpToken {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
+
+    @Column(nullable = false)
     private String otpHash;
+
     private int attemps;
+
+    @Column(nullable = false)
     private LocalDateTime expiresAt;
+
+    @Column(nullable = false)
     private UUID resetToken;
 
     @Enumerated(EnumType.STRING)

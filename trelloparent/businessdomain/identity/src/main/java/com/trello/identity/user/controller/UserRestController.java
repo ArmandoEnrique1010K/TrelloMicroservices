@@ -15,10 +15,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.trello.identity.common.StandarizedApiExceptionResponse;
-import com.trello.identity.common.SuccessfulResponse;
 import com.trello.identity.security.JwtUtils;
 import com.trello.identity.user.dto.response.UserResponse;
-import com.trello.identity.user.dto.response.common.SuccessfulUserResponse;
 import com.trello.identity.user.service.UserService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -86,8 +84,8 @@ public class UserRestController {
                     """))),
     })
     @SecurityRequirement(name = "bearerAuth")
-    @GetMapping
-    public ResponseEntity<List<UserResponse>> listAllUsers(
+    @GetMapping("/search")
+    public ResponseEntity<List<UserResponse>> listAllUsersByEmailAndExcludingIds(
             @AuthenticationPrincipal Jwt jwt,
             @RequestParam(required = false) String email,
             @RequestParam(required = false) List<UUID> ids) {
@@ -103,21 +101,19 @@ public class UserRestController {
             }
         }
 
-        List<UserResponse> response = userService.listAllUsersByEmailExcludingIds(email, usersIds);
+        List<UserResponse> response = userService.listAllUsersByEmailAndExcludingIds(email, usersIds);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
+    // TODO: ¿ELIMINAR ESTE ENDPOINT?
     @Operation(summary = "Obtiene un usuario", description = "Obtiene los datos de un usuario por ID")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Se ha obtenido el usuario", content = @Content(mediaType = "application/json", schema = @Schema(implementation = SuccessfulUserResponse.class), examples = @ExampleObject(value = """
+            @ApiResponse(responseCode = "200", description = "Se ha obtenido el usuario", content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserResponse.class), examples = @ExampleObject(value = """
                     {
-                        "body": {
-                            "email": "bhawkeridge4@aboutads.info",
-                            "firstName": "whawkeridge4",
-                            "id": "a2e507fc-0cf7-4fe2-904e-818a7645d478",
-                            "lastName": "Hawkeridge"
-                        },
-                        "message": ""
+                        "email": "bhawkeridge4@aboutads.info",
+                        "firstName": "whawkeridge4",
+                        "id": "a2e507fc-0cf7-4fe2-904e-818a7645d478",
+                        "lastName": "Hawkeridge"
                     }
                     """))),
             @ApiResponse(responseCode = "401", description = "El usuario no esta autenticado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
@@ -156,19 +152,13 @@ public class UserRestController {
     })
     @SecurityRequirement(name = "bearerAuth")
     @GetMapping("/{userId}")
-    public ResponseEntity<SuccessfulResponse<UserResponse>> findUserById(
-            @Parameter(description = "ID del usuario receptor", required = true, example = "550e8400-e29b-41d4-a716-446655440000") @PathVariable("userId") UUID userId) {
+    public ResponseEntity<UserResponse> findUserById(
+            @Parameter(description = "ID del usuario", required = true, example = "550e8400-e29b-41d4-a716-446655440000") @PathVariable("userId") UUID userId) {
         UserResponse response = userService.findUserById(userId);
-
-        SuccessfulResponse<UserResponse> successfulResponse = new SuccessfulResponse<>();
-        successfulResponse.setMessage("");
-        successfulResponse.setBody(response);
-
-        return ResponseEntity.status(HttpStatus.OK).body(successfulResponse);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     // Obtener varios usuarios por IDs enviados en query params
-
     @Operation(summary = "Obtiene una lista de usuarios", description = "Obtiene la lista de los usuarios por IDs")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Respuesta exitosa", content = @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = UserResponse.class)), examples = {
