@@ -7,10 +7,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -19,6 +19,7 @@ import com.trello.project.common.SuccessfulResponse;
 import com.trello.project.enums.Role;
 import com.trello.project.membership.dto.response.MemberResponse;
 import com.trello.project.membership.dto.response.ReceivedInvitationResponse;
+import com.trello.project.membership.dto.response.UserMemberResponse;
 import com.trello.project.membership.dto.response.common.SuccessfulInvitationResponse;
 import com.trello.project.membership.service.MemberService;
 import com.trello.project.security.JwtUtils;
@@ -45,14 +46,23 @@ public class MemberRestController {
         this.memberService = memberService;
     }
 
-    // TODO: AÑADIR LOS @ApiResponses
-
     @Operation(summary = "Lista los miembros de un tablero", description = "Obtiene una lista de los miembros de un tablero")
     @SecurityRequirement(name = "bearerAuth")
     @ApiResponses(value = {
-            // TODO: Añadir una respuesta para obtener los usuarios
-            @ApiResponse(responseCode = "200", description = "Obtiene la lista de invitaciones", content = @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = ReceivedInvitationResponse.class)), examples = @ExampleObject(value = """
+            @ApiResponse(responseCode = "200", description = "Obtiene la lista de miembros, si se trata del usuario administrador del espacio de trabajo, incluye los usuarios que han sido borrado logicamente; de lo contrario no los incluye", content = @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = ReceivedInvitationResponse.class)), examples = @ExampleObject(value = """
                     [
+                        {
+                            "active": true,
+                            "id": "95c91a33-967b-46b8-bf8e-14dd29fa87cc",
+                            "joinedAt": "2026-09-13T16:35:50.452319",
+                            "memberUser": {
+                            "email": "example@gmail.com",
+                            "firstName": "Jhon",
+                            "id": "3e54e44f-8f87-445b-8817-8c13010f5da5",
+                            "lastName": "Doe"
+                            },
+                            "role": "VIEWER"
+                        }
                     ]
                     """))),
 
@@ -80,22 +90,26 @@ public class MemberRestController {
                     """))),
     })
     @GetMapping("/board/{boardId}")
-    public ResponseEntity<List<MemberResponse>> listAllMembersByBoardId(@AuthenticationPrincipal Jwt jwt,
+    public ResponseEntity<List<UserMemberResponse>> listAllMembersByBoardId(@AuthenticationPrincipal Jwt jwt,
             @Parameter(description = "ID del tablero", required = true, example = "550e8400-e29b-41d4-a716-446655440000") @PathVariable("boardId") UUID boardId) {
         UUID userId = JwtUtils.getUserId(jwt);
 
-        List<MemberResponse> response = memberService.listAllMembersByBoardId(userId, userId);
+        List<UserMemberResponse> response = memberService.listAllMembersByBoardId(boardId, userId);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     @Operation(summary = "Cambia el rol de un miembro", description = "Modifica el rol de un miembro de un tablero")
     @SecurityRequirement(name = "bearerAuth")
     @ApiResponses(value = {
-            // TODO: Añadir un Body y un nuevo Response para la lista de invitaciones
+            // TODO: Añadir un Body
             @ApiResponse(responseCode = "200", description = "Se ha cambiado el rol del miembro", content = @Content(mediaType = "application/json", schema = @Schema(implementation = SuccessfulInvitationResponse.class), examples = @ExampleObject(value = """
                     {
-                        "body": null
-                        "message": "Se ha cambiado el rol del miembro"
+                      "body": {
+                        "active": true,
+                        "id": "95c91a33-967b-46b8-bf8e-14dd29fa87cc",
+                        "role": "MEMBER"
+                      },
+                      "message": "Se ha cambiado el rol del miembro"
                     }
                     """))),
             @ApiResponse(responseCode = "401", description = "El usuario no esta autenticado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
@@ -132,7 +146,7 @@ public class MemberRestController {
                     }
                     """))),
     })
-    @PatchMapping("/{memberId}/role/{roleName}")
+    @PutMapping("/{memberId}/role/{roleName}")
     public ResponseEntity<SuccessfulResponse<MemberResponse>> changeRoleMemberById(
             @AuthenticationPrincipal Jwt jwt,
             @Parameter(description = "ID del miembro", required = true, example = "550e8400-e29b-41d4-a716-446655440000") @PathVariable("memberId") UUID memberId,
@@ -147,7 +161,7 @@ public class MemberRestController {
         return ResponseEntity.status(HttpStatus.OK).body(successfulResponse);
     }
 
-    @Operation(summary = "Elimina un miembro", description = "Elimina permanentemente un miembro del tablero")
+    @Operation(summary = "Elimina un miembro", description = "Realiza un borrado lógico del miembro")
     @SecurityRequirement(name = "bearerAuth")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Se ha eliminado un miembro", content = @Content(mediaType = "application/json", schema = @Schema(implementation = SuccessfulInvitationResponse.class), examples = @ExampleObject(value = """
@@ -190,12 +204,12 @@ public class MemberRestController {
                     }
                     """))),
     })
-    @DeleteMapping("/{memberId}")
-    public ResponseEntity<SuccessfulResponse<MemberResponse>> deleteMember(
+    @PatchMapping("/{memberId}")
+    public ResponseEntity<SuccessfulResponse<MemberResponse>> deactivateMember(
             @AuthenticationPrincipal Jwt jwt,
             @Parameter(description = "ID del miembro", required = true, example = "550e8400-e29b-41d4-a716-446655440000") @PathVariable("memberId") UUID memberId) {
         UUID userId = JwtUtils.getUserId(jwt);
-        memberService.deleteMember(memberId, userId);
+        memberService.deactivateMember(memberId, userId);
 
         SuccessfulResponse<MemberResponse> successfulResponse = new SuccessfulResponse<>();
         successfulResponse.setMessage("Se ha eliminado un miembro");

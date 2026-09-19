@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.trello.project.entities.Invitation;
 import com.trello.project.enums.Status;
@@ -75,6 +76,9 @@ public class InvitationProjectServiceImpl implements InvitationProjectService {
     }
 
     // Un delete que no encuentra coincidencias simplemente afecta 0 registros
+    // Las operaciones que implican un borrado en la base de datos debe llevar un
+    // transactional
+    @Transactional
     @Override
     public void deleteInvitationIfExistsByBoardIdAndRecipientUserId(UUID boardId, UUID recipientUserId,
             UUID senderUserId) {
