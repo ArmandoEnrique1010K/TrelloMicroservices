@@ -5,7 +5,7 @@ import java.util.UUID;
 
 import com.trello.project.entities.Invitation;
 import com.trello.project.exception.BoardNotFoundException;
-import com.trello.project.membership.exception.InvitationNotFoundException;
+import com.trello.project.invitation.exception.InvitationNotFoundException;
 
 public interface InvitationProjectService {
     Invitation saveInvitation(Invitation invitation);

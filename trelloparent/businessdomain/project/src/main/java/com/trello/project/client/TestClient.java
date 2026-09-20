@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 
 import com.trello.project.client.config.FeignClientConfig;
 
+// TODO: ELIMINAR ESTA CLASE
 @FeignClient(name = "test-service", configuration = FeignClientConfig.class)
 public interface TestClient {
 

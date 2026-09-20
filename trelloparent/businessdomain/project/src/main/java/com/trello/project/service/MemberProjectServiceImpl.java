@@ -8,8 +8,8 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 
 import com.trello.project.entities.Member;
-import com.trello.project.membership.exception.MemberInactiveException;
-import com.trello.project.membership.exception.MemberNotFoundException;
+import com.trello.project.member.exception.MemberInactiveException;
+import com.trello.project.member.exception.MemberNotFoundException;
 
 @Service
 public class MemberProjectServiceImpl implements MemberProjectService {

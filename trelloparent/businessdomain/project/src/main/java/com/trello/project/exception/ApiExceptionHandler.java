@@ -9,13 +9,13 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import com.trello.project.board.exception.BoardAlreadyExistsException;
 import com.trello.project.common.StandarizedApiExceptionResponse;
-import com.trello.project.membership.exception.InvitationAlreadyExistsException;
-import com.trello.project.membership.exception.InvitationConfirmedException;
-import com.trello.project.membership.exception.InvitationNotFoundException;
-import com.trello.project.membership.exception.MemberInactiveException;
-import com.trello.project.membership.exception.MemberNotFoundException;
-import com.trello.project.workspace.exception.BoardAlreadyExistsException;
+import com.trello.project.invitation.exception.InvitationAlreadyExistsException;
+import com.trello.project.invitation.exception.InvitationConfirmedException;
+import com.trello.project.invitation.exception.InvitationNotFoundException;
+import com.trello.project.member.exception.MemberInactiveException;
+import com.trello.project.member.exception.MemberNotFoundException;
 import com.trello.project.workspace.exception.WorkspaceAlreadyExistsException;
 
 import lombok.extern.slf4j.Slf4j;

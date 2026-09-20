@@ -12,7 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.trello.project.entities.Invitation;
 import com.trello.project.enums.Status;
 import com.trello.project.exception.BoardNotFoundException;
-import com.trello.project.membership.exception.InvitationNotFoundException;
+import com.trello.project.invitation.exception.InvitationNotFoundException;
 
 @Service
 public class InvitationProjectServiceImpl implements InvitationProjectService {

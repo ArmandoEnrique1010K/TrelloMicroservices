@@ -30,10 +30,4 @@ public class IdentityClientServiceImpl implements IdentityClientService {
             List<UUID> excludedUsersIds) {
         return identityClient.listAllUsersByEmailAndExcludingIds(email, excludedUsersIds);
     }
-
-    // @Override
-    // public UserResponse findUserById(UUID userId) {
-    // return identityClient.findUserById(userId);
-    // }
-
 }

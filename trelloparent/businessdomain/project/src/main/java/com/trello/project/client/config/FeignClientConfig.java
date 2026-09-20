@@ -16,7 +16,7 @@ public class FeignClientConfig {
             ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder
                     .getRequestAttributes();
 
-            System.out.println("ATTRIBUTES: " + attributes);
+            // System.out.println("ATTRIBUTES: " + attributes);
 
             if (attributes == null) {
                 System.out.println("No existe request HTTP actual");
@@ -27,13 +27,13 @@ public class FeignClientConfig {
 
             String authorization = request.getHeader("Authorization");
 
-            System.out.println("AUTHORIZATION EN FEIGN: " + authorization);
+            // System.out.println("AUTHORIZATION EN FEIGN: " + authorization);
 
             if (authorization != null && !authorization.isBlank()) {
                 requestTemplate.header("Authorization", authorization);
 
-                System.out.println(
-                        "AUTHORIZATION AGREGADO A FEIGN: " + authorization);
+                // System.out.println(
+                // "AUTHORIZATION AGREGADO A FEIGN: " + authorization);
             }
         };
     }

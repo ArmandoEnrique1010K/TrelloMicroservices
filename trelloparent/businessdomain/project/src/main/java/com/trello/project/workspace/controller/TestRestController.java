@@ -19,6 +19,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
 
+// TODO: ELIMINAR ESTA CLASE
 // Endpoint de prueba para probar el JWT
 @RestController
 @RequestMapping("/test")
