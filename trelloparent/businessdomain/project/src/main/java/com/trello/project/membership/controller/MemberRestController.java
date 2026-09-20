@@ -101,7 +101,6 @@ public class MemberRestController {
     @Operation(summary = "Cambia el rol de un miembro", description = "Modifica el rol de un miembro de un tablero")
     @SecurityRequirement(name = "bearerAuth")
     @ApiResponses(value = {
-            // TODO: Añadir un Body
             @ApiResponse(responseCode = "200", description = "Se ha cambiado el rol del miembro", content = @Content(mediaType = "application/json", schema = @Schema(implementation = SuccessfulInvitationResponse.class), examples = @ExampleObject(value = """
                     {
                       "body": {

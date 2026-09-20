@@ -1,5 +1,7 @@
 package com.trello.project.workspace.service;
 
+import com.trello.project.client.dto.response.UserResponse;
+import com.trello.project.client.services.IdentityClientService;
 import com.trello.project.entities.Board;
 import com.trello.project.entities.Workspace;
 import com.trello.project.service.BoardProjectService;
@@ -7,6 +9,7 @@ import com.trello.project.service.WorkspaceProjectService;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 import org.springframework.stereotype.Service;
 
@@ -19,17 +22,20 @@ import com.trello.project.workspace.mapper.BoardResponseMapper;
 @Service
 public class BoardServiceImpl implements BoardService {
 
+    private final IdentityClientService identityClientService;
     private final BoardProjectService boardProjectService;
     private final BoardRequestMapper boardRequestMapper;
     private final BoardResponseMapper boardResponseMapper;
     private final WorkspaceProjectService workspaceProjectService;
 
     BoardServiceImpl(BoardProjectService boardProjectService, BoardRequestMapper boardRequestMapper,
-            BoardResponseMapper boardResponseMapper, WorkspaceProjectService workspaceProjectService) {
+            BoardResponseMapper boardResponseMapper, WorkspaceProjectService workspaceProjectService,
+            IdentityClientService identityClientService) {
         this.boardProjectService = boardProjectService;
         this.boardRequestMapper = boardRequestMapper;
         this.boardResponseMapper = boardResponseMapper;
         this.workspaceProjectService = workspaceProjectService;
+        this.identityClientService = identityClientService;
     }
 
     @Override
@@ -92,6 +98,27 @@ public class BoardServiceImpl implements BoardService {
     @Override
     public void deleteBoard(UUID ownerUserId, UUID boardId) {
         boardProjectService.deleteBoardByIdAndOwnerUserId(boardId, ownerUserId);
+    }
+
+    // TODO: CONTINUAR AQUI, METODO PARA LISTAR LOS IDS DE LOS MIEMBROS E INVITADOS
+    @Override
+    public List<UUID> listAllMembersIdsAndInvitationsIdsByBoardId(UUID ownerUserId, UUID boardId) {
+
+        Board findedBoard = boardProjectService.findBoardByIdAndOwnerUserId(boardId, ownerUserId);
+
+        List<UUID> memberIds = findedBoard.getMembers()
+                .stream()
+                .map(member -> member.getUserId())
+                .toList();
+
+        List<UUID> invitationIds = findedBoard.getInvitations()
+                .stream()
+                .map(invitation -> invitation.getRecipientUserId())
+                .distinct().toList();
+
+        return Stream.concat(
+                memberIds.stream(),
+                invitationIds.stream()).toList();
     }
 
 }

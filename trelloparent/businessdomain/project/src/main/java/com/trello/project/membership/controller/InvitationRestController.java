@@ -15,8 +15,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.trello.project.client.dto.response.UserResponse;
 import com.trello.project.common.StandarizedApiExceptionResponse;
 import com.trello.project.common.SuccessfulResponse;
 import com.trello.project.membership.dto.request.InvitationRequest;
@@ -570,6 +572,61 @@ public class InvitationRestController {
         successfulResponse.setBody(null);
 
         return ResponseEntity.status(HttpStatus.OK).body(successfulResponse);
-
     }
+
+    @Operation(summary = "Busca usuarios disponibles", description = "Busca usuarios disponibles en el sistema para ser invitados")
+    @SecurityRequirement(name = "bearerAuth")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Usuarios disponibles encontrados", content = @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = UserResponse.class)), examples = @ExampleObject(value = """
+                    [
+                        {
+                            "email": "opiddington8@moonfruit.com",
+                            "firstName": "spiddington8",
+                            "id": "cbdd2b41-09b4-4e9b-adeb-79ce7dc0abb0",
+                            "lastName": "Piddington"
+                        },
+                        {
+                            "email": "opiddington9@desdev.cn",
+                            "firstName": "ygully3",
+                            "id": "26b430c5-37ef-499d-9a31-7369cc7a572f",
+                            "lastName": "Gully"
+                        }
+                    ]
+                    """))),
+            @ApiResponse(responseCode = "401", description = "El usuario no esta autenticado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
+                    {
+                        "detail": "Authentication is required to access this resource",
+                        "fields": null,
+                        "instance": null,
+                        "message": "Ha ocurrido un error inesperado",
+                        "status": 401,
+                        "title": "Unauthorized",
+                        "type": "/errors/authentication/not-authenticated"
+                    }
+                    """))),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
+                    {
+                      "detail": "An unexpected error occurred while processing the request",
+                      "fields": null,
+                      "instance": null,
+                      "message": "Ha ocurrido un error inesperado",
+                      "status": 500,
+                      "title": "Internal server error",
+                      "type": "/errors/internal-server-error"
+                    }
+                    """))),
+    })
+    @GetMapping("/search/availableUsers/board/{boardId}")
+    public ResponseEntity<List<UserResponse>> searchAvailableUsers(
+            @AuthenticationPrincipal Jwt jwt,
+            @Parameter(description = "ID del tablero", required = true, example = "550e8400-e29b-41d4-a716-446655440000") @PathVariable("boardId") UUID boardId,
+            // Recordar que el correo es obligatorio y debe tener minimo 6 caracteres
+            @Parameter(description = "Email del usuario", required = false, example = "enrique@gmail.com") @RequestParam(value = "email", required = false) String email) {
+
+        UUID userId = JwtUtils.getUserId(jwt);
+        List<UserResponse> availableUsers = invitationService.listAllAvailableUsers(boardId, userId, email);
+
+        return ResponseEntity.status(HttpStatus.OK).body(availableUsers);
+    }
+
 }

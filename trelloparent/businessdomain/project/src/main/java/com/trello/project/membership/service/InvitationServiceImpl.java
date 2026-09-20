@@ -8,6 +8,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.springframework.stereotype.Service;
 
@@ -287,5 +288,32 @@ public class InvitationServiceImpl implements InvitationService {
                 .invitationToInvitationResponse(savedInvitation);
         return invitationResponse;
 
+    }
+
+    @Override
+    public List<UserResponse> listAllAvailableUsers(UUID boardId, UUID ownerUserId, String email) {
+        // Buscar el tablero por ID y usuario administrador del espacio de trabajo
+        // Recordar que el administrador del espacio de trabajo es el unico en buscar
+        // usuarios disponibles para invitarlos
+
+        // Se excluye de la lista desde el controlador del microservicio Identity
+        Board findedBoard = boardProjectService.findBoardByIdAndOwnerUserId(boardId, ownerUserId);
+        List<UUID> memberIds = findedBoard.getMembers()
+                .stream()
+                .map(member -> member.getUserId())
+                .toList();
+
+        List<UUID> invitationIds = findedBoard.getInvitations()
+                .stream()
+                .map(invitation -> invitation.getRecipientUserId())
+                .distinct().toList();
+
+        List<UUID> excludedUsersIds = Stream.concat(memberIds.stream(), invitationIds.stream()).toList();
+
+        // Llamado al servicio del cliente
+        List<UserResponse> response = identityClientService.listAllUsersByEmailAndExcludingIds(email,
+                excludedUsersIds);
+
+        return response;
     }
 }

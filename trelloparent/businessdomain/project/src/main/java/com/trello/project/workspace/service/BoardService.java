@@ -17,4 +17,7 @@ public interface BoardService {
             throws BoardAlreadyExistsException;
 
     void deleteBoard(UUID ownerUserId, UUID boardId);
+
+    // Listar los UUIDs de miembros e invitados por id de board
+    List<UUID> listAllMembersIdsAndInvitationsIdsByBoardId(UUID ownerUserId, UUID boardId);
 }

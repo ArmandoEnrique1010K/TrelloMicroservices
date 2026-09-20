@@ -25,11 +25,15 @@ public class IdentityClientServiceImpl implements IdentityClientService {
         return identityClient.findUsersByIds(new ArrayList<>(usersIds));
     }
 
-    // En este caso solamente se toma el body de la respuesta porque contiene la
-    // información del usuario
     @Override
-    public UserResponse findUserById(UUID userId) {
-        return identityClient.findUserById(userId).getBody();
+    public List<UserResponse> listAllUsersByEmailAndExcludingIds(String email,
+            List<UUID> excludedUsersIds) {
+        return identityClient.listAllUsersByEmailAndExcludingIds(email, excludedUsersIds);
     }
+
+    // @Override
+    // public UserResponse findUserById(UUID userId) {
+    // return identityClient.findUserById(userId);
+    // }
 
 }
