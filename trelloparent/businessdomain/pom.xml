@@ -34,6 +34,7 @@
     <modules>
         <module>project</module>
         <module>identity</module>
+        <module>workflow</module>
     </modules>
 
 

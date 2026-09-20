@@ -8,6 +8,7 @@ services:
     ports:
       - "5432:5432"
 
+    # TODO: CORREGIR LA UBICACIÓN DE postgres_data EN UN ENTORNO DE PRODUCCIÓN
     volumes:
       - ./dbfiles:/docker-entrypoint-initdb.d
       - ./postgres_data:/var/lib/postgresql/data
@@ -34,8 +35,24 @@ services:
       POSTGRES_PASSWORD: admin
       POSTGRES_DB: project_db
 
+  # Base de datos - Microservicio Workflow
+  workflow-postgres-db:
+    container_name: workflow-db
+    image: postgres:15.3
 
-  # Administrador - Base de datos Identity
+    ports:
+      - "5434:5432"
+
+    volumes:
+      - ./dbfiles:/docker-entrypoint-initdb.d
+      - ./postgres_data_workflow:/var/lib/postgresql/data
+
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: workflow_db
+
+  # Administrador de bases de datos
   pgadmin4:
     container_name: pgadmin4
     image: dpage/pgadmin4
