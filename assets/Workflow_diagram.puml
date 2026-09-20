@@ -1,0 +1,90 @@
+@startuml Workflow
+hide methods
+skinparam ArrowFontSize 14
+
+' =========================================================
+' Datos provenientes indirectamente de PROJECT
+' =========================================================
+
+' OWNER representa al usuario administrador del workspace.
+'
+' boardId hace referencia a un board administrado por
+' PROJECT. No es una FK hacia una entidad Board de TASK.
+enum Role {
+  OWNER
+  ADMIN
+  MEMBER
+  VIEWER
+}
+
+entity BoardAccess {
+  - id: UUID
+  - boardId: UUID
+  - userId: UUID
+  - userActive: boolean
+}
+
+
+
+' =========================================================
+' Entidades propias de WORKFLOW
+' =========================================================
+
+'El valor por defecto del estado es PENDING
+enum Status {
+  PENDING 
+  ON_HOLD
+  IN_PROGRESS
+  UNDER_REVIEW
+  COMPLETED
+}
+
+entity Task {
+  - id: UUID
+  - boardId: UUID
+  - name: String
+  - description: String
+  - createdAt: LocalDateTime
+  - updatedAt: LocalDateTime
+}
+
+entity Label {
+  - id: UUID,
+  - content: String
+  - color: String
+  - boardId: UUID
+}
+
+entity Note {
+  - id: UUID
+  - content: String
+  - createdByUser: UUID
+  - createdAt: LocalDateTime
+}
+
+
+' Historial de estados de Task.
+' Al crear una Task, se crea también su primer History.
+
+entity History {
+  - id: UUID
+  - userId: UUID
+  - createdAt: LocalDateTime
+}
+
+'Una tarea puede tener ninguno, 1 o varios labels diferentes
+
+' =========================================================
+' Relaciones
+' =========================================================
+Task "0..* " -- "0..*" Label
+Task "1" *-- "0..* " Note
+Task "1" *-- "1..*     " History
+
+BoardAccess "0..*" ---> "   1" Role
+Task "0..*" -> "1 " Status
+History " 0..*    " --> "     1  " Status
+
+
+
+@enduml
