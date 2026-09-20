@@ -495,7 +495,7 @@ Puedes utilizar `../` para desplazarte hacia el directorio padre desde la ubicac
 
 Repite el procedimiento para los microservicios **Identity** y **Workflow**.
 
-## 8. Acceder a Swagger
+### 8. Acceder a Swagger
 
 Cada microservicio expone su propia interfaz de **Swagger UI**.
 
