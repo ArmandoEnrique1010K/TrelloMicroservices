@@ -3,7 +3,7 @@
 Microservicios en un monorepositorio para una aplicación de Trello
 ## Patrón de monorepositorio
 
-El proyecto utiliza el **patrón de monorepositorio (monorepo)** para organizar los diferentes microservicios y módulos que conforman la aplicación.
+El proyecto utiliza el **patrón de monorepositorio (monorepo)** para organizar los diferentes microservicios y módulos que conforman la aplicación...
 
 Bajo este enfoque, el código fuente de los distintos microservicios se mantiene dentro de un único repositorio. Esto permite centralizar el código del proyecto y facilita la reutilización de componentes y configuraciones comunes entre los diferentes módulos.
 
