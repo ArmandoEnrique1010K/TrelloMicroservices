@@ -26,6 +26,4 @@ public class Label {
 
     @Column(nullable = false)
     private UUID boardId;
-
-    // TODO: CONTINUAR CON LA RELACION MANY TO MANY EN LABEL
 }

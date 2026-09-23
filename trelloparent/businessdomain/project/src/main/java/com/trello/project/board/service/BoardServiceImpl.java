@@ -5,6 +5,8 @@ import com.trello.project.board.dto.response.BoardResponse;
 import com.trello.project.board.exception.BoardAlreadyExistsException;
 import com.trello.project.board.mapper.BoardRequestMapper;
 import com.trello.project.board.mapper.BoardResponseMapper;
+import com.trello.project.client.enums.WorkflowRole;
+import com.trello.project.client.services.WorkflowClientService;
 import com.trello.project.entities.Board;
 import com.trello.project.entities.Workspace;
 import com.trello.project.service.BoardProjectService;
@@ -23,13 +25,16 @@ public class BoardServiceImpl implements BoardService {
     private final BoardRequestMapper boardRequestMapper;
     private final BoardResponseMapper boardResponseMapper;
     private final WorkspaceProjectService workspaceProjectService;
+    private final WorkflowClientService workflowClientService;
 
     BoardServiceImpl(BoardProjectService boardProjectService, BoardRequestMapper boardRequestMapper,
-            BoardResponseMapper boardResponseMapper, WorkspaceProjectService workspaceProjectService) {
+            BoardResponseMapper boardResponseMapper, WorkspaceProjectService workspaceProjectService,
+            WorkflowClientService workflowClientService) {
         this.boardProjectService = boardProjectService;
         this.boardRequestMapper = boardRequestMapper;
         this.boardResponseMapper = boardResponseMapper;
         this.workspaceProjectService = workspaceProjectService;
+        this.workflowClientService = workflowClientService;
     }
 
     @Override
@@ -51,6 +56,11 @@ public class BoardServiceImpl implements BoardService {
 
         Board savedBoard = boardProjectService.saveBoard(boardToBoardRequest);
         BoardResponse boardResponse = boardResponseMapper.boardToBoardResponse(savedBoard);
+
+        // Guarda los datos en la base de datos del microservicio Workflow
+        // Solamente los datos necesarios: ID de tablero, Rol (WorkflowRole) e ID de
+        // usuario
+        workflowClientService.saveBoardAccess(boardResponse.getId(), WorkflowRole.OWNER);
 
         return boardResponse;
     }
