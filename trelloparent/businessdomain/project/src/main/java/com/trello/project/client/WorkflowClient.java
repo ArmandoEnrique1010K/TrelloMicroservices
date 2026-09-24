@@ -6,6 +6,7 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 
 import com.trello.project.client.config.FeignClientConfig;
 import com.trello.project.client.enums.WorkflowRole;
@@ -17,4 +18,11 @@ public interface WorkflowClient {
     ResponseEntity<Void> saveBoardAccess(
             @PathVariable("boardId") UUID boardId,
             @PathVariable("roleName") WorkflowRole roleName);
+
+    @PutMapping("/boardAccess/board/{boardId}/user/{memberUserId}/role/{roleName}")
+    ResponseEntity<Void> changeRoleBoardAccess(
+            @PathVariable("boardId") UUID boardId,
+            @PathVariable("memberUserId") UUID memberUserId,
+            @PathVariable("roleName") WorkflowRole roleName);
+
 }

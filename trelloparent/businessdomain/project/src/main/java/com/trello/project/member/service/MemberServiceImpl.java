@@ -1,6 +1,8 @@
 package com.trello.project.member.service;
 
 import com.trello.project.client.services.IdentityClientService;
+import com.trello.project.client.services.WorkflowClientService;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -12,6 +14,7 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 
 import com.trello.project.client.dto.response.UserResponse;
+import com.trello.project.client.enums.WorkflowRole;
 import com.trello.project.entities.Board;
 import com.trello.project.entities.Member;
 import com.trello.project.enums.Role;
@@ -32,16 +35,19 @@ public class MemberServiceImpl implements MemberService {
     private final BoardProjectService boardProjectService;
     private final MemberProjectService memberProjectService;
     private final InvitationProjectService invitationProjectService;
+    private final WorkflowClientService workflowClientService;
 
     public MemberServiceImpl(BoardProjectService boardProjectService, MemberProjectService memberProjectService,
             MemberResponseMapper memberResponseMapper, UserMemberResponseMapper userMemberResponseMapper,
-            IdentityClientService identityClientService, InvitationProjectService invitationProjectService) {
+            IdentityClientService identityClientService, InvitationProjectService invitationProjectService,
+            WorkflowClientService workflowClientService) {
         this.boardProjectService = boardProjectService;
         this.memberProjectService = memberProjectService;
         this.memberResponseMapper = memberResponseMapper;
         this.userMemberResponseMapper = userMemberResponseMapper;
         this.identityClientService = identityClientService;
         this.invitationProjectService = invitationProjectService;
+        this.workflowClientService = workflowClientService;
     }
 
     @Override
@@ -88,8 +94,32 @@ public class MemberServiceImpl implements MemberService {
                 ownerUserId);
 
         Member saveMember = memberProjectService.saveMember(findedMember);
+
+        WorkflowRole workflowRole = parseRoleToWorkflowRole(role);
+
+        // OBTENER EL ID DEL USUARIO DESDE EL MIEMBRO
+        UUID memberUserId = saveMember.getUserId();
+
+        // Cambiar el rol en el otro microservicio
+        workflowClientService.changeRoleBoardAccess(board.getId(), memberUserId, workflowRole);
+
         MemberResponse memberResponse = memberResponseMapper.memberToMemberResponse(saveMember);
         return memberResponse;
+    }
+
+    // TODO: ESTE METODO DEBE SER UN UTIL
+    // Método privado para parsear Role a WorkflowRole
+    private WorkflowRole parseRoleToWorkflowRole(Role role) {
+        if (role == null) {
+            return null;
+        }
+
+        return switch (role) {
+            case ADMIN -> WorkflowRole.ADMIN;
+            case MEMBER -> WorkflowRole.MEMBER;
+            case VIEWER -> WorkflowRole.VIEWER;
+            default -> throw new IllegalArgumentException("Rol desconocido: " + role);
+        };
     }
 
     @Override

@@ -11,4 +11,6 @@ public interface BoardAccessService {
     // espacio de trabajo como rol de OWNER
     // Tambien cuando un invitado acepta una invitación
     void saveBoardAccess(UUID boardId, UUID userId, Role role);
+
+    void changeRoleBoardAccess(UUID boardId, UUID memberUserId, Role role);
 }

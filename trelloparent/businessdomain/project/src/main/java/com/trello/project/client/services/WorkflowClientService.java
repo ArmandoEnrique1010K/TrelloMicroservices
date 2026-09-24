@@ -9,4 +9,9 @@ public interface WorkflowClientService {
     void saveBoardAccess(
             UUID boardId,
             WorkflowRole roleName);
+
+    void changeRoleBoardAccess(
+            UUID boardId,
+            UUID memberUserId,
+            WorkflowRole roleName);
 }

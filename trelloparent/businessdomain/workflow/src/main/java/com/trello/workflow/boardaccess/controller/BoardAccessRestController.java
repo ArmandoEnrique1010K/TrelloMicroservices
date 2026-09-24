@@ -8,6 +8,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -75,7 +76,18 @@ public class BoardAccessRestController {
 
         boardAccessService.saveBoardAccess(boardId, userId, roleName);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).body(null);
-
     }
 
+    @Operation(summary = "Cambia el rol de un permiso de acceso", description = "Modifica el rol de la copia local de los datos de acceso")
+    @SecurityRequirement(name = "bearerAuth")
+    @PutMapping("/board/{boardId}/user/{memberUserId}/role/{roleName}")
+    // El ID del usuario se obtiene desde un parametro
+    public ResponseEntity<Void> changeRoleBoardAccess(
+            @Parameter(description = "ID del tablero", required = true, example = "550e8400-e29b-41d4-a716-446655440000") @PathVariable UUID boardId,
+            @Parameter(description = "ID del usuario", required = true, example = "550e8400-e29b-41d4-a716-446655440000") @PathVariable UUID memberUserId,
+            @Parameter(description = "Rol del miembro", required = true, example = "OWNER") @PathVariable Role roleName) {
+
+        boardAccessService.changeRoleBoardAccess(boardId, memberUserId, roleName);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).body(null);
+    }
 }

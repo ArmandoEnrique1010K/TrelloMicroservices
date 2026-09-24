@@ -1,5 +1,6 @@
 package com.trello.project.invitation.service;
 
+import com.trello.project.client.services.WorkflowClientServiceImpl;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -13,7 +14,9 @@ import java.util.stream.Stream;
 import org.springframework.stereotype.Service;
 
 import com.trello.project.client.dto.response.UserResponse;
+import com.trello.project.client.enums.WorkflowRole;
 import com.trello.project.client.services.IdentityClientService;
+import com.trello.project.client.services.WorkflowClientService;
 import com.trello.project.entities.Board;
 import com.trello.project.entities.Invitation;
 import com.trello.project.entities.Member;
@@ -36,6 +39,7 @@ import com.trello.project.service.MemberProjectService;
 @Service
 public class InvitationServiceImpl implements InvitationService {
 
+    private final WorkflowClientService workflowClientService;
     private final BoardProjectService boardProjectService;
     private final InvitationRequestMapper invitationRequestMapper;
     private final InvitationProjectService invitationProjectService;
@@ -51,7 +55,8 @@ public class InvitationServiceImpl implements InvitationService {
             InvitationResponseMapper invitationResponseMapper,
             MemberProjectService memberProjectService, IdentityClientService identityClientService,
             BoardInvitationResponseMapper boardInvitationResponseMapper,
-            ReceivedInvitationResponseMapper receivedInvitationResponseMapper) {
+            ReceivedInvitationResponseMapper receivedInvitationResponseMapper,
+            WorkflowClientService workflowClientService) {
         this.boardProjectService = boardProjectService;
         this.invitationRequestMapper = invitationRequestMapper;
         this.invitationProjectService = invitationProjectService;
@@ -60,6 +65,7 @@ public class InvitationServiceImpl implements InvitationService {
         this.identityClientService = identityClientService;
         this.boardInvitationResponseMapper = boardInvitationResponseMapper;
         this.receivedInvitationResponseMapper = receivedInvitationResponseMapper;
+        this.workflowClientService = workflowClientService;
     }
 
     @Override
@@ -86,6 +92,7 @@ public class InvitationServiceImpl implements InvitationService {
         invitationToInvitationRequest.setSendedAt(LocalDateTime.now());
 
         Invitation savedInvitation = invitationProjectService.saveInvitation(invitationToInvitationRequest);
+
         InvitationResponse invitationResponse = invitationResponseMapper
                 .invitationToInvitationResponse(savedInvitation);
         return invitationResponse;
@@ -168,9 +175,37 @@ public class InvitationServiceImpl implements InvitationService {
         member.setUserId(recipientUserId);
         member.setRole(findedInvitation.getRole());
         member.setBoard(findedBoard);
+        member.setActive(true);
 
         // Guardar member
         memberProjectService.saveMember(member);
+
+        // Parsear rol (Role -> WorkflowRole). WorkflowRole tiene OWNER, pero no se
+        // debe mapear desde Role.
+        // WorkflowRole: OWNER, ADMIN, MEMBER, VIEWER
+        // Role: ADMIN, MEMBER, VIEWER
+        WorkflowRole workflowRole = parseRoleToWorkflowRole(findedInvitation.getRole());
+
+        // Guarda los datos en la base de datos del microservicio Workflow/
+        // Solamente los datos necesarios: ID de tablero, Rol (WorkflowRole) e ID de
+        // usuario
+        workflowClientService.saveBoardAccess(findedBoard.getId(), workflowRole);
+
+    }
+
+    // TODO: ESTE METODO DEBE SER UN UTIL
+    // Método privado para parsear Role a WorkflowRole
+    private WorkflowRole parseRoleToWorkflowRole(Role role) {
+        if (role == null) {
+            return null;
+        }
+
+        return switch (role) {
+            case ADMIN -> WorkflowRole.ADMIN;
+            case MEMBER -> WorkflowRole.MEMBER;
+            case VIEWER -> WorkflowRole.VIEWER;
+            default -> throw new IllegalArgumentException("Rol desconocido: " + role);
+        };
     }
 
     @Override
