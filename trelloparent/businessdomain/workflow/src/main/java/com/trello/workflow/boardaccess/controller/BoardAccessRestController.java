@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -78,6 +79,7 @@ public class BoardAccessRestController {
         return ResponseEntity.status(HttpStatus.NO_CONTENT).body(null);
     }
 
+    // TODO: AÑADIR RESPONSES
     @Operation(summary = "Cambia el rol de un permiso de acceso", description = "Modifica el rol de la copia local de los datos de acceso")
     @SecurityRequirement(name = "bearerAuth")
     @PutMapping("/board/{boardId}/user/{memberUserId}/role/{roleName}")
@@ -90,4 +92,30 @@ public class BoardAccessRestController {
         boardAccessService.changeRoleBoardAccess(boardId, memberUserId, roleName);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).body(null);
     }
+
+    // TODO: AÑADIR RESPONSES
+    @Operation(summary = "Desactiva un permiso de acceso", description = "Modifica el campo active de la copia local de los datos de acceso")
+    @SecurityRequirement(name = "bearerAuth")
+    @PatchMapping("/board/{boardId}/user/{memberUserId}")
+    public ResponseEntity<Void> deactivateBoardAccess(
+            @Parameter(description = "ID del tablero", required = true, example = "550e8400-e29b-41d4-a716-446655440000") @PathVariable UUID boardId,
+            @Parameter(description = "ID del usuario", required = true, example = "550e8400-e29b-41d4-a716-446655440000") @PathVariable UUID memberUserId) {
+        boardAccessService.deactivateBoardAccess(boardId, memberUserId);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).body(null);
+    }
+
+    // TODO: VERIFICAR SI FUNCIONA EL METODO DE ACTIVAR PERMISO DE ACCESO CUANDO SE
+    // ENVIA UNA INVITACION A UN MIEMBRO QUE FUE DESACTIVADO
+    // TODO: AÑADIR RESPONSES
+    @Operation(summary = "Activa un permiso de acceso", description = "Modifica el campo active de la copia local de los datos de acceso")
+    @SecurityRequirement(name = "bearerAuth")
+    @PatchMapping("/board/{boardId}/user/{memberUserId}/role/{roleName}")
+    public ResponseEntity<Void> activateBoardAccess(
+            @Parameter(description = "ID del tablero", required = true, example = "550e8400-e29b-41d4-a716-446655440000") @PathVariable UUID boardId,
+            @Parameter(description = "ID del usuario", required = true, example = "550e8400-e29b-41d4-a716-446655440000") @PathVariable UUID memberUserId,
+            @Parameter(description = "Rol del miembro", required = true, example = "OWNER") @PathVariable Role roleName) {
+        boardAccessService.activateBoardAccess(boardId, memberUserId, roleName);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).body(null);
+    }
+
 }

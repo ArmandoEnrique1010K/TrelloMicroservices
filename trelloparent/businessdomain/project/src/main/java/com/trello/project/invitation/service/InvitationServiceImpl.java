@@ -1,10 +1,10 @@
 package com.trello.project.invitation.service;
 
-import com.trello.project.client.services.WorkflowClientServiceImpl;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
@@ -170,26 +170,51 @@ public class InvitationServiceImpl implements InvitationService {
 
         invitationProjectService.saveInvitation(findedInvitation);
 
-        // Agregar usuario receptor como miembro del board
-        Member member = new Member();
-        member.setUserId(recipientUserId);
-        member.setRole(findedInvitation.getRole());
-        member.setBoard(findedBoard);
-        member.setActive(true);
-
-        // Guardar member
-        memberProjectService.saveMember(member);
-
-        // Parsear rol (Role -> WorkflowRole). WorkflowRole tiene OWNER, pero no se
-        // debe mapear desde Role.
-        // WorkflowRole: OWNER, ADMIN, MEMBER, VIEWER
-        // Role: ADMIN, MEMBER, VIEWER
         WorkflowRole workflowRole = parseRoleToWorkflowRole(findedInvitation.getRole());
 
-        // Guarda los datos en la base de datos del microservicio Workflow/
-        // Solamente los datos necesarios: ID de tablero, Rol (WorkflowRole) e ID de
-        // usuario
-        workflowClientService.saveBoardAccess(findedBoard.getId(), workflowRole);
+        // TODO: SI AL BUSCAR AL MIEMBRO POR USERID Y BOARDID YA SE ENCUENTRA PORQUE EL
+        // MIEMBRO HA SIDO DESACTIVADO, ENTONCES SE TIENE QUE VOLVER A ACTIVAR
+        Optional<Member> findedOptionalInactiveMember = memberProjectService
+                .findOptionalMemberByBoardIdAndUserId(findedBoard.getId(), recipientUserId);
+
+        if (findedOptionalInactiveMember.isPresent()) {
+
+            // Reactivar miembro existente
+            Member member = findedOptionalInactiveMember.get();
+
+            member.setActive(true);
+            member.setRole(findedInvitation.getRole());
+
+            // Los campos userId y Board ya se encuentran guardados previamente
+            memberProjectService.saveMember(member);
+
+            // Reactivar acceso en el microservicio Workflow
+            workflowClientService.activateBoardAccess(findedBoard.getId(), member.getUserId(), workflowRole);
+
+        } else {
+            // Crear nuevo miembro
+            // Agregar usuario receptor como miembro del board
+            Member member = new Member();
+            member.setUserId(recipientUserId);
+            member.setRole(findedInvitation.getRole());
+            member.setBoard(findedBoard);
+            member.setActive(true);
+
+            // Guardar member
+            memberProjectService.saveMember(member);
+
+            // Parsear rol (Role -> WorkflowRole). WorkflowRole tiene OWNER, pero no se
+            // debe mapear desde Role.
+            // WorkflowRole: OWNER, ADMIN, MEMBER, VIEWER
+            // Role: ADMIN, MEMBER, VIEWER
+            // WorkflowRole workflowRole =
+            // parseRoleToWorkflowRole(findedInvitation.getRole());
+
+            // Guarda los datos en la base de datos del microservicio Workflow/
+            // Solamente los datos necesarios: ID de tablero, Rol (WorkflowRole) e ID de
+            // usuario
+            workflowClientService.saveBoardAccess(findedBoard.getId(), workflowRole);
+        }
 
     }
 

@@ -1,6 +1,7 @@
 package com.trello.project.service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import com.trello.project.entities.Member;
@@ -23,5 +24,7 @@ public interface MemberProjectService {
     // void deleteMemberById(UUID memberId, UUID ownerUserId) throws
     // MemberNotFoundException
     // ;
+
+    Optional<Member> findOptionalMemberByBoardIdAndUserId(UUID memberId, UUID userId);
 
 }

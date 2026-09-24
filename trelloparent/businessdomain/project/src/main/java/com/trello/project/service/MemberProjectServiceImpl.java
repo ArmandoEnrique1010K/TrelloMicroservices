@@ -3,6 +3,7 @@ package com.trello.project.service;
 import com.trello.project.repositories.MemberRepository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
@@ -53,6 +54,13 @@ public class MemberProjectServiceImpl implements MemberProjectService {
             throw new MemberInactiveException();
         }
 
+        return member;
+    }
+
+    // TODO: REVISAR ESTE MÉTODO SI DEVUELVE NULL
+    @Override
+    public Optional<Member> findOptionalMemberByBoardIdAndUserId(UUID memberId, UUID userId) {
+        Optional<Member> member = memberRepository.findByBoardIdAndUserIdAndActiveFalse(memberId, userId);
         return member;
     }
 }

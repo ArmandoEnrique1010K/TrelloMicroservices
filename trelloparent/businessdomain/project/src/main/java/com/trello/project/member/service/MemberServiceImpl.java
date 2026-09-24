@@ -139,6 +139,10 @@ public class MemberServiceImpl implements MemberService {
                 ownerUserId);
 
         Member saveMember = memberProjectService.saveMember(findedMember);
+
+        // Ejecucion del endpoint del microservicio Workflow
+        workflowClientService.deactivateBoardAccess(board.getId(), findedMember.getUserId());
+
         MemberResponse memberResponse = memberResponseMapper.memberToMemberResponse(saveMember);
         return memberResponse;
     }

@@ -50,4 +50,36 @@ public class BoardAccessServiceImpl implements BoardAccessService {
         findedBoardAccess.setRole(role);
         boardAccessWorkflowService.saveBoardAccess(findedBoardAccess);
     }
+
+    @Override
+    public void deactivateBoardAccess(UUID boardId, UUID memberUserId) {
+        BoardAccess findedBoardAccess = boardAccessWorkflowService.findBoardAccessByBoardIdAndUserId(boardId,
+                memberUserId);
+
+        // Aunque esto es imposible porque el rol que se pasa desde el microservicio
+        // Project no existe el rol de OWNER
+        if (findedBoardAccess.getRole().equals(Role.OWNER)) {
+            throw new BusinessRuleException();
+        }
+
+        findedBoardAccess.setUserActive(false);
+        boardAccessWorkflowService.saveBoardAccess(findedBoardAccess);
+    }
+
+    @Override
+    public void activateBoardAccess(UUID boardId, UUID memberUserId, Role role) {
+        BoardAccess findedBoardAccess = boardAccessWorkflowService.findBoardAccessByBoardIdAndUserId(boardId,
+                memberUserId);
+
+        // Aunque esto es imposible porque el rol que se pasa desde el microservicio
+        // Project no existe el rol de OWNER
+        if (findedBoardAccess.getRole().equals(Role.OWNER)) {
+            throw new BusinessRuleException();
+        }
+
+        findedBoardAccess.setUserActive(true);
+        findedBoardAccess.setRole(role);
+        boardAccessWorkflowService.saveBoardAccess(findedBoardAccess);
+
+    }
 }
