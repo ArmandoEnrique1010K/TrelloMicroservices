@@ -57,7 +57,7 @@ public class MemberProjectServiceImpl implements MemberProjectService {
         return member;
     }
 
-    // TODO: REVISAR ESTE MÉTODO SI DEVUELVE NULL
+    // El método puede devolver un null si no encuentra al miembro (Member)
     @Override
     public Optional<Member> findOptionalMemberByBoardIdAndUserId(UUID memberId, UUID userId) {
         Optional<Member> member = memberRepository.findByBoardIdAndUserIdAndActiveFalse(memberId, userId);

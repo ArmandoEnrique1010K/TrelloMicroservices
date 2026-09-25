@@ -2,6 +2,7 @@ package com.trello.project.member.service;
 
 import com.trello.project.client.services.IdentityClientService;
 import com.trello.project.client.services.WorkflowClientService;
+import com.trello.project.client.utils.WorkflowRoleUtils;
 
 import java.util.List;
 import java.util.Map;
@@ -95,7 +96,7 @@ public class MemberServiceImpl implements MemberService {
 
         Member saveMember = memberProjectService.saveMember(findedMember);
 
-        WorkflowRole workflowRole = parseRoleToWorkflowRole(role);
+        WorkflowRole workflowRole = WorkflowRoleUtils.parseRoleToWorkflowRole(role);
 
         // OBTENER EL ID DEL USUARIO DESDE EL MIEMBRO
         UUID memberUserId = saveMember.getUserId();
@@ -105,21 +106,6 @@ public class MemberServiceImpl implements MemberService {
 
         MemberResponse memberResponse = memberResponseMapper.memberToMemberResponse(saveMember);
         return memberResponse;
-    }
-
-    // TODO: ESTE METODO DEBE SER UN UTIL
-    // Método privado para parsear Role a WorkflowRole
-    private WorkflowRole parseRoleToWorkflowRole(Role role) {
-        if (role == null) {
-            return null;
-        }
-
-        return switch (role) {
-            case ADMIN -> WorkflowRole.ADMIN;
-            case MEMBER -> WorkflowRole.MEMBER;
-            case VIEWER -> WorkflowRole.VIEWER;
-            default -> throw new IllegalArgumentException("Rol desconocido: " + role);
-        };
     }
 
     @Override

@@ -17,6 +17,7 @@ import com.trello.project.client.dto.response.UserResponse;
 import com.trello.project.client.enums.WorkflowRole;
 import com.trello.project.client.services.IdentityClientService;
 import com.trello.project.client.services.WorkflowClientService;
+import com.trello.project.client.utils.WorkflowRoleUtils;
 import com.trello.project.entities.Board;
 import com.trello.project.entities.Invitation;
 import com.trello.project.entities.Member;
@@ -170,10 +171,14 @@ public class InvitationServiceImpl implements InvitationService {
 
         invitationProjectService.saveInvitation(findedInvitation);
 
-        WorkflowRole workflowRole = parseRoleToWorkflowRole(findedInvitation.getRole());
+        // Se utiliza el metodo definido en el package Utils
+        WorkflowRole workflowRole = WorkflowRoleUtils.parseRoleToWorkflowRole(
+                findedInvitation.getRole());
 
-        // TODO: SI AL BUSCAR AL MIEMBRO POR USERID Y BOARDID YA SE ENCUENTRA PORQUE EL
-        // MIEMBRO HA SIDO DESACTIVADO, ENTONCES SE TIENE QUE VOLVER A ACTIVAR
+        // Solamente si al buscar miembro por userId y boardId, este ya se encuentra en
+        // la base de datos porque el miembro ha sido desactivado previamente, entonces
+        // se va a volver a activar (campo active pasa a true) y se cambia el rol (si ha
+        // cambiado cuando se le ha invitado al usuario)
         Optional<Member> findedOptionalInactiveMember = memberProjectService
                 .findOptionalMemberByBoardIdAndUserId(findedBoard.getId(), recipientUserId);
 
@@ -189,6 +194,7 @@ public class InvitationServiceImpl implements InvitationService {
             memberProjectService.saveMember(member);
 
             // Reactivar acceso en el microservicio Workflow
+            // Buscar un permiso de acceso al tablero con estado false
             workflowClientService.activateBoardAccess(findedBoard.getId(), member.getUserId(), workflowRole);
 
         } else {
@@ -203,34 +209,12 @@ public class InvitationServiceImpl implements InvitationService {
             // Guardar member
             memberProjectService.saveMember(member);
 
-            // Parsear rol (Role -> WorkflowRole). WorkflowRole tiene OWNER, pero no se
-            // debe mapear desde Role.
-            // WorkflowRole: OWNER, ADMIN, MEMBER, VIEWER
-            // Role: ADMIN, MEMBER, VIEWER
-            // WorkflowRole workflowRole =
-            // parseRoleToWorkflowRole(findedInvitation.getRole());
-
             // Guarda los datos en la base de datos del microservicio Workflow/
             // Solamente los datos necesarios: ID de tablero, Rol (WorkflowRole) e ID de
             // usuario
-            workflowClientService.saveBoardAccess(findedBoard.getId(), workflowRole);
+            workflowClientService.addBoardAccess(findedBoard.getId(), workflowRole);
         }
 
-    }
-
-    // TODO: ESTE METODO DEBE SER UN UTIL
-    // Método privado para parsear Role a WorkflowRole
-    private WorkflowRole parseRoleToWorkflowRole(Role role) {
-        if (role == null) {
-            return null;
-        }
-
-        return switch (role) {
-            case ADMIN -> WorkflowRole.ADMIN;
-            case MEMBER -> WorkflowRole.MEMBER;
-            case VIEWER -> WorkflowRole.VIEWER;
-            default -> throw new IllegalArgumentException("Rol desconocido: " + role);
-        };
     }
 
     @Override
