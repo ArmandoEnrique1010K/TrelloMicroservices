@@ -9,6 +9,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import com.trello.workflow.boardaccess.exception.BoardAccessAlreadyExistsException;
 import com.trello.workflow.common.StandarizedApiExceptionResponse;
 
 import lombok.extern.slf4j.Slf4j;
@@ -21,6 +22,7 @@ public class ApiExceptionHandler {
     public ResponseEntity<StandarizedApiExceptionResponse> handleInternalServerError(Exception ex) {
         HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
 
+        log.error(ex.getMessage());
         log.error("Error inesperado", ex);
 
         StandarizedApiExceptionResponse standarizedApiExceptionResponse = new StandarizedApiExceptionResponse(
@@ -39,13 +41,16 @@ public class ApiExceptionHandler {
     public ResponseEntity<StandarizedApiExceptionResponse> handleBusinessRuleException(BusinessRuleException ex) {
         HttpStatus status = HttpStatus.CONFLICT;
 
+        log.error(ex.getMessage());
+        log.error("Error de lógica de negocio", ex);
+
         StandarizedApiExceptionResponse standarizedApiExceptionResponse = new StandarizedApiExceptionResponse(
                 "/errors/business-rule-violation",
                 "Business rule violation",
                 status.value(),
                 "The operation cannot be completed because it violates a business rule",
                 null,
-                ex.getMessage());
+                "Ha ocurrido un error inesperado");
 
         return ResponseEntity.status(status).body(standarizedApiExceptionResponse);
     }
@@ -70,6 +75,42 @@ public class ApiExceptionHandler {
                 null,
                 "Complete los campos indicados",
                 errors);
+
+        return ResponseEntity
+                .status(status)
+                .body(response);
+    }
+
+    // Excepción de permiso de acceso no encontrado
+    @ExceptionHandler(BoardAccessNotFoundException.class)
+    public ResponseEntity<StandarizedApiExceptionResponse> handleBoardAccessNotFoundException(
+            BoardAccessNotFoundException ex) {
+        HttpStatus status = HttpStatus.NOT_FOUND;
+
+        StandarizedApiExceptionResponse standarizedApiExceptionResponse = new StandarizedApiExceptionResponse(
+                "/errors/board-access-not-found",
+                "Board access not found",
+                status.value(),
+                "The board access was not found in the system",
+                null,
+                "No se ha encontrado el permiso de acceso al tablero");
+
+        return ResponseEntity.status(status).body(standarizedApiExceptionResponse);
+    }
+
+    // Excepcion de que existe el permiso de acceso
+    @ExceptionHandler(BoardAccessAlreadyExistsException.class)
+    public ResponseEntity<StandarizedApiExceptionResponse> handleBoardAccessAlreadyExistsException(
+            BoardAccessAlreadyExistsException ex) {
+        HttpStatus status = HttpStatus.CONFLICT;
+
+        StandarizedApiExceptionResponse response = new StandarizedApiExceptionResponse(
+                "/errors/board-access/already-exists",
+                "Board access already exists",
+                status.value(),
+                "A board access with the provided board ID and user ID already exists",
+                null,
+                "Ya existe un permiso de acceso al tablero");
 
         return ResponseEntity
                 .status(status)

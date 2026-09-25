@@ -7,7 +7,7 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 
 import com.trello.workflow.entities.BoardAccess;
-import com.trello.workflow.exception.BusinessRuleException;
+import com.trello.workflow.exception.BoardAccessNotFoundException;
 
 @Service
 public class BoardAccessWorkflowServiceImpl implements BoardAccessWorkflowService {
@@ -24,11 +24,16 @@ public class BoardAccessWorkflowServiceImpl implements BoardAccessWorkflowServic
     }
 
     @Override
-    public BoardAccess findBoardAccessByBoardIdAndUserId(UUID boardId, UUID userId) {
-        // TODO: Mejorar el mensaje de error
+    public BoardAccess findBoardAccessByBoardIdAndUserId(UUID boardId, UUID userId)
+            throws BoardAccessNotFoundException {
         BoardAccess boardAccess = boardAccessRepository.findByBoardIdAndUserId(boardId, userId)
-                .orElseThrow(BusinessRuleException::new);
+                .orElseThrow(BoardAccessNotFoundException::new);
         return boardAccess;
+    }
+
+    @Override
+    public boolean existsBoardAccessByBoardIdAndUserId(UUID boardId, UUID userId) {
+        return boardAccessRepository.existsByBoardIdAndUserId(boardId, userId);
     }
 
 }

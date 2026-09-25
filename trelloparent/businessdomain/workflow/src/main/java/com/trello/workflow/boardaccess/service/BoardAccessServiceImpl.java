@@ -5,6 +5,7 @@ import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 
+import com.trello.workflow.boardaccess.exception.BoardAccessAlreadyExistsException;
 import com.trello.workflow.entities.BoardAccess;
 import com.trello.workflow.enums.Role;
 import com.trello.workflow.exception.BusinessRuleException;
@@ -19,7 +20,11 @@ public class BoardAccessServiceImpl implements BoardAccessService {
     }
 
     @Override
-    public void saveBoardAccess(UUID boardId, UUID userId, Role role) {
+    public void addBoardAccess(UUID boardId, UUID userId, Role role) {
+
+        if (boardAccessWorkflowService.existsBoardAccessByBoardIdAndUserId(boardId, userId)) {
+            throw new BoardAccessAlreadyExistsException();
+        }
 
         BoardAccess savedBoardAccess = new BoardAccess();
         savedBoardAccess.setUserId(userId);
@@ -38,11 +43,9 @@ public class BoardAccessServiceImpl implements BoardAccessService {
         BoardAccess findedBoardAccess = boardAccessWorkflowService.findBoardAccessByBoardIdAndUserId(boardId,
                 memberUserId);
 
-        // TODO: Agregar mensaje de error relacionado a que si tiene el rol de OWNER, no
-        // puede cambiar su rol
-
         // Aunque esto es imposible porque el rol que se pasa desde el microservicio
-        // Project no existe el rol de OWNER
+        // Project no existe el rol de OWNER en el enum que se encuentra en el
+        // microservicio Project
         if (findedBoardAccess.getRole().equals(Role.OWNER)) {
             throw new BusinessRuleException();
         }
@@ -56,8 +59,6 @@ public class BoardAccessServiceImpl implements BoardAccessService {
         BoardAccess findedBoardAccess = boardAccessWorkflowService.findBoardAccessByBoardIdAndUserId(boardId,
                 memberUserId);
 
-        // Aunque esto es imposible porque el rol que se pasa desde el microservicio
-        // Project no existe el rol de OWNER
         if (findedBoardAccess.getRole().equals(Role.OWNER)) {
             throw new BusinessRuleException();
         }
@@ -71,8 +72,6 @@ public class BoardAccessServiceImpl implements BoardAccessService {
         BoardAccess findedBoardAccess = boardAccessWorkflowService.findBoardAccessByBoardIdAndUserId(boardId,
                 memberUserId);
 
-        // Aunque esto es imposible porque el rol que se pasa desde el microservicio
-        // Project no existe el rol de OWNER
         if (findedBoardAccess.getRole().equals(Role.OWNER)) {
             throw new BusinessRuleException();
         }

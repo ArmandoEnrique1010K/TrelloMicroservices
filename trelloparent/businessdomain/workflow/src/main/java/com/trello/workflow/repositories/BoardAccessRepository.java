@@ -7,9 +7,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.trello.workflow.entities.BoardAccess;
 
-// TODO: GUARDAR INFORMACIÓN DEL USUARIO CUANDO CREA UN TABLERO
-// PETICION PROJECT -> FEIGN -> TASK, EL MICROSERVICIO PROJECT DEBE EJECUTAR UNA PETICION EN TASK PARA ALMACENAR LOS DATOS
 public interface BoardAccessRepository extends JpaRepository<BoardAccess, UUID> {
 
     Optional<BoardAccess> findByBoardIdAndUserId(UUID boardId, UUID userId);
+
+    boolean existsByBoardIdAndUserId(UUID boardId, UUID userId);
 }

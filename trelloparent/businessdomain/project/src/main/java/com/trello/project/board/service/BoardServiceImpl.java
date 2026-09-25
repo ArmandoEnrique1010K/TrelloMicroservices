@@ -60,7 +60,7 @@ public class BoardServiceImpl implements BoardService {
         // Guarda los datos en la base de datos del microservicio Workflow
         // Solamente los datos necesarios: ID de tablero, Rol (WorkflowRole) e ID de
         // usuario
-        workflowClientService.saveBoardAccess(boardResponse.getId(), WorkflowRole.OWNER);
+        workflowClientService.addBoardAccess(boardResponse.getId(), WorkflowRole.OWNER);
 
         return boardResponse;
     }

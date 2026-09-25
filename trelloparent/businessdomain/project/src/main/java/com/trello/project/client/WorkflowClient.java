@@ -16,7 +16,7 @@ import com.trello.project.client.enums.WorkflowRole;
 public interface WorkflowClient {
 
     @PostMapping("/boardAccess/board/{boardId}/role/{roleName}")
-    ResponseEntity<Void> saveBoardAccess(
+    ResponseEntity<Void> addBoardAccess(
             @PathVariable("boardId") UUID boardId,
             @PathVariable("roleName") WorkflowRole roleName);
 

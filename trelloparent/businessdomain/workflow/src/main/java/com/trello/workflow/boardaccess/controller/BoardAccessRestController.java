@@ -44,7 +44,6 @@ public class BoardAccessRestController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204", description = "Se ha guardado el permiso"),
 
-            // TODO: AÑADIR MENSAJE DE ERROR DE CUANDO EL PERMISO DE ACCESO YA SE ENCUENTRA
             @ApiResponse(responseCode = "401", description = "El usuario no esta autenticado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
                     {
                         "detail": "Authentication is required to access this resource",
@@ -56,6 +55,19 @@ public class BoardAccessRestController {
                         "type": "/errors/authentication/not-authenticated"
                     }
                     """))),
+
+            @ApiResponse(responseCode = "409", description = "El permiso de acceso al tablero existe", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
+                    {
+                        "detail": "A board access with the provided board ID and user ID already exists",
+                        "fields": null,
+                        "instance": null,
+                        "message": "Ya existe un permiso de acceso al tablero",
+                        "status": 409,
+                        "title": "Board access already exists",
+                        "type": "/errors/board-access/already-exists"
+                    }
+                    """))),
+
             @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
                     {
                       "detail": "An unexpected error occurred while processing the request",
@@ -69,19 +81,57 @@ public class BoardAccessRestController {
                     """))),
     })
     @PostMapping("/board/{boardId}/role/{roleName}")
-    public ResponseEntity<Void> saveBoardAccess(@AuthenticationPrincipal Jwt jwt,
+    public ResponseEntity<Void> addBoardAccess(@AuthenticationPrincipal Jwt jwt,
             @Parameter(description = "ID del tablero", required = true, example = "550e8400-e29b-41d4-a716-446655440000") @PathVariable UUID boardId,
             @Parameter(description = "Rol del miembro", required = true, example = "OWNER") @PathVariable Role roleName) {
 
         UUID userId = JwtUtils.getUserId(jwt);
 
-        boardAccessService.saveBoardAccess(boardId, userId, roleName);
+        boardAccessService.addBoardAccess(boardId, userId, roleName);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).body(null);
     }
 
-    // TODO: AÑADIR RESPONSES
-    @Operation(summary = "Cambia el rol de un permiso de acceso", description = "Modifica el rol de la copia local de los datos de acceso")
+    @Operation(summary = "Cambia el rol de un permiso de acceso al tablero", description = "Modifica el rol de la copia local de los datos de acceso")
     @SecurityRequirement(name = "bearerAuth")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Se ha cambiado el rol del permiso de acceso"),
+
+            @ApiResponse(responseCode = "401", description = "El usuario no esta autenticado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
+                    {
+                        "detail": "Authentication is required to access this resource",
+                        "fields": null,
+                        "instance": null,
+                        "message": "Ha ocurrido un error inesperado",
+                        "status": 401,
+                        "title": "Unauthorized",
+                        "type": "/errors/authentication/not-authenticated"
+                    }
+                    """))),
+
+            @ApiResponse(responseCode = "404", description = "El permiso de acceso al tablero no existe", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
+                    {
+                        "detail": "The board access was not found in the system",
+                        "fields": null,
+                        "instance": null,
+                        "message": "No se ha encontrado el permiso de acceso al tablero",
+                        "status": 404,
+                        "title": "Board access not found",
+                        "type": "/errors/board-access-not-found"
+                    }
+                    """))),
+
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
+                    {
+                      "detail": "An unexpected error occurred while processing the request",
+                      "fields": null,
+                      "instance": null,
+                      "message": "Ha ocurrido un error inesperado",
+                      "status": 500,
+                      "title": "Internal server error",
+                      "type": "/errors/internal-server-error"
+                    }
+                    """))),
+    })
     @PutMapping("/board/{boardId}/user/{memberUserId}/role/{roleName}")
     // El ID del usuario se obtiene desde un parametro
     public ResponseEntity<Void> changeRoleBoardAccess(
@@ -93,9 +143,47 @@ public class BoardAccessRestController {
         return ResponseEntity.status(HttpStatus.NO_CONTENT).body(null);
     }
 
-    // TODO: AÑADIR RESPONSES
     @Operation(summary = "Desactiva un permiso de acceso", description = "Modifica el campo active de la copia local de los datos de acceso")
     @SecurityRequirement(name = "bearerAuth")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Se ha desactivado el permiso de acceso"),
+
+            @ApiResponse(responseCode = "401", description = "El usuario no esta autenticado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
+                    {
+                        "detail": "Authentication is required to access this resource",
+                        "fields": null,
+                        "instance": null,
+                        "message": "Ha ocurrido un error inesperado",
+                        "status": 401,
+                        "title": "Unauthorized",
+                        "type": "/errors/authentication/not-authenticated"
+                    }
+                    """))),
+
+            @ApiResponse(responseCode = "404", description = "El permiso de acceso al tablero no existe", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
+                    {
+                        "detail": "The board access was not found in the system",
+                        "fields": null,
+                        "instance": null,
+                        "message": "No se ha encontrado el permiso de acceso al tablero",
+                        "status": 404,
+                        "title": "Board access not found",
+                        "type": "/errors/board-access-not-found"
+                    }
+                    """))),
+
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
+                    {
+                      "detail": "An unexpected error occurred while processing the request",
+                      "fields": null,
+                      "instance": null,
+                      "message": "Ha ocurrido un error inesperado",
+                      "status": 500,
+                      "title": "Internal server error",
+                      "type": "/errors/internal-server-error"
+                    }
+                    """))),
+    })
     @PatchMapping("/board/{boardId}/user/{memberUserId}")
     public ResponseEntity<Void> deactivateBoardAccess(
             @Parameter(description = "ID del tablero", required = true, example = "550e8400-e29b-41d4-a716-446655440000") @PathVariable UUID boardId,
@@ -104,11 +192,48 @@ public class BoardAccessRestController {
         return ResponseEntity.status(HttpStatus.NO_CONTENT).body(null);
     }
 
-    // TODO: VERIFICAR SI FUNCIONA EL METODO DE ACTIVAR PERMISO DE ACCESO CUANDO SE
-    // ENVIA UNA INVITACION A UN MIEMBRO QUE FUE DESACTIVADO
-    // TODO: AÑADIR RESPONSES
     @Operation(summary = "Activa un permiso de acceso", description = "Modifica el campo active de la copia local de los datos de acceso")
     @SecurityRequirement(name = "bearerAuth")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Se ha activado el permiso de acceso"),
+
+            @ApiResponse(responseCode = "401", description = "El usuario no esta autenticado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
+                    {
+                        "detail": "Authentication is required to access this resource",
+                        "fields": null,
+                        "instance": null,
+                        "message": "Ha ocurrido un error inesperado",
+                        "status": 401,
+                        "title": "Unauthorized",
+                        "type": "/errors/authentication/not-authenticated"
+                    }
+                    """))),
+
+            @ApiResponse(responseCode = "404", description = "El permiso de acceso al tablero no existe", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
+                    {
+                        "detail": "The board access was not found in the system",
+                        "fields": null,
+                        "instance": null,
+                        "message": "No se ha encontrado el permiso de acceso al tablero",
+                        "status": 404,
+                        "title": "Board access not found",
+                        "type": "/errors/board-access-not-found"
+                    }
+                    """))),
+
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
+                    {
+                      "detail": "An unexpected error occurred while processing the request",
+                      "fields": null,
+                      "instance": null,
+                      "message": "Ha ocurrido un error inesperado",
+                      "status": 500,
+                      "title": "Internal server error",
+                      "type": "/errors/internal-server-error"
+                    }
+                    """))),
+    })
+
     @PatchMapping("/board/{boardId}/user/{memberUserId}/role/{roleName}")
     public ResponseEntity<Void> activateBoardAccess(
             @Parameter(description = "ID del tablero", required = true, example = "550e8400-e29b-41d4-a716-446655440000") @PathVariable UUID boardId,

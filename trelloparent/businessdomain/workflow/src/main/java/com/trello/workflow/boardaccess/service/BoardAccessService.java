@@ -2,6 +2,7 @@ package com.trello.workflow.boardaccess.service;
 
 import java.util.UUID;
 
+import com.trello.workflow.boardaccess.exception.BoardAccessAlreadyExistsException;
 import com.trello.workflow.enums.Role;
 
 public interface BoardAccessService {
@@ -10,7 +11,7 @@ public interface BoardAccessService {
     // Cuando se crea un nuevo tablero primero se guarda al administrador del
     // espacio de trabajo como rol de OWNER
     // Tambien cuando un invitado acepta una invitación
-    void saveBoardAccess(UUID boardId, UUID userId, Role role);
+    void addBoardAccess(UUID boardId, UUID userId, Role role) throws BoardAccessAlreadyExistsException;
 
     void changeRoleBoardAccess(UUID boardId, UUID memberUserId, Role role);
 

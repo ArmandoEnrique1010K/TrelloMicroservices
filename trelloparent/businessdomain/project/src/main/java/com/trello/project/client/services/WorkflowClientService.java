@@ -6,7 +6,7 @@ import com.trello.project.client.enums.WorkflowRole;
 
 public interface WorkflowClientService {
 
-    void saveBoardAccess(
+    void addBoardAccess(
             UUID boardId,
             WorkflowRole roleName);
 

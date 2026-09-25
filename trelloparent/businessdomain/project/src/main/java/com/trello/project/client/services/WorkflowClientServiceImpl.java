@@ -17,8 +17,8 @@ public class WorkflowClientServiceImpl implements WorkflowClientService {
     }
 
     @Override
-    public void saveBoardAccess(UUID boardId, WorkflowRole roleName) {
-        workflowClient.saveBoardAccess(boardId, roleName);
+    public void addBoardAccess(UUID boardId, WorkflowRole roleName) {
+        workflowClient.addBoardAccess(boardId, roleName);
     }
 
     @Override
