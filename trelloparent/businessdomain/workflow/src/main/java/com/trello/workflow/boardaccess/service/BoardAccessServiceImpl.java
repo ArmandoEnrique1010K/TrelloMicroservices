@@ -4,6 +4,7 @@ import com.trello.workflow.services.BoardAccessWorkflowService;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.trello.workflow.boardaccess.exception.BoardAccessAlreadyExistsException;
 import com.trello.workflow.entities.BoardAccess;
@@ -80,5 +81,14 @@ public class BoardAccessServiceImpl implements BoardAccessService {
         findedBoardAccess.setRole(role);
         boardAccessWorkflowService.saveBoardAccess(findedBoardAccess);
 
+    }
+
+    // En este caso @Transactional se va a encargar de ejecutar ambos metodos del
+    // servicios en una sola transaccion
+    @Transactional
+    @Override
+    public void deleteAllBoardAccessByBoardId(UUID boardId, UUID memberOwneruserId) {
+        boardAccessWorkflowService.findBoardAccessByBoardIdAndUserIdAndRoleOwner(boardId, memberOwneruserId);
+        boardAccessWorkflowService.deleteAllBoardAccessByBoardId(boardId);
     }
 }

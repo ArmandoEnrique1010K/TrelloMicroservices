@@ -35,4 +35,9 @@ public class WorkflowClientServiceImpl implements WorkflowClientService {
     public void activateBoardAccess(UUID boardId, UUID memberUserId, WorkflowRole roleName) {
         workflowClient.activateBoardAccess(boardId, memberUserId, roleName);
     }
+
+    @Override
+    public void deleteAllBoardAccessByBoardId(UUID boardId) {
+        workflowClient.deleteAllBoardAccessByBoardId(boardId);
+    }
 }

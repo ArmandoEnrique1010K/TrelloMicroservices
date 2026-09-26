@@ -24,4 +24,6 @@ public interface WorkflowClientService {
             UUID memberUserId,
             WorkflowRole roleName);
 
+    void deleteAllBoardAccessByBoardId(
+            UUID boardId);
 }

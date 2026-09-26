@@ -101,7 +101,9 @@ public class BoardServiceImpl implements BoardService {
 
     @Override
     public void deleteBoard(UUID ownerUserId, UUID boardId) {
-        boardProjectService.deleteBoardByIdAndOwnerUserId(boardId, ownerUserId);
+        boardProjectService.deleteBoardByIdAndOwnerUserId(boardId, ownerUserId);    
+        // Llamar al endpoint del microservicio Workflow para borrar permisos de acceso
+        workflowClientService.deleteAllBoardAccessByBoardId(boardId);
     }
 
     @Override

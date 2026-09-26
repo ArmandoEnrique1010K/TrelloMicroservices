@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -243,4 +244,53 @@ public class BoardAccessRestController {
         return ResponseEntity.status(HttpStatus.NO_CONTENT).body(null);
     }
 
+    @Operation(summary = "Elimina todos los permisos de acceso por ID de tablero", description = "Elimina del sistema todos los permisos de acceso por ID de tablero")
+    @SecurityRequirement(name = "bearerAuth")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Se han eliminado todos los permisos de acceso"),
+
+            @ApiResponse(responseCode = "401", description = "El usuario no esta autenticado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
+                    {
+                        "detail": "Authentication is required to access this resource",
+                        "fields": null,
+                        "instance": null,
+                        "message": "Ha ocurrido un error inesperado",
+                        "status": 401,
+                        "title": "Unauthorized",
+                        "type": "/errors/authentication/not-authenticated"
+                    }
+                    """))),
+
+            @ApiResponse(responseCode = "404", description = "El permiso de acceso al tablero no existe", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
+                    {
+                        "detail": "The board access was not found in the system",
+                        "fields": null,
+                        "instance": null,
+                        "message": "No se ha encontrado el permiso de acceso al tablero",
+                        "status": 404,
+                        "title": "Board access not found",
+                        "type": "/errors/board-access-not-found"
+                    }
+                    """))),
+
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
+                    {
+                      "detail": "An unexpected error occurred while processing the request",
+                      "fields": null,
+                      "instance": null,
+                      "message": "Ha ocurrido un error inesperado",
+                      "status": 500,
+                      "title": "Internal server error",
+                      "type": "/errors/internal-server-error"
+                    }
+                    """))),
+    })
+    @DeleteMapping("/board/{boardId}")
+    public ResponseEntity<Void> deleteAllBoardAccessByBoardId(
+            @AuthenticationPrincipal Jwt jwt,
+            @Parameter(description = "ID del tablero", required = true, example = "550e8400-e29b-41d4-a716-446655440000") @PathVariable UUID boardId) {
+        UUID userId = JwtUtils.getUserId(jwt);
+        boardAccessService.deleteAllBoardAccessByBoardId(boardId, userId);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).body(null);
+    }
 }
