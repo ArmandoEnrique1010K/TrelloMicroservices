@@ -56,4 +56,7 @@ public class Invitation {
     // @Column(nullable = false, updatable = false)
     @Column(nullable = false)
     private LocalDateTime sendedAt;
+
+    // Fecha de aceptación
+    private LocalDateTime acceptedAt;
 }

@@ -76,6 +76,8 @@ public class InvitationServiceImpl implements InvitationService {
         Board board = boardProjectService.findBoardByIdAndOwnerUserId(boardId, ownerUserId);
         // System.out.println(board.getId());
 
+        // Si hay una invitación rechazada, no podra volver a enviar la invitación a
+        // menos de que haya eliminado la invitación del sistema
         if (invitationProjectService.existsInvitationByBoardIdAndRecipientUserId(boardId, recipientUserId)) {
             throw new InvitationAlreadyExistsException();
         }
@@ -153,7 +155,7 @@ public class InvitationServiceImpl implements InvitationService {
 
     @Override
     public void deleteInvitation(UUID invitationId, UUID ownerUserId) {
-        invitationProjectService.deleteInvitationByIdAndSenderUserId(invitationId, invitationId);
+        invitationProjectService.deleteInvitationByIdAndSenderUserId(invitationId, ownerUserId);
     }
 
     @Override
@@ -168,6 +170,7 @@ public class InvitationServiceImpl implements InvitationService {
         }
 
         findedInvitation.setStatus(Status.ACCEPTED);
+        findedInvitation.setAcceptedAt(LocalDateTime.now());
 
         invitationProjectService.saveInvitation(findedInvitation);
 
@@ -226,7 +229,9 @@ public class InvitationServiceImpl implements InvitationService {
             throw new InvitationConfirmedException();
         }
 
-        findedInvitation.setStatus(Status.UNCONFIRMED);
+        // Marcar la invitación como rechazada
+        // El administrador del espacio de trabajo podra verlo que ha sido rechazado
+        findedInvitation.setStatus(Status.REJECTED);
         invitationProjectService.saveInvitation(findedInvitation);
     }
 

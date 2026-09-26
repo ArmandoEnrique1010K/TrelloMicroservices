@@ -29,6 +29,7 @@ public interface InvitationService {
     // Eliminar invitación
     // Una invitación que aun no ha sido confirmada, si se elimina, se elimina la
     // invitación del sistema
+    // Acceso por parte del administrador del tablero
     void deleteInvitation(UUID invitationId, UUID ownerUserId);
 
     // Aceptar invitación (por el usuario receptor)
@@ -39,6 +40,7 @@ public interface InvitationService {
     void acceptInvitation(UUID invitationId, UUID recipientUserId);
 
     // Rechazar invitación
+    // Acceso por parte del usuario receptor
     void declineInvitation(UUID invitationId, UUID recipientUserId);
 
     // Reenviar invitación

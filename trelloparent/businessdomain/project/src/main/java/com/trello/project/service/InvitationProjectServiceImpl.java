@@ -3,6 +3,7 @@ package com.trello.project.service;
 import com.trello.project.repositories.BoardRepository;
 import com.trello.project.repositories.InvitationRepository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -83,5 +84,14 @@ public class InvitationProjectServiceImpl implements InvitationProjectService {
     public void deleteInvitationIfExistsByBoardIdAndRecipientUserId(UUID boardId, UUID recipientUserId,
             UUID senderUserId) {
         invitationRepository.deleteByBoardIdAndRecipientUserIdAndSenderUserId(boardId, recipientUserId, senderUserId);
+    }
+
+    // Como este método se va a ejecutar automaticamente cada cierto tiempo debe
+    // tener un @Transactional
+    @Override
+    @Transactional
+    public void deleteAllAcceptedInvitations() {
+        LocalDateTime now = LocalDateTime.now();
+        invitationRepository.deleteAcceptedInvitations(now);
     }
 }

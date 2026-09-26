@@ -23,6 +23,7 @@ entity Invitation {
     - recipientUserId: UUID
     - message: String
     - sendedAt: LocalDateTime
+    - acceptedAt: LocalDateTime
 }
 
 entity Member {

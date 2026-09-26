@@ -16,7 +16,8 @@ public interface InvitationRequestMapper {
             @Mapping(target = "senderUserId", ignore = true),
             @Mapping(target = "recipientUserId", ignore = true),
             @Mapping(target = "status", ignore = true),
-            @Mapping(target = "sendedAt", ignore = true)
+            @Mapping(target = "sendedAt", ignore = true),
+            @Mapping(target = "acceptedAt", ignore = true)
     })
     Invitation invitationRequestToInvitation(InvitationRequest source);
 }

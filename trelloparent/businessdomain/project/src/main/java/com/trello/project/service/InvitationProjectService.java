@@ -29,4 +29,6 @@ public interface InvitationProjectService {
 
     void deleteInvitationIfExistsByBoardIdAndRecipientUserId(
             UUID boardId, UUID recipientUserId, UUID senderUserId);
+
+    void deleteAllAcceptedInvitations();
 }
