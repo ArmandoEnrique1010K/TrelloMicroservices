@@ -46,7 +46,7 @@ El diagrama permite visualizar la estructura del modelo de datos de cada microse
 
 ### Workflow
 
-![Diagrama UML del microservicio Workflow](assets/diagrama_workflow.png)
+![Diagrama UML del microservicio Workflow](assets/diagrama_workflow_2.png)
 
 ## Generación de claves RSA para JWT
 
