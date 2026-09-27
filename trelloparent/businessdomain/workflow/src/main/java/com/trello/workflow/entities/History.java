@@ -3,8 +3,6 @@ package com.trello.workflow.entities;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-import org.hibernate.annotations.CreationTimestamp;
-
 import com.trello.workflow.enums.Status;
 
 import jakarta.persistence.Column;
@@ -31,7 +29,7 @@ public class History {
     @Column(nullable = false)
     private UUID userId;
 
-    @CreationTimestamp
+    // @CreationTimestamp
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 

@@ -5,9 +5,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
-
 import com.trello.workflow.enums.Status;
 
 import jakarta.persistence.CascadeType;
@@ -48,11 +45,14 @@ public class Task {
     @Column(nullable = false)
     private String description;
 
-    @CreationTimestamp
+    // Recordar que esta anotación escribe automaticamente la fecha de creación del
+    // registro, pero como en el servicio se va a escribir la fecha al mismo tiempo
+    // en 2 entidades, la fecha se obtiene desde una sola instancia en el servicio
+    // @CreationTimestamp
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    @UpdateTimestamp
+    // @UpdateTimestamp
     @Column(nullable = false)
     private LocalDateTime updatedAt;
 

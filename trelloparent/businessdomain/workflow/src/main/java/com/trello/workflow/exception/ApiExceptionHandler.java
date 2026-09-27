@@ -141,6 +141,8 @@ public class ApiExceptionHandler {
     // Excepción producida cuando una operación viola una restricción
     // de integridad de la base de datos, como una clave primaria,
     // clave foránea, restricción UNIQUE o NOT NULL.
+
+    // Aunque no se va a utilizar...
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<StandarizedApiExceptionResponse> handleDataIntegrityViolationException(
             DataIntegrityViolationException ex) {
@@ -176,4 +178,23 @@ public class ApiExceptionHandler {
 
         return ResponseEntity.status(status).body(standarizedApiExceptionResponse);
     }
+
+    // Excepción de operación no realizada porque el usuario no tiene el rol
+    // permitido
+    @ExceptionHandler(ForbiddenOperationException.class)
+    public ResponseEntity<StandarizedApiExceptionResponse> handleForbiddenOperationException(
+            ForbiddenOperationException ex) {
+        HttpStatus status = HttpStatus.FORBIDDEN;
+
+        StandarizedApiExceptionResponse standarizedApiExceptionResponse = new StandarizedApiExceptionResponse(
+                "/errors/forbidden-operation",
+                "Forbidden operation",
+                status.value(),
+                "The user does not have the required role to perform the operation",
+                null,
+                "Ha ocurrido un error");
+
+        return ResponseEntity.status(status).body(standarizedApiExceptionResponse);
+    }
+
 }
