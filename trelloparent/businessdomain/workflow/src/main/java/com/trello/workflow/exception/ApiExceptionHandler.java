@@ -3,12 +3,14 @@ package com.trello.workflow.exception;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import com.trello.workflow.board.exception.BoardAlreadyExistsException;
 import com.trello.workflow.boardaccess.exception.BoardAccessAlreadyExistsException;
 import com.trello.workflow.common.StandarizedApiExceptionResponse;
 
@@ -117,4 +119,61 @@ public class ApiExceptionHandler {
                 .body(response);
     }
 
+    // Excepcion de que existe el tablero
+    @ExceptionHandler(BoardAlreadyExistsException.class)
+    public ResponseEntity<StandarizedApiExceptionResponse> handleBoardAlreadyExistsException(
+            BoardAlreadyExistsException ex) {
+        HttpStatus status = HttpStatus.CONFLICT;
+
+        StandarizedApiExceptionResponse response = new StandarizedApiExceptionResponse(
+                "/errors/board/already-exists",
+                "Board already exists",
+                status.value(),
+                "A board with the provided ID already exists",
+                null,
+                "Ya existe el tablero");
+
+        return ResponseEntity
+                .status(status)
+                .body(response);
+    }
+
+    // Excepción producida cuando una operación viola una restricción
+    // de integridad de la base de datos, como una clave primaria,
+    // clave foránea, restricción UNIQUE o NOT NULL.
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<StandarizedApiExceptionResponse> handleDataIntegrityViolationException(
+            DataIntegrityViolationException ex) {
+
+        HttpStatus status = HttpStatus.CONFLICT;
+
+        StandarizedApiExceptionResponse response = new StandarizedApiExceptionResponse(
+                "/errors/database/integrity-violation",
+                "Data integrity violation",
+                status.value(),
+                "The request violates a database constraint",
+                null,
+                "La operación viola una restricción de la base de datos");
+
+        return ResponseEntity
+                .status(status)
+                .body(response);
+    }
+
+    // Excepcion de tablero no encontrado
+    @ExceptionHandler(BoardNotFoundException.class)
+    public ResponseEntity<StandarizedApiExceptionResponse> handleBoardNotFoundException(
+            BoardNotFoundException ex) {
+        HttpStatus status = HttpStatus.NOT_FOUND;
+
+        StandarizedApiExceptionResponse standarizedApiExceptionResponse = new StandarizedApiExceptionResponse(
+                "/errors/board-not-found",
+                "Board not found",
+                status.value(),
+                "The board was not found in the system",
+                null,
+                "No se ha encontrado el tablero");
+
+        return ResponseEntity.status(status).body(standarizedApiExceptionResponse);
+    }
 }

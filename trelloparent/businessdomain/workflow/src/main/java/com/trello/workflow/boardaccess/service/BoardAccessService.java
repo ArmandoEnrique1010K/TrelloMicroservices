@@ -18,7 +18,4 @@ public interface BoardAccessService {
     void deactivateBoardAccess(UUID boardId, UUID memberUserId);
 
     void activateBoardAccess(UUID boardId, UUID memberUserId, Role role);
-
-    // Solamente el administrador del tablero podra ejecutar este metodo
-    void deleteAllBoardAccessByBoardId(UUID boardId, UUID memberOwneruserId);
 }

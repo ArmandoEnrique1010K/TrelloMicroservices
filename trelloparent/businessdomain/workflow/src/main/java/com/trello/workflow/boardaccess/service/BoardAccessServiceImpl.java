@@ -1,12 +1,14 @@
 package com.trello.workflow.boardaccess.service;
 
 import com.trello.workflow.services.BoardAccessWorkflowService;
+import com.trello.workflow.services.BoardWorkflowService;
+
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.trello.workflow.boardaccess.exception.BoardAccessAlreadyExistsException;
+import com.trello.workflow.entities.Board;
 import com.trello.workflow.entities.BoardAccess;
 import com.trello.workflow.enums.Role;
 import com.trello.workflow.exception.BusinessRuleException;
@@ -15,13 +17,17 @@ import com.trello.workflow.exception.BusinessRuleException;
 public class BoardAccessServiceImpl implements BoardAccessService {
 
     private final BoardAccessWorkflowService boardAccessWorkflowService;
+    private final BoardWorkflowService boardWorkflowService;
 
-    BoardAccessServiceImpl(BoardAccessWorkflowService boardAccessWorkflowService) {
+    public BoardAccessServiceImpl(BoardAccessWorkflowService boardAccessWorkflowService,
+            BoardWorkflowService boardWorkflowService) {
         this.boardAccessWorkflowService = boardAccessWorkflowService;
+        this.boardWorkflowService = boardWorkflowService;
     }
 
     @Override
-    public void addBoardAccess(UUID boardId, UUID userId, Role role) {
+    public void addBoardAccess(UUID boardId, UUID userId, Role role) throws BoardAccessAlreadyExistsException {
+        Board board = boardWorkflowService.findBoardById(boardId);
 
         if (boardAccessWorkflowService.existsBoardAccessByBoardIdAndUserId(boardId, userId)) {
             throw new BoardAccessAlreadyExistsException();
@@ -29,9 +35,9 @@ public class BoardAccessServiceImpl implements BoardAccessService {
 
         BoardAccess savedBoardAccess = new BoardAccess();
         savedBoardAccess.setUserId(userId);
-        savedBoardAccess.setBoardId(boardId);
         savedBoardAccess.setRole(role);
         savedBoardAccess.setUserActive(true);
+        savedBoardAccess.setBoard(board);
 
         boardAccessWorkflowService.saveBoardAccess(savedBoardAccess);
     }
@@ -81,14 +87,5 @@ public class BoardAccessServiceImpl implements BoardAccessService {
         findedBoardAccess.setRole(role);
         boardAccessWorkflowService.saveBoardAccess(findedBoardAccess);
 
-    }
-
-    // En este caso @Transactional se va a encargar de ejecutar ambos metodos del
-    // servicios en una sola transaccion
-    @Transactional
-    @Override
-    public void deleteAllBoardAccessByBoardId(UUID boardId, UUID memberOwneruserId) {
-        boardAccessWorkflowService.findBoardAccessByBoardIdAndUserIdAndRoleOwner(boardId, memberOwneruserId);
-        boardAccessWorkflowService.deleteAllBoardAccessByBoardId(boardId);
     }
 }

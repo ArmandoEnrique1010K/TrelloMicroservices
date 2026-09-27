@@ -5,7 +5,6 @@ import com.trello.project.board.dto.response.BoardResponse;
 import com.trello.project.board.exception.BoardAlreadyExistsException;
 import com.trello.project.board.mapper.BoardRequestMapper;
 import com.trello.project.board.mapper.BoardResponseMapper;
-import com.trello.project.client.enums.WorkflowRole;
 import com.trello.project.client.services.WorkflowClientService;
 import com.trello.project.entities.Board;
 import com.trello.project.entities.Workspace;
@@ -60,7 +59,11 @@ public class BoardServiceImpl implements BoardService {
         // Guarda los datos en la base de datos del microservicio Workflow
         // Solamente los datos necesarios: ID de tablero, Rol (WorkflowRole) e ID de
         // usuario
-        workflowClientService.addBoardAccess(boardResponse.getId(), WorkflowRole.OWNER);
+        // workflowClientService.addBoardAccess(boardResponse.getId(),
+        // WorkflowRole.OWNER);
+
+        // Guardar un tablero
+        workflowClientService.addBoardAndBoardAccessUserOwner(savedBoard.getId());
 
         return boardResponse;
     }
@@ -101,9 +104,14 @@ public class BoardServiceImpl implements BoardService {
 
     @Override
     public void deleteBoard(UUID ownerUserId, UUID boardId) {
-        boardProjectService.deleteBoardByIdAndOwnerUserId(boardId, ownerUserId);    
-        // Llamar al endpoint del microservicio Workflow para borrar permisos de acceso
-        workflowClientService.deleteAllBoardAccessByBoardId(boardId);
+        // Llamar al endpoint del microservicio Workflow para borrar el tablero
+        boardProjectService.findBoardByIdAndOwnerUserId(boardId, ownerUserId);
+        workflowClientService.deleteBoardByIdAndBoardAccessAndTasks(boardId);
+
+        // boardProjectService.deleteBoardByIdAndOwnerUserId(boardId, ownerUserId);
+        // // Llamar al endpoint del microservicio Workflow para borrar permisos de
+        // acceso
+        // workflowClientService.deleteAllBoardAccessByBoardId(boardId);
     }
 
     @Override

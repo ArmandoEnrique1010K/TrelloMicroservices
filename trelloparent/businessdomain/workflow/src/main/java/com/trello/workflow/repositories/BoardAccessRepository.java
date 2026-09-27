@@ -4,9 +4,6 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 
 import com.trello.workflow.entities.BoardAccess;
 import com.trello.workflow.enums.Role;
@@ -29,10 +26,10 @@ public interface BoardAccessRepository extends JpaRepository<BoardAccess, UUID> 
     // Se ahorra 1 query menos
     // La cantidad de query que se ejecuta equivale a la cantidad de registros que
     // se van a eliminar
-    @Modifying
-    @Query("""
-                DELETE FROM BoardAccess ba
-                WHERE ba.boardId = :boardId
-            """)
-    int deleteByBoardId(@Param("boardId") UUID boardId);
+    // @Modifying
+    // @Query("""
+    // DELETE FROM BoardAccess ba
+    // WHERE ba.boardId = :boardId
+    // """)
+    // int deleteByBoardId(@Param("boardId") UUID boardId);
 }

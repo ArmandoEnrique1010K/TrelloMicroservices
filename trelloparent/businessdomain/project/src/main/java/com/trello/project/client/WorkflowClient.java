@@ -15,7 +15,7 @@ import com.trello.project.client.enums.WorkflowRole;
 
 @FeignClient(name = "businessdomain-workflow", url = "${services.workflow.url}", configuration = FeignClientConfig.class)
 public interface WorkflowClient {
-
+    // BOARD ACCESS
     @PostMapping("/boardAccess/board/{boardId}/role/{roleName}")
     ResponseEntity<Void> addBoardAccess(
             @PathVariable("boardId") UUID boardId,
@@ -38,7 +38,12 @@ public interface WorkflowClient {
             @PathVariable("memberUserId") UUID memberUserId,
             @PathVariable("roleName") WorkflowRole roleName);
 
-    @DeleteMapping("/boardAccess/board/{boardId}")
-    ResponseEntity<Void> deleteAllBoardAccessByBoardId(
+    // BOARD
+    @PostMapping("/board/{boardId}")
+    ResponseEntity<Void> addBoardAndBoardAccessUserOwner(
+            @PathVariable("boardId") UUID boardId);
+
+    @DeleteMapping("/board/{boardId}")
+    ResponseEntity<Void> deleteBoardByIdAndBoardAccessAndTasks(
             @PathVariable("boardId") UUID boardId);
 }

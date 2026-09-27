@@ -19,11 +19,18 @@ enum Role {
 
 entity BoardAccess {
   - id: UUID
-  - boardId: UUID
+  '- boardId: UUID
   - userId: UUID
   - userActive: boolean
 }
 
+
+'El ID de la entidad Board no es generado automaticamente, se
+'toma el ID del Board generado en el microservicio Project, es
+'por ello que se coloca <<not generated>>
+entity Board {
+  - id: UUID <<not generated>>
+}
 
 
 ' =========================================================
@@ -41,7 +48,7 @@ enum Status {
 
 entity Task {
   - id: UUID
-  - boardId: UUID
+'  - boardId: UUID
   - name: String
   - description: String
   - createdAt: LocalDateTime
@@ -72,18 +79,21 @@ entity History {
   - createdAt: LocalDateTime
 }
 
-'Una tarea puede tener ninguno, 1 o varios labels diferentes
 
 ' =========================================================
 ' Relaciones
 ' =========================================================
+'Una tarea puede tener ninguno, 1 o varios labels diferentes
 Task "0..* " -- "0..*" Label
 Task "1" *-- "0..* " Note
 Task "1" *-- "1..*     " History
 
-BoardAccess "0..*" ---> "   1" Role
 Task "0..*" -> "1 " Status
 History " 0..*    " --> "     1  " Status
+
+Board "1" *-- "1..*    " BoardAccess
+Board " 1   " *-- "0..*" Task
+BoardAccess "0..*" --> "1  " Role
 
 
 

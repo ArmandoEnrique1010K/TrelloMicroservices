@@ -11,10 +11,5 @@ public interface BoardAccessWorkflowService {
     BoardAccess findBoardAccessByBoardIdAndUserId(UUID boardId, UUID userId)
             throws BoardAccessNotFoundException;
 
-    BoardAccess findBoardAccessByBoardIdAndUserIdAndRoleOwner(UUID boardId, UUID userId)
-            throws BoardAccessNotFoundException;
-
     boolean existsBoardAccessByBoardIdAndUserId(UUID boardId, UUID userId);
-
-    void deleteAllBoardAccessByBoardId(UUID boardId);
 }

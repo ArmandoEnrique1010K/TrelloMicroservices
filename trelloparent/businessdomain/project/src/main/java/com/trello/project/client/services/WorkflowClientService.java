@@ -24,6 +24,10 @@ public interface WorkflowClientService {
             UUID memberUserId,
             WorkflowRole roleName);
 
-    void deleteAllBoardAccessByBoardId(
-            UUID boardId);
+    // void deleteAllBoardAccessByBoardId(
+    // UUID boardId);
+
+    void addBoardAndBoardAccessUserOwner(UUID boardId);
+
+    void deleteBoardByIdAndBoardAccessAndTasks(UUID boardId);
 }
