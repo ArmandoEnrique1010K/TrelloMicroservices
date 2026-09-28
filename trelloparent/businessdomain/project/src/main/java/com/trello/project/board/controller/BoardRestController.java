@@ -23,6 +23,7 @@ import com.trello.project.board.exception.BoardAlreadyExistsException;
 import com.trello.project.board.service.BoardService;
 import com.trello.project.common.StandarizedApiExceptionResponse;
 import com.trello.project.common.SuccessfulResponse;
+import com.trello.project.common.SuccessfulVoidResponse;
 import com.trello.project.security.JwtUtils;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -337,8 +338,9 @@ public class BoardRestController {
                     }
                     """))),
     })
+
     @DeleteMapping("/{boardId}")
-    public ResponseEntity<SuccessfulResponse<BoardResponse>> deleteBoard(
+    public ResponseEntity<SuccessfulResponse<SuccessfulVoidResponse>> deleteBoard(
             @AuthenticationPrincipal Jwt jwt,
             @Parameter(description = "ID del tablero", required = true, example = "550e8400-e29b-41d4-a716-446655440000") @PathVariable UUID boardId) {
 
@@ -346,11 +348,10 @@ public class BoardRestController {
 
         boardService.deleteBoard(userId, boardId);
 
-        SuccessfulResponse<BoardResponse> successfulResponse = new SuccessfulResponse<>();
+        SuccessfulResponse<SuccessfulVoidResponse> successfulResponse = new SuccessfulResponse<>();
         successfulResponse.setMessage("Se ha eliminado el tablero");
         successfulResponse.setBody(null);
 
         return ResponseEntity.status(HttpStatus.OK).body(successfulResponse);
     }
-
 }
