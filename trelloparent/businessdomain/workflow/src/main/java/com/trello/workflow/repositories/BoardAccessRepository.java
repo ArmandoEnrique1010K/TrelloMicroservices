@@ -10,7 +10,7 @@ import com.trello.workflow.enums.Role;
 
 public interface BoardAccessRepository extends JpaRepository<BoardAccess, UUID> {
 
-    Optional<BoardAccess> findByBoardIdAndUserId(UUID boardId, UUID userId);
+    Optional<BoardAccess> findByBoardIdAndUserIdAndUserActiveTrue(UUID boardId, UUID userId);
 
     boolean existsByBoardIdAndUserId(UUID boardId, UUID userId);
 

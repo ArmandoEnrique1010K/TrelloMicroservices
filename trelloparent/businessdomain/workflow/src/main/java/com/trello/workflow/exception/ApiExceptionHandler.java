@@ -197,4 +197,21 @@ public class ApiExceptionHandler {
         return ResponseEntity.status(status).body(standarizedApiExceptionResponse);
     }
 
+    // Excepción de tarea no encontrada - 404
+    @ExceptionHandler(TaskNotFoundException.class)
+    public ResponseEntity<StandarizedApiExceptionResponse> handleTaskNotFoundException(
+            TaskNotFoundException ex) {
+        HttpStatus status = HttpStatus.NOT_FOUND;
+
+        StandarizedApiExceptionResponse standarizedApiExceptionResponse = new StandarizedApiExceptionResponse(
+                "/errors/task-not-found",
+                "Task not found",
+                status.value(),
+                "The task was not found in the system",
+                null,
+                "No se ha encontrado la tarea");
+
+        return ResponseEntity.status(status).body(standarizedApiExceptionResponse);
+    }
+
 }

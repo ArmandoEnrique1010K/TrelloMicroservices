@@ -26,7 +26,7 @@ public class BoardAccessWorkflowServiceImpl implements BoardAccessWorkflowServic
     @Override
     public BoardAccess findBoardAccessByBoardIdAndUserId(UUID boardId, UUID userId)
             throws BoardAccessNotFoundException {
-        BoardAccess boardAccess = boardAccessRepository.findByBoardIdAndUserId(boardId, userId)
+        BoardAccess boardAccess = boardAccessRepository.findByBoardIdAndUserIdAndUserActiveTrue(boardId, userId)
                 .orElseThrow(BoardAccessNotFoundException::new);
         return boardAccess;
     }

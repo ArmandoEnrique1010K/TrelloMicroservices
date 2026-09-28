@@ -3,6 +3,7 @@ package com.trello.workflow.task.service;
 import com.trello.workflow.services.TaskWorkflowService;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
@@ -82,4 +83,95 @@ public class TaskServiceImpl implements TaskService {
         return taskResponse;
     }
 
+    // Sin importar el rol, cualquier usuario tiene acceso a este endpoint
+    @Override
+    public List<TaskResponse> listAllTasksByBoardId(UUID boardId, UUID userId) {
+        // Siempre y cuando sea el usuario administrador del tablero o cualquier miembro
+        boardAccessWorkflowService.findBoardAccessByBoardIdAndUserId(boardId, userId);
+
+        List<Task> listTasksByBoardId = taskWorkflowService.findAllTasksByBoardId(boardId);
+        return taskResponseMapper.taskListToTaskResponseList(listTasksByBoardId);
+    }
+
+    @Override
+    public TaskResponse editTask(UUID taskId, TaskRequest taskRequest, UUID userId) throws ForbiddenOperationException {
+
+        String name = taskRequest.getName();
+        String description = taskRequest.getDescription();
+
+        Task findedTask = taskWorkflowService.findTaskById(taskId);
+
+        UUID boardId = findedTask.getBoard().getId();
+
+        // Buscar permiso de acceso al tablero por boardId y userId
+        BoardAccess boardAccess = boardAccessWorkflowService.findBoardAccessByBoardIdAndUserId(boardId, userId);
+
+        // Rol del usuario actual
+        Role role = boardAccess.getRole();
+
+        // Si el usuario no tiene el rol de propietario o admin, no podra realizar la
+        // operación
+        if (!BoardAccessRoleUtils.hasAuthorization(role, Role.ADMIN)) {
+            throw new ForbiddenOperationException();
+        }
+
+        // Fecha y hora actual
+        LocalDateTime localDateTime = LocalDateTime.now();
+
+        findedTask.setName(name);
+        findedTask.setDescription(description);
+        findedTask.setUpdatedAt(localDateTime);
+
+        Task savedTask = taskWorkflowService.saveTask(findedTask);
+
+        TaskResponse taskResponse = taskResponseMapper.taskToTaskResponse(savedTask);
+        return taskResponse;
+    }
+
+    @Override
+    public TaskResponse changeStatusTask(UUID taskId, Status status, UUID userId) throws ForbiddenOperationException {
+
+        Task findedTask = taskWorkflowService.findTaskById(taskId);
+        UUID boardId = findedTask.getBoard().getId();
+        BoardAccess boardAccess = boardAccessWorkflowService.findBoardAccessByBoardIdAndUserId(boardId, userId);
+        Role role = boardAccess.getRole();
+
+        if (!BoardAccessRoleUtils.hasAuthorization(role, Role.MEMBER)) {
+            throw new ForbiddenOperationException();
+        }
+
+        LocalDateTime localDateTime = LocalDateTime.now();
+
+        findedTask.setStatus(status);
+        findedTask.setUpdatedAt(localDateTime);
+
+        Task savedTask = taskWorkflowService.saveTask(findedTask);
+
+        // Guardar en el historial el nuevo estado
+        History history = new History();
+        history.setUserId(userId);
+        history.setCreatedAt(localDateTime);
+        history.setStatus(status);
+        history.setTask(savedTask);
+        historyWorkflowService.saveHistory(history);
+
+        TaskResponse taskResponse = taskResponseMapper.taskToTaskResponse(savedTask);
+        return taskResponse;
+    }
+
+    @Override
+    public void deleteTask(UUID taskId, UUID userId) throws ForbiddenOperationException {
+        Task findedTask = taskWorkflowService.findTaskById(taskId);
+        UUID boardId = findedTask.getBoard().getId();
+        BoardAccess boardAccess = boardAccessWorkflowService.findBoardAccessByBoardIdAndUserId(boardId, userId);
+        Role role = boardAccess.getRole();
+
+        if (!BoardAccessRoleUtils.hasAuthorization(role, Role.ADMIN)) {
+            throw new ForbiddenOperationException();
+        }
+
+        // Cuando se borra una tarea tambien se van a borrar las notas y su historial
+        // asociado
+        taskWorkflowService.deleteTaskById(taskId);
+    }
 }

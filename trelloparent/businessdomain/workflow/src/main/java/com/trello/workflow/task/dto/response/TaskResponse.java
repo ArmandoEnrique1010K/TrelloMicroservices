@@ -21,6 +21,9 @@ public class TaskResponse {
     @Schema(name = "description", example = "Descripción de prueba", description = "Descripción de la tarea en la base de datos")
     private String description;
 
+    @Schema(name = "createdAt", example = "2025-01-15T10:30:45", description = "Fecha de creación de la tarea en la base de datos")
+    private LocalDateTime createdAt;
+
     @Schema(name = "updatedAt", example = "2025-01-15T10:30:45", description = "Fecha de actualización de la tarea en la base de datos")
     private LocalDateTime updatedAt;
 
