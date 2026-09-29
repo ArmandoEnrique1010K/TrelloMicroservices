@@ -230,6 +230,31 @@ public class TaskRestController {
                     }
                     """))),
 
+            @ApiResponse(responseCode = "403", description = "El usuario no tiene permisos para realizar esta operación", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = {
+                    @ExampleObject(name = "El usuario no es el autor del recurso solicitado", summary = "El usuario no es el autor del recurso solicitado", value = """
+                                {
+                                    "detail": "The user is not the author of the requested resource",
+                                    "fields": null,
+                                    "instance": null,
+                                    "message": "Ha ocurrido un error",
+                                    "status": 403,
+                                    "title": "Mismached Author",
+                                    "type": "/errors/mismached-author"
+                                }
+                            """),
+                    @ExampleObject(name = "El usuario no tiene el rol requerido para realizar la operación", summary = "El usuario no tiene el rol requerido para realizar la operación", value = """
+                                {
+                                    "detail": "The user does not have the required role to perform the operation",
+                                    "fields": null,
+                                    "instance": null,
+                                    "message": "Ha ocurrido un error",
+                                    "status": 403,
+                                    "title": "Forbidden operation",
+                                    "type": "/errors/forbidden-operation"
+                                }
+                            """)
+            })),
+
             @ApiResponse(responseCode = "404", description = "No se ha encontrado el recurso solicitado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = {
                     @ExampleObject(name = "El permiso de acceso al tablero no existe", summary = "El permiso de acceso al tablero no existe", value = """
                             {
@@ -383,6 +408,31 @@ public class TaskRestController {
                         "type": "/errors/authentication/not-authenticated"
                     }
                     """))),
+
+            @ApiResponse(responseCode = "403", description = "", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = {
+                    @ExampleObject(name = "El usuario no es el autor del recurso solicitado", summary = "El usuario no es el autor del recurso solicitado", value = """
+                                {
+                                    "detail": "The user is not the author of the requested resource",
+                                    "fields": null,
+                                    "instance": null,
+                                    "message": "Ha ocurrido un error",
+                                    "status": 403,
+                                    "title": "Mismached Author",
+                                    "type": "/errors/mismached-author"
+                                }
+                            """),
+                    @ExampleObject(name = "El usuario no tiene el rol requerido para realizar la operación", summary = "El usuario no tiene el rol requerido para realizar la operación", value = """
+                                {
+                                    "detail": "The user does not have the required role to perform the operation",
+                                    "fields": null,
+                                    "instance": null,
+                                    "message": "Ha ocurrido un error",
+                                    "status": 403,
+                                    "title": "Forbidden operation",
+                                    "type": "/errors/forbidden-operation"
+                                }
+                            """)
+            })),
 
             @ApiResponse(responseCode = "404", description = "No se ha encontrado el recurso solicitado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = {
                     @ExampleObject(name = "El permiso de acceso al tablero no existe", summary = "El permiso de acceso al tablero no existe", value = """

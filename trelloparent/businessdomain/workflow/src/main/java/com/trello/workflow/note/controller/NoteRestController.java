@@ -204,7 +204,7 @@ public class NoteRestController {
                     }
                     """))),
 
-            @ApiResponse(responseCode = "403", description = "", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = {
+            @ApiResponse(responseCode = "403", description = "El usuario no tiene permisos para realizar esta operación", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = {
                     @ExampleObject(name = "El usuario no es el autor del recurso solicitado", summary = "El usuario no es el autor del recurso solicitado", value = """
                                 {
                                     "detail": "The user is not the author of the requested resource",
