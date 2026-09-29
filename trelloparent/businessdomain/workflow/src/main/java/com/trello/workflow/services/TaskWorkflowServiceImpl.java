@@ -35,6 +35,8 @@ public class TaskWorkflowServiceImpl implements TaskWorkflowService {
         return task;
     }
 
+    // Para borrar una tarea es necesario verificar que aun exista la tarea en la
+    // base de datos
     @Override
     public void deleteTaskById(UUID taskId) throws TaskNotFoundException {
         Task task = taskRepository.findById(taskId).orElseThrow(TaskNotFoundException::new);

@@ -28,8 +28,10 @@ public class Note {
     private String content;
 
     @Column(nullable = false)
-    private UUID createdByUser;
+    private UUID createdByUserId;
 
+    // En este caso si se va a utilizar la anotación para escribir la fecha de
+    // creación de forma automatica
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;

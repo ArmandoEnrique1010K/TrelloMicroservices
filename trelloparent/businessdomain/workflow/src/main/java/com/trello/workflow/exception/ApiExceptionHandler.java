@@ -197,6 +197,24 @@ public class ApiExceptionHandler {
         return ResponseEntity.status(status).body(standarizedApiExceptionResponse);
     }
 
+    // Excepción de autor no correspondiente porque la tarea, nota, etc..., no
+    // corresponde al mismo autor que la creo (el usuario autenticado)
+    @ExceptionHandler(MismatchedAuthorException.class)
+    public ResponseEntity<StandarizedApiExceptionResponse> handleMismatchedAuthorException(
+            MismatchedAuthorException ex) {
+        HttpStatus status = HttpStatus.FORBIDDEN;
+
+        StandarizedApiExceptionResponse standarizedApiExceptionResponse = new StandarizedApiExceptionResponse(
+                "/errors/mismached-author",
+                "Mismached Author",
+                status.value(),
+                "The user is not the author of the requested resource",
+                null,
+                "Ha ocurrido un error");
+
+        return ResponseEntity.status(status).body(standarizedApiExceptionResponse);
+    }
+
     // Excepción de tarea no encontrada - 404
     @ExceptionHandler(TaskNotFoundException.class)
     public ResponseEntity<StandarizedApiExceptionResponse> handleTaskNotFoundException(
@@ -210,6 +228,23 @@ public class ApiExceptionHandler {
                 "The task was not found in the system",
                 null,
                 "No se ha encontrado la tarea");
+
+        return ResponseEntity.status(status).body(standarizedApiExceptionResponse);
+    }
+
+    // Excepción de nota no encontrada - 404
+    @ExceptionHandler(NoteNotFoundException.class)
+    public ResponseEntity<StandarizedApiExceptionResponse> handleNoteNotFoundException(
+            NoteNotFoundException ex) {
+        HttpStatus status = HttpStatus.NOT_FOUND;
+
+        StandarizedApiExceptionResponse standarizedApiExceptionResponse = new StandarizedApiExceptionResponse(
+                "/errors/note-not-found",
+                "Note not found",
+                status.value(),
+                "The note was not found in the system",
+                null,
+                "No se ha encontrado la nota");
 
         return ResponseEntity.status(status).body(standarizedApiExceptionResponse);
     }
