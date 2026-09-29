@@ -47,7 +47,8 @@ public class BoardAccessServiceImpl implements BoardAccessService {
 
         // Buscar el boardAccess por ID de tablero e ID de usuario
         // El ID del usuario no es el mismo ID de miembro
-        BoardAccess findedBoardAccess = boardAccessWorkflowService.findBoardAccessByBoardIdAndUserId(boardId,
+        BoardAccess findedBoardAccess = boardAccessWorkflowService.findBoardAccessByBoardIdAndUserIdAndUserActive(
+                boardId,
                 memberUserId);
 
         // Aunque esto es imposible porque el rol que se pasa desde el microservicio
@@ -63,7 +64,8 @@ public class BoardAccessServiceImpl implements BoardAccessService {
 
     @Override
     public void deactivateBoardAccess(UUID boardId, UUID memberUserId) {
-        BoardAccess findedBoardAccess = boardAccessWorkflowService.findBoardAccessByBoardIdAndUserId(boardId,
+        BoardAccess findedBoardAccess = boardAccessWorkflowService.findBoardAccessByBoardIdAndUserIdAndUserActive(
+                boardId,
                 memberUserId);
 
         if (findedBoardAccess.getRole().equals(Role.OWNER)) {
@@ -76,7 +78,8 @@ public class BoardAccessServiceImpl implements BoardAccessService {
 
     @Override
     public void activateBoardAccess(UUID boardId, UUID memberUserId, Role role) {
-        BoardAccess findedBoardAccess = boardAccessWorkflowService.findBoardAccessByBoardIdAndUserId(boardId,
+        BoardAccess findedBoardAccess = boardAccessWorkflowService.findBoardAccessByBoardIdAndUserIdAndUserActive(
+                boardId,
                 memberUserId);
 
         if (findedBoardAccess.getRole().equals(Role.OWNER)) {

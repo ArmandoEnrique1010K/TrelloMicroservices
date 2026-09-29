@@ -45,6 +45,10 @@ public class Task {
     @Column(nullable = false)
     private String description;
 
+    // Autor de la tarea
+    @Column(nullable = false)
+    private UUID createdByUserId;
+
     // Recordar que esta anotación escribe automaticamente la fecha de creación del
     // registro, pero como en el servicio se va a escribir la fecha al mismo tiempo
     // en 2 entidades, la fecha se obtiene desde una sola instancia en el servicio

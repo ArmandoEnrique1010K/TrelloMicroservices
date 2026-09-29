@@ -5,6 +5,7 @@ import java.util.UUID;
 
 import com.trello.workflow.enums.Status;
 import com.trello.workflow.exception.ForbiddenOperationException;
+import com.trello.workflow.exception.MismatchedAuthorException;
 import com.trello.workflow.task.dto.request.TaskRequest;
 import com.trello.workflow.task.dto.response.TaskResponse;
 
@@ -15,9 +16,12 @@ public interface TaskService {
 
     List<TaskResponse> listAllTasksByBoardId(UUID boardId, UUID userId);
 
-    TaskResponse editTask(UUID taskId, TaskRequest taskRequest, UUID userId) throws ForbiddenOperationException;
+    TaskResponse editTask(UUID taskId, TaskRequest taskRequest, UUID userId)
+            throws MismatchedAuthorException, ForbiddenOperationException;
 
-    TaskResponse changeStatusTask(UUID taskId, Status status, UUID userId) throws ForbiddenOperationException;
+    TaskResponse changeStatusTask(UUID taskId, Status status, UUID userId)
+            throws ForbiddenOperationException;
 
-    void deleteTask(UUID taskId, UUID userId) throws ForbiddenOperationException;
+    void deleteTask(UUID taskId, UUID userId)
+            throws MismatchedAuthorException, ForbiddenOperationException;
 }

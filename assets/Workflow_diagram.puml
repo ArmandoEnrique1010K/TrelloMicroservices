@@ -48,9 +48,9 @@ enum Status {
 
 entity Task {
   - id: UUID
-'  - boardId: UUID
   - name: String
   - description: String
+  - createdByUserId: UUID
   - createdAt: LocalDateTime
   - updatedAt: LocalDateTime
 }
@@ -65,7 +65,7 @@ entity Label {
 entity Note {
   - id: UUID
   - content: String
-  - createdByUser: UUID
+  - createdByUserId: UUID
   - createdAt: LocalDateTime
 }
 

@@ -8,7 +8,7 @@ import com.trello.workflow.exception.BoardAccessNotFoundException;
 public interface BoardAccessWorkflowService {
     void saveBoardAccess(BoardAccess boardAccess);
 
-    BoardAccess findBoardAccessByBoardIdAndUserId(UUID boardId, UUID userId)
+    BoardAccess findBoardAccessByBoardIdAndUserIdAndUserActive(UUID boardId, UUID userId)
             throws BoardAccessNotFoundException;
 
     boolean existsBoardAccessByBoardIdAndUserId(UUID boardId, UUID userId);

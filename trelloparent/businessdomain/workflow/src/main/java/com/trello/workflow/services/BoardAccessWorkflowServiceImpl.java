@@ -23,10 +23,8 @@ public class BoardAccessWorkflowServiceImpl implements BoardAccessWorkflowServic
         boardAccessRepository.save(boardAccess);
     }
 
-    // TODO: RENOMBRAR ESTE METODO, DEBER INCLUIR LA PALABRA "ACTIVE" PARA
-    // REFERENCIAR A UN USUARIO ACTIVO
     @Override
-    public BoardAccess findBoardAccessByBoardIdAndUserId(UUID boardId, UUID userId)
+    public BoardAccess findBoardAccessByBoardIdAndUserIdAndUserActive(UUID boardId, UUID userId)
             throws BoardAccessNotFoundException {
         BoardAccess boardAccess = boardAccessRepository.findByBoardIdAndUserIdAndUserActiveTrue(boardId, userId)
                 .orElseThrow(BoardAccessNotFoundException::new);
