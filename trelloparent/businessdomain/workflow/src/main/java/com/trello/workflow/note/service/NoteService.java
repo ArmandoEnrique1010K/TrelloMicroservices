@@ -7,12 +7,13 @@ import com.trello.workflow.exception.ForbiddenOperationException;
 import com.trello.workflow.exception.MismatchedAuthorException;
 import com.trello.workflow.note.dto.request.NoteRequest;
 import com.trello.workflow.note.dto.response.NoteResponse;
+import com.trello.workflow.note.dto.response.UserNoteResponse;
 
 public interface NoteService {
 
     NoteResponse createNote(NoteRequest noteRequest, UUID taskId, UUID userId) throws ForbiddenOperationException;
 
-    List<NoteResponse> listAllNotesByTaskId(UUID taskId, UUID userId);
+    List<UserNoteResponse> listAllNotesByTaskId(UUID taskId, UUID userId);
 
     void deleteNote(UUID noteId, UUID userId) throws ForbiddenOperationException, MismatchedAuthorException;
 }

@@ -50,6 +50,8 @@ public class TaskRestController {
         this.taskService = taskService;
     }
 
+    // TODO: PROBAR SI VERIFICA EL AUTOR DE LA TAREA EN EL METODO DE CREAR, EDITAR Y
+    // ELIMINAR
     @Operation(summary = "Agrega una tarea", description = "Agrega una tarea al tablero por ID en la base de datos")
     @SecurityRequirement(name = "bearerAuth")
     @ApiResponses(value = {

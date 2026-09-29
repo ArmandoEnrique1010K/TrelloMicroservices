@@ -1,11 +1,18 @@
 package com.trello.workflow.note.service;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
 import com.trello.workflow.boardaccess.utils.BoardAccessRoleUtils;
+import com.trello.workflow.client.dto.response.UserResponse;
+import com.trello.workflow.client.service.IdentityClientService;
 import com.trello.workflow.entities.BoardAccess;
 import com.trello.workflow.entities.Note;
 import com.trello.workflow.entities.Task;
@@ -14,8 +21,10 @@ import com.trello.workflow.exception.ForbiddenOperationException;
 import com.trello.workflow.exception.MismatchedAuthorException;
 import com.trello.workflow.note.dto.request.NoteRequest;
 import com.trello.workflow.note.dto.response.NoteResponse;
+import com.trello.workflow.note.dto.response.UserNoteResponse;
 import com.trello.workflow.note.mapper.NoteRequestMapper;
 import com.trello.workflow.note.mapper.NoteResponseMapper;
+import com.trello.workflow.note.mapper.UserNoteResponseMapper;
 import com.trello.workflow.services.BoardAccessWorkflowService;
 import com.trello.workflow.services.NoteWorkflowService;
 import com.trello.workflow.services.TaskWorkflowService;
@@ -28,15 +37,20 @@ public class NoteServiceImpl implements NoteService {
     private final NoteRequestMapper noteRequestMapper;
     private final NoteResponseMapper noteResponseMapper;
     private final NoteWorkflowService noteWorkflowService;
+    private final IdentityClientService identityClientService;
+    private final UserNoteResponseMapper userNoteResponseMapper;
 
     public NoteServiceImpl(BoardAccessWorkflowService boardAccessWorkflowService,
             TaskWorkflowService taskWorkflowService, NoteRequestMapper noteRequestMapper,
-            NoteResponseMapper noteResponseMapper, NoteWorkflowService noteWorkflowService) {
+            NoteResponseMapper noteResponseMapper, NoteWorkflowService noteWorkflowService,
+            IdentityClientService identityClientService, UserNoteResponseMapper userNoteResponseMapper) {
         this.boardAccessWorkflowService = boardAccessWorkflowService;
         this.taskWorkflowService = taskWorkflowService;
         this.noteRequestMapper = noteRequestMapper;
         this.noteResponseMapper = noteResponseMapper;
         this.noteWorkflowService = noteWorkflowService;
+        this.identityClientService = identityClientService;
+        this.userNoteResponseMapper = userNoteResponseMapper;
     }
 
     @Override
@@ -66,14 +80,18 @@ public class NoteServiceImpl implements NoteService {
 
     @Override
     // Las notas las puede ver cualquier usuario, sin importar el rol
-    public List<NoteResponse> listAllNotesByTaskId(UUID taskId, UUID userId) {
+    public List<UserNoteResponse> listAllNotesByTaskId(UUID taskId, UUID userId) {
         Task task = taskWorkflowService.findTaskById(taskId);
         UUID boardId = task.getBoard().getId();
 
         boardAccessWorkflowService.findBoardAccessByBoardIdAndUserIdAndUserActive(boardId, userId);
 
         List<Note> listNotesByTaskId = noteWorkflowService.findAllNotesByTaskId(taskId);
-        return noteResponseMapper.noteListToNoteResponseList(listNotesByTaskId);
+        List<UserNoteResponse> responses = userNoteResponseMapper.noteListToUserNoteResponseList(listNotesByTaskId);
+
+        enrichUserMemberWithUserData(listNotesByTaskId, responses);
+        return responses;
+
     }
 
     // Solamente el usuario que ha creado la nota la puede eliminar, además debe
@@ -105,4 +123,52 @@ public class NoteServiceImpl implements NoteService {
         // Borra una nota por la entidad
         noteWorkflowService.deleteNoteByEntity(findedNote);
     }
+
+    // Métodos privados
+    private void enrichUserMemberWithUserData(List<Note> notes, List<UserNoteResponse> responses) {
+
+        Map<UUID, UserResponse> usersById = getUsersById(
+                notes, note -> note.getCreatedByUserId());
+
+        for (int i = 0; i < notes.size(); i++) {
+            Note member = notes.get(i);
+            responses.get(i).setCreatedByUser(
+                    mapUser(usersById.get(member.getCreatedByUserId())));
+        }
+
+    }
+
+    private Map<UUID, UserResponse> getUsersById(
+            List<Note> notes,
+            Function<Note, UUID> userIdExtractor) {
+
+        Set<UUID> userIds = notes.stream()
+                .map(userIdExtractor)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+
+        return identityClientService.findUsersByIds(userIds)
+                .stream()
+                .collect(Collectors.toMap(
+                        user -> user.getId(),
+                        Function.identity()));
+    }
+
+    private UserResponse mapUser(
+            UserResponse user) {
+
+        if (user == null) {
+            return null;
+        }
+
+        UserResponse response = new UserResponse();
+
+        response.setId(user.getId());
+        response.setFirstName(user.getFirstName());
+        response.setLastName(user.getLastName());
+        response.setEmail(user.getEmail());
+
+        return response;
+    }
+
 }

@@ -20,6 +20,7 @@ import com.trello.workflow.common.SuccessfulResponse;
 import com.trello.workflow.common.SuccessfulVoidResponse;
 import com.trello.workflow.note.dto.request.NoteRequest;
 import com.trello.workflow.note.dto.response.NoteResponse;
+import com.trello.workflow.note.dto.response.UserNoteResponse;
 import com.trello.workflow.note.service.NoteService;
 import com.trello.workflow.security.JwtUtils;
 import com.trello.workflow.task.dto.response.common.SuccessfulTaskResponse;
@@ -138,8 +139,21 @@ public class NoteRestController {
     @Operation(summary = "Lista las notas", description = "Obtiene una lista de notas por ID de tarea en la base de datos")
     @SecurityRequirement(name = "bearerAuth")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Obtiene la lista de notas por ID de tarea", content = @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = NoteResponse.class)))),
-
+            @ApiResponse(responseCode = "200", description = "Obtiene la lista de notas por ID de tarea", content = @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = UserNoteResponse.class)), examples = @ExampleObject(value = """
+                    [
+                        {
+                            "id": "e6ee693c-9a84-4154-9dd3-52884dd882e6",
+                            "content": "Contenido de prueba",
+                            "createdAt": "2026-09-27T14:54:38.5068766",
+                            "createdByUser": {
+                                "email": "example@gmail.com",
+                                "firstName": "Jhon",
+                                "id": "3e54e44f-8f87-445b-8817-8c13010f5da5",
+                                "lastName": "Doe"
+                            }
+                        }
+                    ]
+                    """))),
             @ApiResponse(responseCode = "401", description = "El usuario no esta autenticado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
                     {
                         "detail": "Authentication is required to access this resource",
@@ -175,11 +189,11 @@ public class NoteRestController {
                     """))),
     })
     @GetMapping("/task/{taskId}")
-    public ResponseEntity<List<NoteResponse>> listAllNotesByTaskId(
+    public ResponseEntity<List<UserNoteResponse>> listAllNotesByTaskId(
             @AuthenticationPrincipal Jwt jwt,
             @Parameter(description = "ID de la tarea", required = true, example = "550e8400-e29b-41d4-a716-446655440000") @PathVariable UUID taskId) {
         UUID userId = JwtUtils.getUserId(jwt);
-        List<NoteResponse> response = noteService.listAllNotesByTaskId(taskId, userId);
+        List<UserNoteResponse> response = noteService.listAllNotesByTaskId(taskId, userId);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
