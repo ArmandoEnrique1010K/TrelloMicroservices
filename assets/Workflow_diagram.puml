@@ -19,7 +19,6 @@ enum Role {
 
 entity BoardAccess {
   - id: UUID
-  '- boardId: UUID
   - userId: UUID
   - userActive: boolean
 }
@@ -58,8 +57,10 @@ entity Task {
 entity Label {
   - id: UUID,
   - content: String
-  - color: String
-  - boardId: UUID
+}
+
+enum Color {
+  
 }
 
 entity Note {
@@ -84,17 +85,19 @@ entity History {
 ' Relaciones
 ' =========================================================
 'Una tarea puede tener ninguno, 1 o varios labels diferentes
-Task "0..* " -- "0..*" Label
-Task "1" *-- "0..* " Note
-Task "1" *-- "1..*     " History
+Task "0..*  " -- "0..*" Label
+Task "1" *-- "0..*     " Note
+Task " 1" *-- " 1..*" History
 
-Task "0..*" -> "1 " Status
-History " 0..*    " --> "     1  " Status
+Task "0..*" ---> "1 " Status
+History " 0..*  " --> " 1  " Status
 
-Board "1" *-- "1..*    " BoardAccess
-Board " 1   " *-- "0..*" Task
+Board "1   " *-- "1..*    " BoardAccess
+Board " 1" *-- "0..*   " Task
 BoardAccess "0..*" --> "1  " Role
 
+Board " 1 " *-- "0..*" Label
 
+Label "0..*" --> " 1" Color
 
 @enduml

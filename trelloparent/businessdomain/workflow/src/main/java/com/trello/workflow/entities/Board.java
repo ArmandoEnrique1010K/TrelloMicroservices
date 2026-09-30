@@ -27,4 +27,9 @@ public class Board {
 
     @OneToMany(mappedBy = "board", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<Task> tasks;
+
+    @OneToMany(mappedBy = "board", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    // En este caso se importa aqui la entidad Label, porque la palabra Label en
+    // Java es una palabra reservada
+    private List<com.trello.workflow.entities.Label> labels;
 }
