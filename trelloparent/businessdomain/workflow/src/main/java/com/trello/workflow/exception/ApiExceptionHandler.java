@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import com.trello.workflow.board.exception.BoardAlreadyExistsException;
 import com.trello.workflow.boardaccess.exception.BoardAccessAlreadyExistsException;
 import com.trello.workflow.common.StandarizedApiExceptionResponse;
+import com.trello.workflow.label.exception.LabelAlreadyExistsException;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -249,4 +250,39 @@ public class ApiExceptionHandler {
         return ResponseEntity.status(status).body(standarizedApiExceptionResponse);
     }
 
+    // Excepción de etiqueta o label no encontrado - 404
+    @ExceptionHandler(LabelNotFoundException.class)
+    public ResponseEntity<StandarizedApiExceptionResponse> handleLabelNotFoundException(
+            LabelNotFoundException ex) {
+        HttpStatus status = HttpStatus.NOT_FOUND;
+
+        StandarizedApiExceptionResponse standarizedApiExceptionResponse = new StandarizedApiExceptionResponse(
+                "/errors/label-not-found",
+                "Label not found",
+                status.value(),
+                "The label was not found in the system",
+                null,
+                "No se ha encontrado la etiqueta");
+
+        return ResponseEntity.status(status).body(standarizedApiExceptionResponse);
+    }
+
+    // Error de que el nombre de la etiqueta ya existe
+    @ExceptionHandler(LabelAlreadyExistsException.class)
+    public ResponseEntity<StandarizedApiExceptionResponse> handleLabelAlreadyExistsException(
+            LabelAlreadyExistsException ex) {
+        HttpStatus status = HttpStatus.CONFLICT;
+
+        StandarizedApiExceptionResponse response = new StandarizedApiExceptionResponse(
+                "/errors/label/already-exists",
+                "Label already exists",
+                status.value(),
+                "A label with the provided content already exists in this board",
+                null,
+                "Ya existe una etiqueta con ese contenido");
+
+        return ResponseEntity
+                .status(status)
+                .body(response);
+    }
 }
