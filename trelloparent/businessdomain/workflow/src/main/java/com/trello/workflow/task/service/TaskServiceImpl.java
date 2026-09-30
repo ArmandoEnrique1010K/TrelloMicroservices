@@ -5,10 +5,10 @@ import com.trello.workflow.services.TaskWorkflowService;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
-
 import org.springframework.stereotype.Service;
 
 import com.trello.workflow.boardaccess.utils.BoardAccessRoleUtils;
+import com.trello.workflow.client.service.IdentityClientService;
 import com.trello.workflow.entities.BoardAccess;
 import com.trello.workflow.entities.History;
 import com.trello.workflow.entities.Task;
@@ -19,7 +19,9 @@ import com.trello.workflow.exception.MismatchedAuthorException;
 import com.trello.workflow.services.BoardAccessWorkflowService;
 import com.trello.workflow.services.HistoryWorkflowService;
 import com.trello.workflow.task.dto.request.TaskRequest;
+import com.trello.workflow.task.dto.response.AuthorTaskResponse;
 import com.trello.workflow.task.dto.response.TaskResponse;
+import com.trello.workflow.task.mapper.AuthorTaskResponseMapper;
 import com.trello.workflow.task.mapper.TaskRequestMapper;
 import com.trello.workflow.task.mapper.TaskResponseMapper;
 
@@ -31,16 +33,21 @@ public class TaskServiceImpl implements TaskService {
     private final TaskWorkflowService taskWorkflowService;
     private final TaskRequestMapper taskRequestMapper;
     private final TaskResponseMapper taskResponseMapper;
+    private final IdentityClientService identityClientService;
+    private final AuthorTaskResponseMapper authorTaskResponseMapper;
 
     public TaskServiceImpl(BoardAccessWorkflowService boardAccessWorkflowService,
             HistoryWorkflowService historyWorkflowService, TaskWorkflowService taskWorkflowService,
             TaskRequestMapper taskRequestMapper,
-            TaskResponseMapper taskResponseMapper) {
+            TaskResponseMapper taskResponseMapper, IdentityClientService identityClientService,
+            AuthorTaskResponseMapper authorTaskResponseMapper) {
         this.boardAccessWorkflowService = boardAccessWorkflowService;
         this.historyWorkflowService = historyWorkflowService;
         this.taskWorkflowService = taskWorkflowService;
         this.taskRequestMapper = taskRequestMapper;
         this.taskResponseMapper = taskResponseMapper;
+        this.identityClientService = identityClientService;
+        this.authorTaskResponseMapper = authorTaskResponseMapper;
     }
 
     @Override
@@ -87,13 +94,28 @@ public class TaskServiceImpl implements TaskService {
     }
 
     // Sin importar el rol, cualquier usuario tiene acceso a este endpoint
+    // Pero se verifica que la tarea corresponda al autor
     @Override
-    public List<TaskResponse> listAllTasksByBoardId(UUID boardId, UUID userId) {
+    public List<AuthorTaskResponse> listAllTasksByBoardId(UUID boardId, UUID userId) {
         // Siempre y cuando sea el usuario administrador del tablero o cualquier miembro
         boardAccessWorkflowService.findBoardAccessByBoardIdAndUserIdAndUserActive(boardId, userId);
 
         List<Task> listTasksByBoardId = taskWorkflowService.findAllTasksByBoardId(boardId);
-        return taskResponseMapper.taskListToTaskResponseList(listTasksByBoardId);
+        List<AuthorTaskResponse> responses = authorTaskResponseMapper.taskListToAuthorTaskResponse(listTasksByBoardId);
+
+        // Por cada respuesta debe verificar que el valor del campo "createdByUserId" de
+        // la entidad Task, sea igual a "userId" que se pasa como parametro en esta
+        // función
+        for (int i = 0; i < listTasksByBoardId.size() && i < responses.size(); i++) {
+            Task task = listTasksByBoardId.get(i);
+            AuthorTaskResponse response = responses.get(i);
+            boolean isCreatedByCurrentUser = task.getCreatedByUserId().equals(userId);
+
+            // Objects.equals(task.getCreatedByUserId(), userId);
+            response.setAuthor(isCreatedByCurrentUser);
+        }
+
+        return responses;
     }
 
     @Override

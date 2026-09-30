@@ -23,6 +23,7 @@ import com.trello.workflow.common.SuccessfulVoidResponse;
 import com.trello.workflow.enums.Status;
 import com.trello.workflow.security.JwtUtils;
 import com.trello.workflow.task.dto.request.TaskRequest;
+import com.trello.workflow.task.dto.response.AuthorTaskResponse;
 import com.trello.workflow.task.dto.response.TaskResponse;
 import com.trello.workflow.task.dto.response.common.SuccessfulTaskResponse;
 import com.trello.workflow.task.service.TaskService;
@@ -146,7 +147,7 @@ public class TaskRestController {
     @Operation(summary = "Lista las tareas", description = "Obtiene una lista de tareas por ID del tablero en la base de datos")
     @SecurityRequirement(name = "bearerAuth")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Obtiene la lista de tareas por ID de tablero", content = @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = TaskResponse.class)))),
+            @ApiResponse(responseCode = "200", description = "Obtiene la lista de tareas por ID de tablero", content = @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = AuthorTaskResponse.class)))),
 
             @ApiResponse(responseCode = "401", description = "El usuario no esta autenticado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
                     {
@@ -183,11 +184,11 @@ public class TaskRestController {
                     """))),
     })
     @GetMapping("/board/{boardId}")
-    public ResponseEntity<List<TaskResponse>> listAllTasksByBoardId(
+    public ResponseEntity<List<AuthorTaskResponse>> listAllTasksByBoardId(
             @AuthenticationPrincipal Jwt jwt,
             @Parameter(description = "ID del tablero", required = true, example = "550e8400-e29b-41d4-a716-446655440000") @PathVariable UUID boardId) {
         UUID userId = JwtUtils.getUserId(jwt);
-        List<TaskResponse> response = taskService.listAllTasksByBoardId(boardId, userId);
+        List<AuthorTaskResponse> response = taskService.listAllTasksByBoardId(boardId, userId);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
