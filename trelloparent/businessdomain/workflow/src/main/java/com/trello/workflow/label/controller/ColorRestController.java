@@ -32,7 +32,7 @@ public class ColorRestController {
     @SecurityRequirement(name = "bearerAuth")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Obtiene la lista de colores", content = @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = ColorResponse.class)))),
-            @ApiResponse(responseCode = "401", description = "El usuario no estaautenticado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
+            @ApiResponse(responseCode = "401", description = "El usuario no esta autenticado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
                     {
                         "detail": "Authentication is required to access this resource",
                         "fields": null,

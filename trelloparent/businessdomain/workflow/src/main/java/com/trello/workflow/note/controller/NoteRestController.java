@@ -21,9 +21,9 @@ import com.trello.workflow.common.SuccessfulVoidResponse;
 import com.trello.workflow.note.dto.request.NoteRequest;
 import com.trello.workflow.note.dto.response.NoteResponse;
 import com.trello.workflow.note.dto.response.UserNoteResponse;
+import com.trello.workflow.note.dto.response.common.SuccessfulNoteResponse;
 import com.trello.workflow.note.service.NoteService;
 import com.trello.workflow.security.JwtUtils;
-import com.trello.workflow.task.dto.response.common.SuccessfulTaskResponse;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -52,7 +52,7 @@ public class NoteRestController {
     @Operation(summary = "Crea una nota", description = "Agrega una nota a la tarea por ID en la base de datos")
     @SecurityRequirement(name = "bearerAuth")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Se ha creado la nota", content = @Content(mediaType = "application/json", schema = @Schema(implementation = SuccessfulTaskResponse.class), examples = @ExampleObject(value = """
+            @ApiResponse(responseCode = "201", description = "Se ha creado la nota", content = @Content(mediaType = "application/json", schema = @Schema(implementation = SuccessfulNoteResponse.class), examples = @ExampleObject(value = """
                     {
                         "body": {
                             "id": "e6ee693c-9a84-4154-9dd3-52884dd882e6",
@@ -136,6 +136,8 @@ public class NoteRestController {
         return ResponseEntity.status(HttpStatus.CREATED).body(successfulResponse);
     }
 
+    // TODO: INVESTIGAR SI ES NECESARIO HACER VARIAS PETICIONES POR SEPARADO O UNA
+    // SOLA CUANDO SE TRATA DE OBTENER DETALLES DE UNA TAREA
     @Operation(summary = "Lista las notas", description = "Obtiene una lista de notas por ID de tarea en la base de datos")
     @SecurityRequirement(name = "bearerAuth")
     @ApiResponses(value = {

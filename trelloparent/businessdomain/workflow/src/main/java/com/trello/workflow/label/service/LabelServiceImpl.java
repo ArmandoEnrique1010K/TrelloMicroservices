@@ -71,7 +71,7 @@ public class LabelServiceImpl implements LabelService {
     }
 
     @Override
-    public List<LabelResponse> listAllLabels(UUID boardId, UUID userId) {
+    public List<LabelResponse> listAllLabels(UUID boardId, UUID userId) throws ForbiddenOperationException {
         BoardAccess boardAccess = boardAccessWorkflowService.findBoardAccessByBoardIdAndUserIdAndUserActive(boardId,
                 userId);
 
