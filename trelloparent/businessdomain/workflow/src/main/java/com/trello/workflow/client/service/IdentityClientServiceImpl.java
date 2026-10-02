@@ -23,4 +23,9 @@ public class IdentityClientServiceImpl implements IdentityClientService {
     public List<UserResponse> findUsersByIds(Set<UUID> usersIds) {
         return identityClient.findUsersByIds(new ArrayList<>(usersIds));
     }
+
+    @Override
+    public UserResponse findUserById(UUID userId) {
+        return identityClient.findUserById(userId);
+    }
 }

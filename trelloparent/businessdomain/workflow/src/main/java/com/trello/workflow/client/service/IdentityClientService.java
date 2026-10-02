@@ -8,4 +8,7 @@ import com.trello.workflow.client.dto.response.UserResponse;
 
 public interface IdentityClientService {
     List<UserResponse> findUsersByIds(Set<UUID> usersIds);
+
+    UserResponse findUserById(UUID userId);
+
 }

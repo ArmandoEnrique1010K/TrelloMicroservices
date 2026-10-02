@@ -105,7 +105,6 @@ public class UserRestController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
-    // TODO: ¿ELIMINAR ESTE ENDPOINT?
     @Operation(summary = "Obtiene un usuario", description = "Obtiene los datos de un usuario por ID")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Se ha obtenido el usuario", content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserResponse.class), examples = @ExampleObject(value = """
