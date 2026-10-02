@@ -136,8 +136,7 @@ public class NoteRestController {
         return ResponseEntity.status(HttpStatus.CREATED).body(successfulResponse);
     }
 
-    // TODO: INVESTIGAR SI ES NECESARIO HACER VARIAS PETICIONES POR SEPARADO O UNA
-    // SOLA CUANDO SE TRATA DE OBTENER DETALLES DE UNA TAREA
+    // TODO: ELIMINAR ESTE ENDPOINT
     @Operation(summary = "Lista las notas", description = "Obtiene una lista de notas por ID de tarea en la base de datos")
     @SecurityRequirement(name = "bearerAuth")
     @ApiResponses(value = {

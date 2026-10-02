@@ -26,7 +26,7 @@ public class TaskWorkflowServiceImpl implements TaskWorkflowService {
 
     @Override
     public List<Task> findAllTasksByBoardId(UUID boardId) {
-        return taskRepository.findByBoardId(boardId);
+        return taskRepository.findAllByBoardIdWithLabels(boardId);
     }
 
     @Override

@@ -78,6 +78,7 @@ public class NoteServiceImpl implements NoteService {
         return noteResponse;
     }
 
+    // TODO: ELIMINAR ESTE SERVICIO
     @Override
     // Las notas las puede ver cualquier usuario, sin importar el rol
     public List<UserNoteResponse> listAllNotesByTaskId(UUID taskId, UUID userId) {

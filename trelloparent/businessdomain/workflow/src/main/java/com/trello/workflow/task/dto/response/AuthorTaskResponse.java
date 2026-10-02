@@ -1,8 +1,10 @@
 package com.trello.workflow.task.dto.response;
 
+import java.util.List;
 import java.util.UUID;
 
 import com.trello.workflow.enums.Status;
+import com.trello.workflow.label.dto.response.LabelColorResponse;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -28,5 +30,7 @@ public class AuthorTaskResponse {
     @Schema(name = "author", example = "true", description = "Verifica si el usuario autenticado es el autor de la tarea en la base de datos")
     private boolean author;
 
-    // TODO: AÑADIR CAMPO PARA LABEL
+    // Lista de etiquetas, cada elemento son de tipo LabelColorResponse
+    @Schema(name = "labels", description = "Lista de etiquetas asociadas a la tarea")
+    private List<LabelColorResponse> labels;
 }

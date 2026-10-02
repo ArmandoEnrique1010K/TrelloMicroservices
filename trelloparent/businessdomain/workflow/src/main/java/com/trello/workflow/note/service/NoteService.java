@@ -13,6 +13,7 @@ public interface NoteService {
 
     NoteResponse createNote(NoteRequest noteRequest, UUID taskId, UUID userId) throws ForbiddenOperationException;
 
+    // TODO: ELIMINAR ESTE SERVICIO
     List<UserNoteResponse> listAllNotesByTaskId(UUID taskId, UUID userId);
 
     void deleteNote(UUID noteId, UUID userId) throws ForbiddenOperationException, MismatchedAuthorException;
