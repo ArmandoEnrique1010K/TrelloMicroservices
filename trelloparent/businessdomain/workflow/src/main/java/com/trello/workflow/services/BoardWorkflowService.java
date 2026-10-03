@@ -1,5 +1,6 @@
 package com.trello.workflow.services;
 
+import java.util.List;
 import java.util.UUID;
 
 import com.trello.workflow.entities.Board;
@@ -13,4 +14,6 @@ public interface BoardWorkflowService {
     Board findBoardById(UUID boardId) throws BoardNotFoundException;
 
     void deleteBoardById(UUID boardId) throws BoardNotFoundException;
+
+    void deleteBoardsByIds(List<UUID> boardsIds);
 }

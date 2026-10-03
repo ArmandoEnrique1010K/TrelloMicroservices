@@ -1,5 +1,6 @@
 package com.trello.project.client;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.cloud.openfeign.FeignClient;
@@ -9,6 +10,7 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import com.trello.project.client.config.FeignClientConfig;
 import com.trello.project.client.enums.WorkflowRole;
@@ -46,4 +48,9 @@ public interface WorkflowClient {
     @DeleteMapping("/board/{boardId}")
     ResponseEntity<Void> deleteBoardByIdAndBoardAccessAndTasks(
             @PathVariable("boardId") UUID boardId);
+
+    @DeleteMapping("/board/batch")
+    ResponseEntity<Void> deleteManyBoardsByIdsAndBoardAccessAndTasks(
+            @RequestParam(required = false) List<UUID> boardIds);
+
 }

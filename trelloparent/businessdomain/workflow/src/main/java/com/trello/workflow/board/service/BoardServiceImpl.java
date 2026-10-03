@@ -1,5 +1,6 @@
 package com.trello.workflow.board.service;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.dao.DataIntegrityViolationException;
@@ -74,5 +75,10 @@ public class BoardServiceImpl implements BoardService {
     @Override
     public void deleteBoardByIdAndBoardAccessAndTasks(UUID boardId) {
         boardWorkflowService.deleteBoardById(boardId);
+    }
+
+    @Override
+    public void deleteAllBoardsByIdsAndBoardAccessAndTasks(List<UUID> boardsIds) {
+        boardWorkflowService.deleteBoardsByIds(boardsIds);
     }
 }

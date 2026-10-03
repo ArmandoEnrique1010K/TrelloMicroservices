@@ -31,6 +31,7 @@ public interface AuthorTaskResponseMapper {
         return labels.stream()
                 .map(label -> {
                     LabelResponse response = new LabelResponse();
+                    response.setId(label.getId());
                     response.setContent(label.getContent());
                     response.setHex(label.getColor().getHex());
 

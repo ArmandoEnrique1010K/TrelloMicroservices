@@ -1,5 +1,6 @@
 package com.trello.project.client.services;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
@@ -49,5 +50,10 @@ public class WorkflowClientServiceImpl implements WorkflowClientService {
     @Override
     public void deleteBoardByIdAndBoardAccessAndTasks(UUID boardId) {
         workflowClient.deleteBoardByIdAndBoardAccessAndTasks(boardId);
+    }
+
+    @Override
+    public void deleteManyBoardsByIdsAndBoardAccessAndTasks(List<UUID> boardIds) {
+        workflowClient.deleteManyBoardsByIdsAndBoardAccessAndTasks(boardIds);
     }
 }

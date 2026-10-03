@@ -2,6 +2,7 @@ package com.trello.workflow.services;
 
 import com.trello.workflow.repositories.BoardRepository;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
@@ -46,5 +47,10 @@ public class BoardWorkflowServiceImpl implements BoardWorkflowService {
         }
 
         boardRepository.deleteById(boardId);
+    }
+
+    @Override
+    public void deleteBoardsByIds(List<UUID> boardsIds) {
+        boardRepository.deleteAllById(boardsIds);
     }
 }

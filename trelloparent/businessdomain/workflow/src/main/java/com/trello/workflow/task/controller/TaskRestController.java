@@ -52,8 +52,6 @@ public class TaskRestController {
         this.taskService = taskService;
     }
 
-    // TODO: PROBAR SI VERIFICA EL AUTOR DE LA TAREA EN EL METODO DE CREAR, EDITAR Y
-    // ELIMINAR
     @Operation(summary = "Agrega una tarea", description = "Agrega una tarea al tablero por ID en la base de datos")
     @SecurityRequirement(name = "bearerAuth")
     @ApiResponses(value = {
@@ -474,7 +472,6 @@ public class TaskRestController {
                     }
                     """))),
     })
-    // TODO: PROBAR ESTE MÉTODO SI BORRA TODAS LAS ENTIDADES QUE ESTAN CONECTADAS
     @DeleteMapping("/{taskId}")
     public ResponseEntity<SuccessfulResponse<SuccessfulVoidResponse>> deleteTask(
             @AuthenticationPrincipal Jwt jwt,
@@ -489,7 +486,6 @@ public class TaskRestController {
         return ResponseEntity.status(HttpStatus.OK).body(successfulResponse);
     }
 
-    // TODO: PROBAR ESTE METODO PARA OBTENER DETALLES DE UNA TAREA
     @Operation(summary = "Obtiene los detalles de una tarea", description = "Obtiene los detalles de una tarea por ID en la base de datos")
     @SecurityRequirement(name = "bearerAuth")
     @ApiResponses(value = {

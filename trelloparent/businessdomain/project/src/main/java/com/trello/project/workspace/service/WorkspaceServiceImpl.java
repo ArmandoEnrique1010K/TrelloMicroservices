@@ -5,6 +5,7 @@ import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 
+import com.trello.project.client.services.WorkflowClientService;
 import com.trello.project.entities.Workspace;
 import com.trello.project.service.WorkspaceProjectService;
 import com.trello.project.workspace.dto.request.WorkspaceRequest;
@@ -22,12 +23,15 @@ public class WorkspaceServiceImpl implements WorkspaceService {
     private final WorkspaceProjectService workspaceProjectService;
     private final WorkspaceRequestMapper workspaceRequestMapper;
     private final WorkspaceResponseMapper workspaceResponseMapper;
+    private final WorkflowClientService workflowClientService;
 
     public WorkspaceServiceImpl(WorkspaceProjectService workspaceProjectService,
-            WorkspaceRequestMapper workspaceRequestMapper, WorkspaceResponseMapper workspaceResponseMapper) {
+            WorkspaceRequestMapper workspaceRequestMapper, WorkspaceResponseMapper workspaceResponseMapper,
+            WorkflowClientService workflowClientService) {
         this.workspaceProjectService = workspaceProjectService;
         this.workspaceRequestMapper = workspaceRequestMapper;
         this.workspaceResponseMapper = workspaceResponseMapper;
+        this.workflowClientService = workflowClientService;
     }
 
     @Override
@@ -77,9 +81,31 @@ public class WorkspaceServiceImpl implements WorkspaceService {
         return workspaceResponse;
     }
 
+    // TODO: IMPLEMENTAR IDEMPOTENCIA CUANDO NO EXISTEN CIERTOS TABLEROS POR IDS
     @Override
     public void deleteWorkspace(UUID ownerUserId, UUID workspaceId) {
+
+        // Primero se obtiene el Workspace para recuperar los IDs de los Boards que
+        // posteriormente deben eliminarse en el microservicio Workflow
+        Workspace findedWorkspace = workspaceProjectService.findWorkspaceByIdAndOwnerUserId(workspaceId, ownerUserId);
+        List<UUID> boardsIds = findedWorkspace.getBoards()
+                .stream()
+                .map(board -> board.getId())
+                .toList();
+
+        // Elimina el Workspace y sus Boards pertenecientes al dominio del microservicio
+        // Project
         workspaceProjectService.deleteWorkspaceByIdAndOwnerUserId(workspaceId, ownerUserId);
+
+        // Workflow es responsable de eliminar los recursos
+        // pertenecientes a sus propios dominios:
+        //
+        // Board
+        // BoardAccess
+        // Task
+        //
+        // Solamente se envían los IDs, no las entidades completas
+        workflowClientService.deleteManyBoardsByIdsAndBoardAccessAndTasks(boardsIds);
     }
 
 }

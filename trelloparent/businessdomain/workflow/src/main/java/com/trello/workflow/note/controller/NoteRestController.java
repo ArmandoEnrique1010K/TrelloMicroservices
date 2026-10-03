@@ -1,6 +1,5 @@
 package com.trello.workflow.note.controller;
 
-import java.util.List;
 import java.util.UUID;
 
 import org.springframework.http.HttpStatus;
@@ -8,7 +7,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -20,14 +18,12 @@ import com.trello.workflow.common.SuccessfulResponse;
 import com.trello.workflow.common.SuccessfulVoidResponse;
 import com.trello.workflow.note.dto.request.NoteRequest;
 import com.trello.workflow.note.dto.response.NoteResponse;
-import com.trello.workflow.note.dto.response.UserNoteResponse;
 import com.trello.workflow.note.dto.response.common.SuccessfulNoteResponse;
 import com.trello.workflow.note.service.NoteService;
 import com.trello.workflow.security.JwtUtils;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -48,7 +44,6 @@ public class NoteRestController {
         this.noteService = noteService;
     }
 
-    // TODO: PROBAR LOS ENDPOINTS
     @Operation(summary = "Crea una nota", description = "Agrega una nota a la tarea por ID en la base de datos")
     @SecurityRequirement(name = "bearerAuth")
     @ApiResponses(value = {
@@ -134,68 +129,6 @@ public class NoteRestController {
         successfulResponse.setBody(response);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(successfulResponse);
-    }
-
-    // TODO: ELIMINAR ESTE ENDPOINT
-    @Operation(summary = "Lista las notas", description = "Obtiene una lista de notas por ID de tarea en la base de datos")
-    @SecurityRequirement(name = "bearerAuth")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Obtiene la lista de notas por ID de tarea", content = @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = UserNoteResponse.class)), examples = @ExampleObject(value = """
-                    [
-                        {
-                            "id": "e6ee693c-9a84-4154-9dd3-52884dd882e6",
-                            "content": "Contenido de prueba",
-                            "createdAt": "2026-09-27T14:54:38.5068766",
-                            "createdByUser": {
-                                "email": "example@gmail.com",
-                                "firstName": "Jhon",
-                                "id": "3e54e44f-8f87-445b-8817-8c13010f5da5",
-                                "lastName": "Doe"
-                            }
-                        }
-                    ]
-                    """))),
-            @ApiResponse(responseCode = "401", description = "El usuario no esta autenticado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
-                    {
-                        "detail": "Authentication is required to access this resource",
-                        "fields": null,
-                        "instance": null,
-                        "message": "Ha ocurrido un error inesperado",
-                        "status": 401,
-                        "title": "Unauthorized",
-                        "type": "/errors/authentication/not-authenticated"
-                    }
-                    """))),
-            @ApiResponse(responseCode = "404", description = "El permiso de acceso al tablero no existe", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
-                    {
-                        "detail": "The board access was not found in the system",
-                        "fields": null,
-                        "instance": null,
-                        "message": "No se ha encontrado el permiso de acceso al tablero",
-                        "status": 404,
-                        "title": "Board access not found",
-                        "type": "/errors/board-access-not-found"
-                    }
-                    """))),
-            @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
-                    {
-                      "detail": "An unexpected error occurred while processing the request",
-                      "fields": null,
-                      "instance": null,
-                      "message": "Ha ocurrido un error inesperado",
-                      "status": 500,
-                      "title": "Internal server error",
-                      "type": "/errors/internal-server-error"
-                    }
-                    """))),
-    })
-    @GetMapping("/task/{taskId}")
-    public ResponseEntity<List<UserNoteResponse>> listAllNotesByTaskId(
-            @AuthenticationPrincipal Jwt jwt,
-            @Parameter(description = "ID de la tarea", required = true, example = "550e8400-e29b-41d4-a716-446655440000") @PathVariable UUID taskId) {
-        UUID userId = JwtUtils.getUserId(jwt);
-        List<UserNoteResponse> response = noteService.listAllNotesByTaskId(taskId, userId);
-        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     @Operation(summary = "Elimina una nota", description = "Elimina una nota por ID en la base de datos")
