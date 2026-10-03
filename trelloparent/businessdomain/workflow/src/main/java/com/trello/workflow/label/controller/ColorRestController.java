@@ -1,6 +1,5 @@
 package com.trello.workflow.label.controller;
 
-import java.util.Arrays;
 import java.util.List;
 
 import org.springframework.http.HttpStatus;
@@ -10,8 +9,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.trello.workflow.common.StandarizedApiExceptionResponse;
-import com.trello.workflow.enums.Color;
 import com.trello.workflow.label.dto.response.ColorResponse;
+import com.trello.workflow.label.service.ColorService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -27,6 +26,12 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 @RestController
 @RequestMapping("/color")
 public class ColorRestController {
+
+    private final ColorService colorService;
+
+    public ColorRestController(ColorService colorService) {
+        this.colorService = colorService;
+    }
 
     @Operation(summary = "Lista los colores", description = "Lista todos los colores disponibles")
     @SecurityRequirement(name = "bearerAuth")
@@ -56,22 +61,8 @@ public class ColorRestController {
                     """))),
     })
     @GetMapping
-    public ResponseEntity<List<ColorResponse>> getColors() {
-        List<ColorResponse> response = Arrays.stream(Color.values())
-                .map(this::toColorResponse)
-                .toList();
-
+    public ResponseEntity<List<ColorResponse>> listColors() {
+        List<ColorResponse> response = colorService.listColors();
         return ResponseEntity.status(HttpStatus.OK).body(response);
-    }
-
-    // Mapear campos de Color hacia ColorResponse
-    private ColorResponse toColorResponse(Color color) {
-        ColorResponse response = new ColorResponse();
-
-        response.setId(color.name());
-        response.setName(color.getName());
-        response.setHex(color.getHex());
-
-        return response;
     }
 }
