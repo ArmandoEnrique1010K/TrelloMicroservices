@@ -9,7 +9,7 @@ import org.mapstruct.Mappings;
 
 import com.trello.workflow.entities.Label;
 import com.trello.workflow.entities.Task;
-import com.trello.workflow.label.dto.response.LabelColorResponse;
+import com.trello.workflow.label.dto.response.LabelResponse;
 import com.trello.workflow.task.dto.response.AuthorTaskResponse;
 
 @Mapper(componentModel = "spring")
@@ -17,20 +17,20 @@ public interface AuthorTaskResponseMapper {
 
     @Mappings({
             @Mapping(target = "author", ignore = true)
-            // @Mapping(target = "labels", ignore = true)
     })
     AuthorTaskResponse taskToAuthorTaskResponse(Task source);
 
     List<AuthorTaskResponse> taskListToAuthorTaskResponse(List<Task> source);
 
-    default List<LabelColorResponse> mapLabels(Set<Label> labels) {
+    // Mapear los labels
+    default List<LabelResponse> mapLabels(Set<Label> labels) {
         if (labels == null) {
             return List.of();
         }
 
         return labels.stream()
                 .map(label -> {
-                    LabelColorResponse response = new LabelColorResponse();
+                    LabelResponse response = new LabelResponse();
                     response.setContent(label.getContent());
                     response.setHex(label.getColor().getHex());
 

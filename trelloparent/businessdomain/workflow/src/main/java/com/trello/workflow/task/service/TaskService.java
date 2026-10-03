@@ -8,6 +8,7 @@ import com.trello.workflow.exception.ForbiddenOperationException;
 import com.trello.workflow.exception.MismatchedAuthorException;
 import com.trello.workflow.task.dto.request.TaskRequest;
 import com.trello.workflow.task.dto.response.AuthorTaskResponse;
+import com.trello.workflow.task.dto.response.DetailsTaskResponse;
 import com.trello.workflow.task.dto.response.TaskResponse;
 
 public interface TaskService {
@@ -25,4 +26,6 @@ public interface TaskService {
 
     void deleteTask(UUID taskId, UUID userId)
             throws MismatchedAuthorException, ForbiddenOperationException;
+
+    DetailsTaskResponse getTaskDetailsById(UUID taskId, UUID userId);
 }

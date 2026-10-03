@@ -2,8 +2,6 @@ package com.trello.workflow.label.dto.response;
 
 import java.util.UUID;
 
-import com.trello.workflow.enums.Color;
-
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -17,6 +15,6 @@ public class LabelResponse {
     private String content;
 
     // Color amarillo, en este caso se especifica el enum
-    @Schema(name = "hex", example = "#FFC9C9", description = "Color de la etiqueta en la base de datos")
+    @Schema(name = "hex", example = "#FFF085", description = "Color de la etiqueta en la base de datos")
     private String hex;
 }

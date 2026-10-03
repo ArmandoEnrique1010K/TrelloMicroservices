@@ -24,6 +24,7 @@ import com.trello.workflow.enums.Status;
 import com.trello.workflow.security.JwtUtils;
 import com.trello.workflow.task.dto.request.TaskRequest;
 import com.trello.workflow.task.dto.response.AuthorTaskResponse;
+import com.trello.workflow.task.dto.response.DetailsTaskResponse;
 import com.trello.workflow.task.dto.response.TaskResponse;
 import com.trello.workflow.task.dto.response.common.SuccessfulTaskResponse;
 import com.trello.workflow.task.service.TaskService;
@@ -486,6 +487,70 @@ public class TaskRestController {
         successfulResponse.setBody(null);
 
         return ResponseEntity.status(HttpStatus.OK).body(successfulResponse);
+    }
+
+    // TODO: PROBAR ESTE METODO PARA OBTENER DETALLES DE UNA TAREA
+    @Operation(summary = "Obtiene los detalles de una tarea", description = "Obtiene los detalles de una tarea por ID en la base de datos")
+    @SecurityRequirement(name = "bearerAuth")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Obtiene los detalles de una tarea por ID", content = @Content(mediaType = "application/json", schema = @Schema(implementation = DetailsTaskResponse.class))),
+
+            @ApiResponse(responseCode = "401", description = "El usuario no esta autenticado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
+                    {
+                        "detail": "Authentication is required to access this resource",
+                        "fields": null,
+                        "instance": null,
+                        "message": "Ha ocurrido un error inesperado",
+                        "status": 401,
+                        "title": "Unauthorized",
+                        "type": "/errors/authentication/not-authenticated"
+                    }
+                    """))),
+            @ApiResponse(responseCode = "404", description = "No se ha encontrado el recurso solicitado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = {
+                    @ExampleObject(name = "El permiso de acceso al tablero no existe", summary = "El permiso de acceso al tablero no existe", value = """
+                            {
+                                "detail": "The board access was not found in the system",
+                                "fields": null,
+                                "instance": null,
+                                "message": "No se ha encontrado el permiso de acceso al tablero",
+                                "status": 404,
+                                "title": "Board access not found",
+                                "type": "/errors/board-access-not-found"
+                            }
+                            """),
+                    @ExampleObject(name = "La tarea no existe", summary = "La tarea no existe", value = """
+                            {
+                                "detail": "The task was not found in the system",
+                                "fields": null,
+                                "instance": null,
+                                "message": "No se ha encontrado la tarea",
+                                "status": 404,
+                                "title": "Task not found",
+                                "type": "/errors/task-not-found"
+                            }
+                            """),
+            })),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
+                    {
+                      "detail": "An unexpected error occurred while processing the request",
+                      "fields": null,
+                      "instance": null,
+                      "message": "Ha ocurrido un error inesperado",
+                      "status": 500,
+                      "title": "Internal server error",
+                      "type": "/errors/internal-server-error"
+                    }
+                    """))),
+    })
+    @GetMapping("/{taskId}")
+    public ResponseEntity<DetailsTaskResponse> getTaskDetailsById(
+            @AuthenticationPrincipal Jwt jwt,
+            @Parameter(description = "ID de tarea", required = true, example = "550e8400-e29b-41d4-a716-446655440000") @PathVariable UUID taskId) {
+
+        UUID userId = JwtUtils.getUserId(jwt);
+        DetailsTaskResponse response = taskService.getTaskDetailsById(taskId, userId);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+
     }
 
 }
