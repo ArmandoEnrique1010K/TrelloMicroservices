@@ -14,11 +14,13 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.trello.workflow.common.StandarizedApiExceptionResponse;
 import com.trello.workflow.common.SuccessfulResponse;
 import com.trello.workflow.common.SuccessfulVoidResponse;
+import com.trello.workflow.enums.Color;
 import com.trello.workflow.label.dto.request.LabelRequest;
 import com.trello.workflow.label.dto.response.LabelResponse;
 import com.trello.workflow.label.dto.response.common.SuccessfulLabelResponse;
@@ -38,7 +40,6 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
-// TODO: PROBAR LOS ENDPOINTS
 @Tag(name = "Label API", description = "API para la gestión de etiquetas")
 @RestController
 @RequestMapping("/label")
@@ -136,11 +137,14 @@ public class LabelRestController {
     public ResponseEntity<SuccessfulResponse<LabelResponse>> createLabel(
             @AuthenticationPrincipal Jwt jwt,
             @Parameter(description = "ID del tablero", required = true, example = "550e8400-e29b-41d4-a716-446655440000") @PathVariable UUID boardId,
+            // El color es opcional, si no ha seleccionado un color, desde el servicio se
+            // establece el color GRAY por defecto
+            @Parameter(description = "Color de la etiqueta", required = false, example = "YELLOW") @RequestParam(required = false) Color colorName,
             @Valid @RequestBody LabelRequest input) {
 
         UUID userId = JwtUtils.getUserId(jwt);
 
-        LabelResponse response = labelService.createLabel(input, boardId, userId);
+        LabelResponse response = labelService.createLabel(input, boardId, colorName, userId);
         SuccessfulResponse<LabelResponse> successfulResponse = new SuccessfulResponse<>();
         successfulResponse.setMessage("Se ha creado la etiqueta");
         successfulResponse.setBody(response);
@@ -215,7 +219,7 @@ public class LabelRestController {
                     {
                         "body": {
                             "color": "RED",
-                            "content": "Importante",
+                            "content": "Urgente",
                             "id": "e6ee693c-9a84-4154-9dd3-52884dd882e6"
                         },
                         "message": "Se ha modificado la etiqueta"
@@ -307,9 +311,10 @@ public class LabelRestController {
     public ResponseEntity<SuccessfulResponse<LabelResponse>> editLabel(
             @AuthenticationPrincipal Jwt jwt,
             @Parameter(description = "ID de etiqueta", required = true, example = "550e8400-e29b-41d4-a716-446655440000") @PathVariable UUID labelId,
+            @Parameter(description = "Color de la etiqueta", required = false, example = "YELLOW") @RequestParam(required = false) Color colorName,
             @Valid @RequestBody LabelRequest input) {
         UUID userId = JwtUtils.getUserId(jwt);
-        LabelResponse response = labelService.editLabel(labelId, input, userId);
+        LabelResponse response = labelService.editLabel(labelId, input, colorName, userId);
 
         SuccessfulResponse<LabelResponse> successfulResponse = new SuccessfulResponse<>();
         successfulResponse.setMessage("Se ha modificado la etiqueta");

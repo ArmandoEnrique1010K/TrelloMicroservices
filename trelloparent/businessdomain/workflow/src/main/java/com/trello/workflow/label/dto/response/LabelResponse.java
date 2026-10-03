@@ -17,6 +17,6 @@ public class LabelResponse {
     private String content;
 
     // Color amarillo, en este caso se especifica el enum
-    @Schema(name = "color", example = "YELLOW", description = "Color de la etiqueta en la base de datos")
-    private Color color;
+    @Schema(name = "hex", example = "#FFC9C9", description = "Color de la etiqueta en la base de datos")
+    private String hex;
 }

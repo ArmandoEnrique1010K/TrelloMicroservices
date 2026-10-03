@@ -41,7 +41,8 @@ public class LabelServiceImpl implements LabelService {
     }
 
     @Override
-    public LabelResponse createLabel(LabelRequest labelRequest, UUID boardId, UUID userId)
+    public LabelResponse createLabel(LabelRequest labelRequest, UUID boardId, Color colorName,
+            UUID userId)
             throws LabelAlreadyExistsException, ForbiddenOperationException {
 
         String content = labelRequest.getContent();
@@ -62,6 +63,14 @@ public class LabelServiceImpl implements LabelService {
         Board board = boardAccess.getBoard();
 
         Label labelToLabelRequest = labelRequestMapper.labelRequestToLabel(labelRequest);
+
+        // Por defecto, se establece el color gris si no ha seleccionado un color
+        if (colorName == null) {
+            labelToLabelRequest.setColor(Color.GRAY);
+        } else {
+            labelToLabelRequest.setColor(colorName);
+        }
+
         labelToLabelRequest.setBoard(board);
 
         Label savedLabel = labelWorkflowService.saveLabel(labelToLabelRequest);
@@ -91,11 +100,10 @@ public class LabelServiceImpl implements LabelService {
     // Como se va a modificar la etiqueta, las etiquetas de las tareas tambien se
     // modificaran
     @Override
-    public LabelResponse editLabel(UUID labelId, LabelRequest labelRequest, UUID userId)
+    public LabelResponse editLabel(UUID labelId, LabelRequest labelRequest, Color colorName, UUID userId)
             throws LabelAlreadyExistsException, ForbiddenOperationException {
 
         String content = labelRequest.getContent();
-        Color color = labelRequest.getColor();
 
         Label findedLabel = labelWorkflowService.findLabelById(labelId);
         UUID boardId = findedLabel.getBoard().getId();
@@ -117,7 +125,12 @@ public class LabelServiceImpl implements LabelService {
         }
 
         findedLabel.setContent(content);
-        findedLabel.setColor(color);
+
+        // Si no ha seleccionado un color, mantener el color anterior
+        if (colorName != null) {
+            findedLabel.setColor(colorName);
+        }
+
         Label savedLabel = labelWorkflowService.saveLabel(findedLabel);
 
         LabelResponse labelResponse = labelResponseMapper.labelToLabelResponse(savedLabel);
