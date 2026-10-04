@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.trello.project.client.services.WorkflowClientService;
 import com.trello.project.entities.Workspace;
@@ -81,6 +82,7 @@ public class WorkspaceServiceImpl implements WorkspaceService {
         return workspaceResponse;
     }
 
+    @Transactional(rollbackFor = Exception.class)
     // TODO: IMPLEMENTAR IDEMPOTENCIA CUANDO NO EXISTEN CIERTOS TABLEROS POR IDS
     @Override
     public void deleteWorkspace(UUID ownerUserId, UUID workspaceId) {

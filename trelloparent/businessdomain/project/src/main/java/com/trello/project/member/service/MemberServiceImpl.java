@@ -13,6 +13,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.trello.project.client.dto.response.UserResponse;
 import com.trello.project.client.enums.WorkflowRole;
@@ -78,6 +79,7 @@ public class MemberServiceImpl implements MemberService {
 
     }
 
+    @Transactional(rollbackFor = Exception.class)
     @Override
     public MemberResponse changeRoleMemberById(Role role, UUID memberId, UUID ownerUserId) {
 
@@ -108,6 +110,7 @@ public class MemberServiceImpl implements MemberService {
         return memberResponse;
     }
 
+    @Transactional(rollbackFor = Exception.class)
     @Override
     public MemberResponse deactivateMember(UUID memberId, UUID ownerUserId) {
         Member findedMember = memberProjectService.findMemberByIdAndOwnerUserId(memberId, ownerUserId);

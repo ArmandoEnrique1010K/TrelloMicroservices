@@ -81,6 +81,7 @@ public class TaskServiceImpl implements TaskService {
         this.labelTaskResponseMapper = labelTaskResponseMapper;
     }
 
+    @Transactional(rollbackFor = Exception.class)
     @Override
     public TaskResponse createTask(TaskRequest taskRequest, UUID boardId, UUID userId)
             throws ForbiddenOperationException {
@@ -191,6 +192,7 @@ public class TaskServiceImpl implements TaskService {
         return taskResponse;
     }
 
+    @Transactional(rollbackFor = Exception.class)
     @Override
     public TaskResponse changeStatusTask(UUID taskId, Status status, UUID userId) throws ForbiddenOperationException {
 
@@ -436,6 +438,7 @@ public class TaskServiceImpl implements TaskService {
                         Function.identity()));
     }
 
+    @Transactional(rollbackFor = Exception.class)
     @Override
     public LabelTaskResponse addLabelInTask(UUID labelId, UUID taskId, UUID userId)
             throws MismatchedAuthorException, ForbiddenOperationException, LabelAlreadyAssignedException {
@@ -484,6 +487,7 @@ public class TaskServiceImpl implements TaskService {
         return response;
     }
 
+    @Transactional(rollbackFor = Exception.class)
     @Override
     public LabelTaskResponse deleteLabelInTask(UUID labelId, UUID taskId, UUID userId)
             throws MismatchedAuthorException, ForbiddenOperationException, LabelNotAssignedToTaskException {

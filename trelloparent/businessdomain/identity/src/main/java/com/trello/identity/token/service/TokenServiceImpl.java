@@ -42,6 +42,7 @@ public class TokenServiceImpl implements TokenService {
         this.passwordEncoder = passwordEncoder;
     }
 
+    @Transactional(rollbackFor = Exception.class)
     @Override
     public void sendConfirmAccountToken(
             SendTokenRequest sendTokenRequest)
@@ -174,6 +175,7 @@ public class TokenServiceImpl implements TokenService {
         throw new InvalidTokenException();
     }
 
+    @Transactional(rollbackFor = Exception.class)
     @Override
     public void sendPasswordResetToken(SendTokenRequest sendTokenRequest)
             throws UserNotFoundException, UnconfirmedAccountException {
@@ -213,6 +215,10 @@ public class TokenServiceImpl implements TokenService {
 
     }
 
+    // No hara un rollback si cae en InvalidTokenException
+    // La excepción ocurre cuando se ha introducido un token incorrecto, pero no se
+    // trata como un error del sistema sino como un error de usuario que altero un
+    // registro
     @Transactional(noRollbackFor = InvalidTokenException.class)
     @Override
     public ValidatePasswordResetTokenResponse validatePasswordResetToken(
@@ -277,7 +283,7 @@ public class TokenServiceImpl implements TokenService {
 
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     @Override
     public void resetPassword(ResetPasswordRequest resetPasswordRequest)
             throws UserNotFoundException, UnconfirmedAccountException, MismatchUpdatePasswordException,

@@ -16,6 +16,7 @@ import java.util.UUID;
 import java.util.stream.Stream;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class BoardServiceImpl implements BoardService {
@@ -36,6 +37,7 @@ public class BoardServiceImpl implements BoardService {
         this.workflowClientService = workflowClientService;
     }
 
+    @Transactional(rollbackFor = Exception.class)
     @Override
     public BoardResponse createBoardByWorkspaceId(UUID workspaceId, UUID ownerUserId, BoardRequest boardRequest)
             throws BoardAlreadyExistsException {
@@ -63,6 +65,7 @@ public class BoardServiceImpl implements BoardService {
         // WorkflowRole.OWNER);
 
         // Guardar un tablero
+        // TODO: INVESTIGAR COMO MANEJAR PETICIONES CUANDO EL MICROSERVICIO ESTA CAIDO
         workflowClientService.addBoardAndBoardAccessUserOwner(savedBoard.getId());
 
         return boardResponse;
@@ -102,16 +105,12 @@ public class BoardServiceImpl implements BoardService {
         return boardResponse;
     }
 
+    @Transactional(rollbackFor = Exception.class)
     @Override
     public void deleteBoard(UUID ownerUserId, UUID boardId) {
         // Llamar al endpoint del microservicio Workflow para borrar el tablero
         boardProjectService.findBoardByIdAndOwnerUserId(boardId, ownerUserId);
         workflowClientService.deleteBoardByIdAndBoardAccessAndTasks(boardId);
-
-        // boardProjectService.deleteBoardByIdAndOwnerUserId(boardId, ownerUserId);
-        // // Llamar al endpoint del microservicio Workflow para borrar permisos de
-        // acceso
-        // workflowClientService.deleteAllBoardAccessByBoardId(boardId);
     }
 
     @Override

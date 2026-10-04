@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.trello.project.client.dto.response.UserResponse;
 import com.trello.project.client.enums.WorkflowRole;
@@ -158,6 +159,7 @@ public class InvitationServiceImpl implements InvitationService {
         invitationProjectService.deleteInvitationByIdAndSenderUserId(invitationId, ownerUserId);
     }
 
+    @Transactional(rollbackFor = Exception.class)
     @Override
     public void acceptInvitation(UUID invitationId, UUID recipientUserId) {
         Invitation findedInvitation = invitationProjectService.findInvitationByIdAndRecipientUserId(invitationId,

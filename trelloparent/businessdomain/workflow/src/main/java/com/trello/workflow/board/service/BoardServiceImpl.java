@@ -38,8 +38,13 @@ public class BoardServiceImpl implements BoardService {
     // De esta manera, si el Board se guarda correctamente pero posteriormente
     // falla el guardado de BoardAccess con una excepción que provoque rollback,
     // el guardado del Board también será revertido.
+
+    // No se agrega BoardAlreadyExistsException.class porque es redundante, ya que
+    // hereda de RuntimeException
+    // @Transactional(rollbackFor = { BoardAlreadyExistsException.class,
+    // Exception.class })
+    @Transactional(rollbackFor = Exception.class)
     @Override
-    @Transactional(rollbackFor = BoardAlreadyExistsException.class)
     public void addBoardAndBoardAccessUserOwner(UUID boardId, UUID userId) throws BoardAlreadyExistsException {
 
         // if (boardWorkflowService.existsBoardById(boardId)) {
