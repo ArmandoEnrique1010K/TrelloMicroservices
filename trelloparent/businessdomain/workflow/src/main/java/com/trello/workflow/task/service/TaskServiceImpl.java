@@ -4,6 +4,7 @@ import com.trello.workflow.services.TaskWorkflowService;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -13,28 +14,38 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.trello.workflow.boardaccess.utils.BoardAccessRoleUtils;
 import com.trello.workflow.client.dto.response.UserResponse;
 import com.trello.workflow.client.service.IdentityClientService;
 import com.trello.workflow.entities.BoardAccess;
 import com.trello.workflow.entities.History;
+import com.trello.workflow.entities.Label;
 import com.trello.workflow.entities.Note;
 import com.trello.workflow.entities.Task;
+import com.trello.workflow.enums.Color;
 import com.trello.workflow.enums.Role;
 import com.trello.workflow.enums.Status;
 import com.trello.workflow.exception.ForbiddenOperationException;
 import com.trello.workflow.exception.MismatchedAuthorException;
 import com.trello.workflow.history.dto.response.HistoryResponse;
+import com.trello.workflow.label.dto.request.LabelRequest;
+import com.trello.workflow.label.exception.LabelAlreadyExistsException;
 import com.trello.workflow.note.dto.response.UserNoteResponse;
 import com.trello.workflow.services.BoardAccessWorkflowService;
 import com.trello.workflow.services.HistoryWorkflowService;
+import com.trello.workflow.services.LabelWorkflowService;
 import com.trello.workflow.task.dto.request.TaskRequest;
 import com.trello.workflow.task.dto.response.AuthorTaskResponse;
 import com.trello.workflow.task.dto.response.DetailsTaskResponse;
+import com.trello.workflow.task.dto.response.LabelTaskResponse;
 import com.trello.workflow.task.dto.response.TaskResponse;
+import com.trello.workflow.task.exception.LabelAlreadyAssignedException;
+import com.trello.workflow.task.exception.LabelNotAssignedToTaskException;
 import com.trello.workflow.task.mapper.AuthorTaskResponseMapper;
 import com.trello.workflow.task.mapper.DetailsTaskResponseMapper;
+import com.trello.workflow.task.mapper.LabelTaskResponseMapper;
 import com.trello.workflow.task.mapper.TaskRequestMapper;
 import com.trello.workflow.task.mapper.TaskResponseMapper;
 
@@ -49,12 +60,15 @@ public class TaskServiceImpl implements TaskService {
     private final IdentityClientService identityClientService;
     private final AuthorTaskResponseMapper authorTaskResponseMapper;
     private final DetailsTaskResponseMapper detailsTaskResponseMapper;
+    private final LabelWorkflowService labelWorkflowService;
+    private final LabelTaskResponseMapper labelTaskResponseMapper;
 
     public TaskServiceImpl(BoardAccessWorkflowService boardAccessWorkflowService,
             HistoryWorkflowService historyWorkflowService, TaskWorkflowService taskWorkflowService,
             TaskRequestMapper taskRequestMapper,
             TaskResponseMapper taskResponseMapper, IdentityClientService identityClientService,
-            AuthorTaskResponseMapper authorTaskResponseMapper, DetailsTaskResponseMapper detailsTaskResponseMapper) {
+            AuthorTaskResponseMapper authorTaskResponseMapper, DetailsTaskResponseMapper detailsTaskResponseMapper,
+            LabelWorkflowService labelWorkflowService, LabelTaskResponseMapper labelTaskResponseMapper) {
         this.boardAccessWorkflowService = boardAccessWorkflowService;
         this.historyWorkflowService = historyWorkflowService;
         this.taskWorkflowService = taskWorkflowService;
@@ -63,6 +77,8 @@ public class TaskServiceImpl implements TaskService {
         this.identityClientService = identityClientService;
         this.authorTaskResponseMapper = authorTaskResponseMapper;
         this.detailsTaskResponseMapper = detailsTaskResponseMapper;
+        this.labelWorkflowService = labelWorkflowService;
+        this.labelTaskResponseMapper = labelTaskResponseMapper;
     }
 
     @Override
@@ -420,4 +436,154 @@ public class TaskServiceImpl implements TaskService {
                         Function.identity()));
     }
 
+    @Override
+    public LabelTaskResponse addLabelInTask(UUID labelId, UUID taskId, UUID userId)
+            throws MismatchedAuthorException, ForbiddenOperationException, LabelAlreadyAssignedException {
+        Task findedTask = taskWorkflowService.findTaskById(taskId);
+        UUID boardId = findedTask.getBoard().getId();
+
+        // Buscar permiso de acceso al tablero por boardId y userId
+        BoardAccess boardAccess = boardAccessWorkflowService.findBoardAccessByBoardIdAndUserIdAndUserActive(boardId,
+                userId);
+
+        boolean isAuthor = findedTask.getCreatedByUserId().equals(userId);
+
+        if (!isAuthor) {
+            throw new MismatchedAuthorException();
+        }
+
+        // Rol del usuario actual
+        Role role = boardAccess.getRole();
+
+        // Si el usuario no tiene el rol de propietario o admin, no podra realizar la
+        // operación
+        if (!BoardAccessRoleUtils.hasAuthorization(role, Role.ADMIN)) {
+            throw new ForbiddenOperationException();
+        }
+
+        // Buscar label y que pertenezca al mismo tablero por ID
+        Label findedLabel = labelWorkflowService.findLabelByIdAndBoardId(labelId, boardId);
+
+        // Realiza una query más (se puede observar en la consola) para obtener los
+        // labels
+        Set<Label> labels = findedTask.getLabels();
+
+        if (labels == null) {
+            labels = new HashSet<>();
+            findedTask.setLabels(labels);
+        }
+
+        // Si ya contiene la etiqueta asignada, devolvera una excepción
+        if (labels.contains(findedLabel)) {
+            throw new LabelAlreadyAssignedException();
+        }
+        labels.add(findedLabel);
+        taskWorkflowService.saveTask(findedTask);
+
+        LabelTaskResponse response = labelTaskResponseMapper.taskToLabelTaskResponse(findedTask);
+        return response;
+    }
+
+    @Override
+    public LabelTaskResponse deleteLabelInTask(UUID labelId, UUID taskId, UUID userId)
+            throws MismatchedAuthorException, ForbiddenOperationException, LabelNotAssignedToTaskException {
+
+        Task findedTask = taskWorkflowService.findTaskById(taskId);
+        UUID boardId = findedTask.getBoard().getId();
+
+        BoardAccess boardAccess = boardAccessWorkflowService.findBoardAccessByBoardIdAndUserIdAndUserActive(boardId,
+                userId);
+
+        boolean isAuthor = findedTask.getCreatedByUserId().equals(userId);
+
+        if (!isAuthor) {
+            throw new MismatchedAuthorException();
+        }
+
+        Role role = boardAccess.getRole();
+
+        if (!BoardAccessRoleUtils.hasAuthorization(role, Role.ADMIN)) {
+            throw new ForbiddenOperationException();
+        }
+
+        Label findedLabel = labelWorkflowService.findLabelByIdAndBoardId(labelId, boardId);
+        Set<Label> labels = findedTask.getLabels();
+
+        if (!labels.remove(findedLabel)) {
+            throw new LabelNotAssignedToTaskException();
+        }
+
+        taskWorkflowService.saveTask(findedTask);
+
+        LabelTaskResponse response = labelTaskResponseMapper.taskToLabelTaskResponse(findedTask);
+        return response;
+    }
+
+    // Solamente el autor de la tarea y si tiene el rol de ADMIN puede crear una
+    // etiqueta y asignarla
+
+    // Por defecto, @Transactional realiza rollback cuando se lanza una
+    // RuntimeException (o una excepción que herede de ella).
+
+    // Para que también se realice rollback ante excepciones checked
+    // (que heredan directamente de Exception), se especifica
+    // rollbackFor = Exception.class.
+
+    // En este caso hay 2 "save", si el microservicio se cae inmediatamente luego de
+    // ejecutar el primer "save", hara un rollback, si llega al final correctamente
+    // (cuando no se cae el microservicio), hara un commit, editara los datos
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public LabelTaskResponse createLabelAndAddInTask(LabelRequest labelRequest, UUID taskId, Color colorName,
+            UUID userId)
+            throws LabelAlreadyExistsException, MismatchedAuthorException, ForbiddenOperationException {
+
+        String content = labelRequest.getContent();
+
+        Task findedTask = taskWorkflowService.findTaskById(taskId);
+        UUID boardId = findedTask.getBoard().getId();
+        BoardAccess boardAccess = boardAccessWorkflowService.findBoardAccessByBoardIdAndUserIdAndUserActive(boardId,
+                userId);
+
+        boolean isAuthor = findedTask.getCreatedByUserId().equals(userId);
+
+        if (!isAuthor) {
+            throw new MismatchedAuthorException();
+        }
+
+        Role role = boardAccess.getRole();
+
+        if (!BoardAccessRoleUtils.hasAuthorization(role, Role.ADMIN)) {
+            throw new ForbiddenOperationException();
+        }
+
+        // Verificar que no exista otra etiqueta
+        if (labelWorkflowService.existsLabelByBoardIdAndContent(boardId, content)) {
+            throw new LabelAlreadyExistsException();
+        }
+
+        // Crear etiqueta
+        Label label = new Label();
+        label.setContent(content);
+
+        if (colorName == null) {
+            label.setColor(Color.GRAY);
+        } else {
+            label.setColor(colorName);
+        }
+        label.setBoard(boardAccess.getBoard());
+
+        // Persistir etiqueta
+        Label savedLabel = labelWorkflowService.saveLabel(label);
+
+        // Actualizar tarea
+        findedTask.setUpdatedAt(LocalDateTime.now());
+        findedTask.getLabels().add(savedLabel);
+
+        // Persistir relacion Task <-> Label
+        taskWorkflowService.saveTask(findedTask);
+
+        LabelTaskResponse response = labelTaskResponseMapper.taskToLabelTaskResponse(findedTask);
+        return response;
+    }
 }

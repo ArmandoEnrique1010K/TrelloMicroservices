@@ -19,4 +19,6 @@ public interface LabelWorkflowService {
     boolean existsLabelByBoardIdAndContent(UUID boardId, String content);
 
     boolean existsLabelByBoardIdAndContentExcludingId(UUID boardId, String content, UUID labelId);
+
+    Label findLabelByIdAndBoardId(UUID labelId, UUID boardId) throws LabelNotFoundException;
 }

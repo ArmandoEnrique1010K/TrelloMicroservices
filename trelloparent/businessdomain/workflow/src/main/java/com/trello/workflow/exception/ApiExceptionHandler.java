@@ -14,6 +14,8 @@ import com.trello.workflow.board.exception.BoardAlreadyExistsException;
 import com.trello.workflow.boardaccess.exception.BoardAccessAlreadyExistsException;
 import com.trello.workflow.common.StandarizedApiExceptionResponse;
 import com.trello.workflow.label.exception.LabelAlreadyExistsException;
+import com.trello.workflow.task.exception.LabelAlreadyAssignedException;
+import com.trello.workflow.task.exception.LabelNotAssignedToTaskException;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -285,4 +287,45 @@ public class ApiExceptionHandler {
                 .status(status)
                 .body(response);
     }
+
+    // Excepción de cuando ya la etiqueta esta relacionada con el task
+    // LabelAlreadyAssignedException
+    @ExceptionHandler(LabelAlreadyAssignedException.class)
+    public ResponseEntity<StandarizedApiExceptionResponse> handleLabelAlreadyAssignedException(
+            LabelAlreadyAssignedException ex) {
+        HttpStatus status = HttpStatus.CONFLICT;
+
+        StandarizedApiExceptionResponse response = new StandarizedApiExceptionResponse(
+                "/errors/task/label/already-assigned",
+                "The label for this task has already been assigned",
+                status.value(),
+                "The task already contains the label provided from this board",
+                null,
+                "La etiqueta ya se encuentra asignada");
+
+        return ResponseEntity
+                .status(status)
+                .body(response);
+    }
+
+    // Excepción de cuando la etiqueta ya no esta asignada a la tarea
+    // LabelNotAssignedToTaskException
+    @ExceptionHandler(LabelNotAssignedToTaskException.class)
+    public ResponseEntity<StandarizedApiExceptionResponse> handleLabelNotAssignedToTaskException(
+            LabelNotAssignedToTaskException ex) {
+        HttpStatus status = HttpStatus.CONFLICT;
+
+        StandarizedApiExceptionResponse response = new StandarizedApiExceptionResponse(
+                "/errors/task/label/not-assigned",
+                "The label for this task has not been assigned",
+                status.value(),
+                "The task does not contain the label provided by this board",
+                null,
+                "La etiqueta no se encuentra asignada");
+
+        return ResponseEntity
+                .status(status)
+                .body(response);
+    }
+
 }

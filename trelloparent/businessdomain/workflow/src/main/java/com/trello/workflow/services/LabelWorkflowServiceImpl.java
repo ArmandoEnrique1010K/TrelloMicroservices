@@ -50,4 +50,9 @@ public class LabelWorkflowServiceImpl implements LabelWorkflowService {
         return labelRepository.existsByBoardIdAndContentAndIdNot(boardId, content, labelId);
     }
 
+    @Override
+    public Label findLabelByIdAndBoardId(UUID labelId, UUID boardId) throws LabelNotFoundException {
+        return labelRepository.findByIdAndBoardId(labelId, boardId).orElseThrow(LabelNotFoundException::new);
+    }
+
 }
