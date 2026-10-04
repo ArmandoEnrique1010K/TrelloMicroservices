@@ -8,11 +8,15 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
-import lombok.Data;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
-@Data
-@Table(name = "board")
+@Getter
+@Setter
+@NoArgsConstructor
+@Table(name = "boards")
 public class Board {
 
     // El ID es generado por el microservicio Project y reutilizado

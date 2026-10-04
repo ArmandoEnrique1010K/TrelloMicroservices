@@ -17,10 +17,10 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "refresh_tokens")
 @Getter
 @Setter
 @NoArgsConstructor
+@Table(name = "refresh_tokens")
 public class RefreshToken {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

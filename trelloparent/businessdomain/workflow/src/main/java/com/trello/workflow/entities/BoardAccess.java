@@ -15,12 +15,16 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import lombok.Data;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 // Esta entidad representa una copia de los datos obtenidos del microservicio Project
 // Establece los limites para gestionar una tarea (TASK)
 @Entity
-@Data
+@Getter
+@Setter
+@NoArgsConstructor
 @Table(name = "board_access")
 public class BoardAccess {
 
