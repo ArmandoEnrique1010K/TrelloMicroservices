@@ -40,7 +40,7 @@ import jakarta.validation.Valid;
 
 @Tag(name = "Board API", description = "API para la gestión de tableros por el usuario autenticado")
 @RestController
-@RequestMapping("/board")
+@RequestMapping("/boards")
 public class BoardRestController {
     private final BoardService boardService;
 

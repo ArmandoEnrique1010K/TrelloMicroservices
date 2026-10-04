@@ -148,7 +148,7 @@ public class ProfileRestController {
                     """))),
 
     })
-    @PostMapping("/checkPassword")
+    @PostMapping("/check-password")
     public ResponseEntity<Void> checkPassword(@AuthenticationPrincipal Jwt jwt,
             @Valid @RequestBody CheckPasswordRequest input)
             throws UserNotFoundException, MismatchCheckPasswordException {
@@ -240,7 +240,7 @@ public class ProfileRestController {
                     }
                     """))),
     })
-    @PutMapping("updatePassword")
+    @PutMapping("update-password")
     public ResponseEntity<SuccessfulResponse<SuccessfulVoidResponse>> updatePassword(@AuthenticationPrincipal Jwt jwt,
             @Valid @RequestBody UpdatePasswordRequest input)
             throws UserNotFoundException, MismatchCheckPasswordException, MismatchUpdatePasswordException,

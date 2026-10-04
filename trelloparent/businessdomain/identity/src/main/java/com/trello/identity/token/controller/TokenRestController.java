@@ -90,7 +90,7 @@ public class TokenRestController {
                     }
                     """))),
     })
-    @PostMapping("/send/confirmAccount")
+    @PostMapping("/send/confirm-account")
     public ResponseEntity<SuccessfulResponse<SuccessfulVoidResponse>> sendConfirmAccountToken(
             @Valid @RequestBody SendTokenRequest input)
             throws UserNotFoundException, ConfirmedAccountException {
@@ -172,7 +172,7 @@ public class TokenRestController {
                     }
                     """))),
     })
-    @PostMapping("/validate/confirmAccount")
+    @PostMapping("/validate/confirm-account")
     public ResponseEntity<SuccessfulResponse<SuccessfulVoidResponse>> validateConfirmAccountToken(
             @AuthenticationPrincipal Jwt jwt,
             @Valid @RequestBody ValidateTokenRequest input)
@@ -241,7 +241,7 @@ public class TokenRestController {
                     }
                     """))),
     })
-    @PostMapping("/send/passwordReset")
+    @PostMapping("/send/password-reset")
     public ResponseEntity<SuccessfulResponse<SuccessfulVoidResponse>> sendPasswordResetToken(
             @Valid @RequestBody SendTokenRequest input)
             throws UserNotFoundException, UnconfirmedAccountException {
@@ -324,7 +324,7 @@ public class TokenRestController {
                     }
                     """))),
     })
-    @PostMapping("/validate/passwordReset")
+    @PostMapping("/validate/password-reset")
     public ResponseEntity<SuccessfulResponse<ValidatePasswordResetTokenResponse>> validatePasswordResetToken(
             @Valid @RequestBody ValidateTokenRequest input)
             throws InvalidTokenException, UserNotFoundException, UnconfirmedAccountException {
@@ -408,7 +408,7 @@ public class TokenRestController {
                     }
                     """))),
     })
-    @PutMapping("/resetPassword")
+    @PutMapping("/reset-password")
     public ResponseEntity<SuccessfulResponse<SuccessfulVoidResponse>> resetPassword(
             @Valid @RequestBody ResetPasswordRequest input) throws UserNotFoundException,
             UnconfirmedAccountException, MismatchUpdatePasswordException, MismatchSameOldPasswordException {

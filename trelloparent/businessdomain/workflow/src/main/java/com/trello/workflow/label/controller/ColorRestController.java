@@ -24,7 +24,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 
 @Tag(name = "Color API", description = "API para la gestión de colores")
 @RestController
-@RequestMapping("/color")
+@RequestMapping("/colors")
 public class ColorRestController {
 
     private final ColorService colorService;

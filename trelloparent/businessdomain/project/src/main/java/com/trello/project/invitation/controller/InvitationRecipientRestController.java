@@ -34,7 +34,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 
 @Tag(name = "Invitation Recipient API", description = "API para la gestión de invitaciones enviadas al usuario autenticado")
 @RestController
-@RequestMapping("/invitation")
+@RequestMapping("/invitations")
 public class InvitationRecipientRestController {
 
     private final InvitationService invitationService;

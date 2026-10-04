@@ -30,7 +30,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 
 @Tag(name = "Board Access API", description = "API para la gestión de permisos de acceso al tablero por usuarios")
 @RestController
-@RequestMapping("/boardAccess")
+@RequestMapping("/board-access")
 public class BoardAccessRestController {
 
     private final BoardAccessService boardAccessService;

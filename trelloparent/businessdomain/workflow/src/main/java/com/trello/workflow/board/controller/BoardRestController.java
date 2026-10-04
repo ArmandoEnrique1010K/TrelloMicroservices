@@ -31,7 +31,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 
 @Tag(name = "Board API", description = "API para los IDs de tableros")
 @RestController
-@RequestMapping("/board")
+@RequestMapping("/boards")
 public class BoardRestController {
 
     private final BoardService boardService;

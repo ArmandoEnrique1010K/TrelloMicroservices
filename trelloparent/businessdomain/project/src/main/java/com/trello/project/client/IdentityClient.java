@@ -20,12 +20,12 @@ public interface IdentityClient {
     // @GetMapping("/user/{userId}")
     // UserResponse findUserById(@PathVariable("userId") UUID userId);
 
-    @GetMapping("/user/batch")
+    @GetMapping("/users/batch")
     List<UserResponse> findUsersByIds(@RequestParam(required = false) List<UUID> usersIds);
 
     // No se pasa el @AuthenticationPrincipal Jwt jwt, debido al interceptor en
     // FeignClientConfig
-    @GetMapping("/user/search")
+    @GetMapping("/users/search")
     List<UserResponse> listAllUsersByEmailAndExcludingIds(
             @RequestParam(required = false) String email,
             @RequestParam(required = false) List<UUID> ids);

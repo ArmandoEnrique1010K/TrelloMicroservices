@@ -13,9 +13,9 @@ import com.trello.workflow.client.dto.response.UserResponse;
 
 @FeignClient(name = "businessdomain-identity", url = "${services.identity.url}", configuration = FeignClientConfig.class)
 public interface IdentityClient {
-    @GetMapping("/user/batch")
+    @GetMapping("/users/batch")
     List<UserResponse> findUsersByIds(@RequestParam(required = false) List<UUID> usersIds);
 
-    @GetMapping("/user/{userId}")
+    @GetMapping("/users/{userId}")
     UserResponse findUserById(@PathVariable("userId") UUID userId);
 }

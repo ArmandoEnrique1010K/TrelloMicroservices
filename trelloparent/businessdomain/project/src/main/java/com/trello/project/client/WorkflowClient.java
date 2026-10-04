@@ -18,38 +18,38 @@ import com.trello.project.client.enums.WorkflowRole;
 @FeignClient(name = "businessdomain-workflow", url = "${services.workflow.url}", configuration = FeignClientConfig.class)
 public interface WorkflowClient {
     // BOARD ACCESS
-    @PostMapping("/boardAccess/board/{boardId}/role/{roleName}")
+    @PostMapping("/board-access/board/{boardId}/role/{roleName}")
     ResponseEntity<Void> addBoardAccess(
             @PathVariable("boardId") UUID boardId,
             @PathVariable("roleName") WorkflowRole roleName);
 
-    @PutMapping("/boardAccess/board/{boardId}/user/{memberUserId}/role/{roleName}")
+    @PutMapping("/board-access/board/{boardId}/user/{memberUserId}/role/{roleName}")
     ResponseEntity<Void> changeRoleBoardAccess(
             @PathVariable("boardId") UUID boardId,
             @PathVariable("memberUserId") UUID memberUserId,
             @PathVariable("roleName") WorkflowRole roleName);
 
-    @PatchMapping("/boardAccess/board/{boardId}/user/{memberUserId}")
+    @PatchMapping("/board-access/board/{boardId}/user/{memberUserId}")
     ResponseEntity<Void> deactivateBoardAccess(
             @PathVariable("boardId") UUID boardId,
             @PathVariable("memberUserId") UUID memberUserId);
 
-    @PatchMapping("/boardAccess/board/{boardId}/user/{memberUserId}/role/{roleName}")
+    @PatchMapping("/board-access/board/{boardId}/user/{memberUserId}/role/{roleName}")
     ResponseEntity<Void> activateBoardAccess(
             @PathVariable("boardId") UUID boardId,
             @PathVariable("memberUserId") UUID memberUserId,
             @PathVariable("roleName") WorkflowRole roleName);
 
     // BOARD
-    @PostMapping("/board/{boardId}")
+    @PostMapping("/boards/{boardId}")
     ResponseEntity<Void> addBoardAndBoardAccessUserOwner(
             @PathVariable("boardId") UUID boardId);
 
-    @DeleteMapping("/board/{boardId}")
+    @DeleteMapping("/boards/{boardId}")
     ResponseEntity<Void> deleteBoardByIdAndBoardAccessAndTasks(
             @PathVariable("boardId") UUID boardId);
 
-    @DeleteMapping("/board/batch")
+    @DeleteMapping("/boards/batch")
     ResponseEntity<Void> deleteManyBoardsByIdsAndBoardAccessAndTasks(
             @RequestParam(required = false) List<UUID> boardIds);
 

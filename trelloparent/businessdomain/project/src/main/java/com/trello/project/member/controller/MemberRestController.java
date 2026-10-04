@@ -38,7 +38,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 
 @Tag(name = "Member API", description = "API para la gestión de miembros de tableros")
 @RestController
-@RequestMapping("/member")
+@RequestMapping("/members")
 public class MemberRestController {
 
     private final MemberService memberService;

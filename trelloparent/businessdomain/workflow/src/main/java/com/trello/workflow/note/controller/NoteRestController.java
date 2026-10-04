@@ -35,7 +35,7 @@ import jakarta.validation.Valid;
 
 @Tag(name = "Note API", description = "API para la gestión de notas")
 @RestController
-@RequestMapping("/note")
+@RequestMapping("/notes")
 public class NoteRestController {
 
     private final NoteService noteService;

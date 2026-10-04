@@ -107,7 +107,7 @@ public class AuthRestController {
                     }
                     """)))
     })
-    @PostMapping("/createAccount")
+    @PostMapping("/create-account")
     public ResponseEntity<SuccessfulResponse<AccountResponse>> createAccount(@Valid @RequestBody AccountRequest input)
             throws MismatchPasswordException, UserAlreadyExistsException {
         AccountResponse response = authService.createAccount(input);

@@ -41,7 +41,7 @@ import jakarta.validation.Valid;
 
 @Tag(name = "Workspace API", description = "API para la gestión de espacios de trabajo por el usuario autenticado")
 @RestController
-@RequestMapping("/workspace")
+@RequestMapping("/workspaces")
 public class WorkspaceRestController {
 
     private final WorkspaceService workspaceService;

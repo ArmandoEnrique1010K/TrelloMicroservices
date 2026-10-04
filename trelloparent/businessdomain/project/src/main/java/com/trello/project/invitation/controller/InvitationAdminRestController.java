@@ -45,7 +45,7 @@ import jakarta.validation.Valid;
 
 @Tag(name = "Invitation Admin API", description = "API para la gestión de invitaciones desde el administrador del espacio de trabajo")
 @RestController
-@RequestMapping("/invitation")
+@RequestMapping("/invitations")
 public class InvitationAdminRestController {
 
     private final InvitationService invitationService;

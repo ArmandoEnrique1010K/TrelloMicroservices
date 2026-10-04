@@ -34,7 +34,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Tag(name = "User API", description = "API para la gestión de usuarios")
 @RestController
-@RequestMapping("/user")
+@RequestMapping("/users")
 public class UserRestController {
 
     private final UserService userService;

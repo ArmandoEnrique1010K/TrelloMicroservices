@@ -20,4 +20,7 @@ public interface BoardService {
 
     // Listar los UUIDs de miembros e invitados por id de board
     List<UUID> listAllMembersIdsAndInvitationsIdsByBoardId(UUID ownerUserId, UUID boardId);
+
+    // TODO: IMPLEMENTAR UN METODO PARA LISTAR TODAS LOS TABLEROS EN DONDE EL
+    // USUARIO ESTA INCLUIDO (SIN IMPORTAR EL ROL) COMO MIEMBRO
 }

@@ -89,6 +89,5 @@ public class BoardAccessServiceImpl implements BoardAccessService {
         findedBoardAccess.setUserActive(true);
         findedBoardAccess.setRole(role);
         boardAccessWorkflowService.saveBoardAccess(findedBoardAccess);
-
     }
 }

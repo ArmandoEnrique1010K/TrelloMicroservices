@@ -24,7 +24,6 @@ import com.trello.workflow.common.SuccessfulVoidResponse;
 import com.trello.workflow.enums.Color;
 import com.trello.workflow.enums.Status;
 import com.trello.workflow.label.dto.request.LabelRequest;
-import com.trello.workflow.label.dto.response.LabelResponse;
 import com.trello.workflow.security.JwtUtils;
 import com.trello.workflow.task.dto.request.TaskRequest;
 import com.trello.workflow.task.dto.response.AuthorTaskResponse;
@@ -48,7 +47,7 @@ import jakarta.validation.Valid;
 
 @Tag(name = "Task API", description = "API para la gestión de tareas")
 @RestController
-@RequestMapping("/task")
+@RequestMapping("/tasks")
 public class TaskRestController {
 
     private final TaskService taskService;

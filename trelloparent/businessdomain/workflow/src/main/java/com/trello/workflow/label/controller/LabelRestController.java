@@ -42,7 +42,7 @@ import jakarta.validation.Valid;
 
 @Tag(name = "Label API", description = "API para la gestión de etiquetas")
 @RestController
-@RequestMapping("/label")
+@RequestMapping("/labels")
 public class LabelRestController {
 
     private final LabelService labelService;
