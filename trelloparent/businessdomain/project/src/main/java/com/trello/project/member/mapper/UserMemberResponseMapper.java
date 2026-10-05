@@ -16,6 +16,7 @@ public interface UserMemberResponseMapper {
     // especificar los campos que se van a ignorar, ya que el segundo metodo que
     // sirve para mapear una lista de Member, herede los campos que se van a ignorar
     @Mappings({
+            @Mapping(target = "userDataAvailable", ignore = true),
             @Mapping(target = "memberUser", ignore = true)
     })
     UserMemberResponse memberToUserMemberResponse(Member source);

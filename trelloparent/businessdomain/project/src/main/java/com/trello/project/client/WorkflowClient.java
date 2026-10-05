@@ -41,6 +41,7 @@ public interface WorkflowClient {
             @PathVariable("roleName") WorkflowRole roleName);
 
     // BOARD
+    // Si hay parametros dinamicos se utiliza @PathVariable
     @PostMapping("/boards/{boardId}")
     ResponseEntity<Void> addBoardAndBoardAccessUserOwner(
             @PathVariable("boardId") UUID boardId);

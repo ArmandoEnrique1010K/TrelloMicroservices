@@ -16,10 +16,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.trello.project.client.dto.response.UserResponse;
+import com.trello.project.client.dto.response.UsersByIdResponse;
 import com.trello.project.client.enums.WorkflowRole;
 import com.trello.project.entities.Board;
 import com.trello.project.entities.Member;
 import com.trello.project.enums.Role;
+import com.trello.project.exception.ServiceUnavailableException;
 import com.trello.project.member.dto.response.MemberResponse;
 import com.trello.project.member.dto.response.UserMemberResponse;
 import com.trello.project.member.mapper.MemberResponseMapper;
@@ -31,7 +33,7 @@ import com.trello.project.service.MemberProjectService;
 @Service
 public class MemberServiceImpl implements MemberService {
 
-    private final IdentityClientService identityClientService;
+    private final IdentityClientService identityQueryClientService;
     private final MemberResponseMapper memberResponseMapper;
     private final UserMemberResponseMapper userMemberResponseMapper;
     private final BoardProjectService boardProjectService;
@@ -41,13 +43,13 @@ public class MemberServiceImpl implements MemberService {
 
     public MemberServiceImpl(BoardProjectService boardProjectService, MemberProjectService memberProjectService,
             MemberResponseMapper memberResponseMapper, UserMemberResponseMapper userMemberResponseMapper,
-            IdentityClientService identityClientService, InvitationProjectService invitationProjectService,
+            IdentityClientService identityQueryClientService, InvitationProjectService invitationProjectService,
             WorkflowClientService workflowClientService) {
         this.boardProjectService = boardProjectService;
         this.memberProjectService = memberProjectService;
         this.memberResponseMapper = memberResponseMapper;
         this.userMemberResponseMapper = userMemberResponseMapper;
-        this.identityClientService = identityClientService;
+        this.identityQueryClientService = identityQueryClientService;
         this.invitationProjectService = invitationProjectService;
         this.workflowClientService = workflowClientService;
     }
@@ -136,7 +138,7 @@ public class MemberServiceImpl implements MemberService {
         return memberResponse;
     }
 
-    private Map<UUID, UserResponse> getUsersById(
+    private UsersByIdResponse getUsersById(
             List<Member> members,
             Function<Member, UUID> userIdExtractor) {
 
@@ -145,25 +147,46 @@ public class MemberServiceImpl implements MemberService {
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
 
-        return identityClientService.findUsersByIds(userIds)
-                .stream()
-                .collect(Collectors.toMap(
-                        // UserResponse::getId,
-                        user -> user.getId(),
-                        Function.identity()));
+        // Si al llamar al endpoint del microservicio, se obtiene una excepción
+        // ServiceUnavailableException, se devuelve una lista vacia
+        try {
+            Map<UUID, UserResponse> usersById = identityQueryClientService.findUsersByIds(userIds)
+                    .stream()
+                    .collect(Collectors.toMap(
+                            user -> user.getId(),
+                            Function.identity()));
+
+            UsersByIdResponse result = new UsersByIdResponse();
+            result.setAvailable(true);
+            result.setUsersById(usersById);
+            return result;
+
+        } catch (ServiceUnavailableException e) {
+            UsersByIdResponse result = new UsersByIdResponse();
+            result.setAvailable(false);
+
+            // No puede ser null
+            result.setUsersById(Map.of());
+            return result;
+        }
     }
 
     private void enrichUserMemberWithUserData(List<Member> members, List<UserMemberResponse> responses) {
 
-        Map<UUID, UserResponse> usersById = getUsersById(
+        UsersByIdResponse result = getUsersById(
                 members, member -> member.getUserId());
+
+        Map<UUID, UserResponse> usersById = result.getUsersById();
 
         for (int i = 0; i < members.size(); i++) {
             Member member = members.get(i);
-            responses.get(i).setMemberUser(
+            UserMemberResponse response = responses.get(i);
+
+            // Se establece si hay datos de usuario disponible
+            response.setUserDataAvailable(result.isAvailable());
+            response.setMemberUser(
                     mapUser(usersById.get(member.getUserId())));
         }
-
     }
 
     private UserResponse mapUser(
