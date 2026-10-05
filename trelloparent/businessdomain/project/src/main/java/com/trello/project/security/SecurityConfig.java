@@ -41,6 +41,17 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
+                                // Actuator:
+                                // Permite consultar los endpoints de monitorización
+                                // y diagnóstico sin autenticación.
+                                //
+                                // En producción, se recomienda restringir el acceso
+                                // a estos endpoints en lugar de exponerlos públicamente.
+                                "/actuator/**",
+
+                                // Swagger/OpenAPI:
+                                // Permite acceder a la interfaz de Swagger y al
+                                // documento OpenAPI sin autenticación.
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**")
                         .permitAll()

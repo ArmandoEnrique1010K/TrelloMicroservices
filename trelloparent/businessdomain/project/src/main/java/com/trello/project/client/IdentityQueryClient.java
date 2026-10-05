@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import com.trello.project.client.config.FeignClientConfig;
 import com.trello.project.client.dto.response.UserResponse;
+import com.trello.project.client.fallback.IdentityQueryClientFallbackFactory;
 
 // Si 2 clases contienen un @FeignClient, no pueden tener el mismo name
 // Se recomienda colocar al final del name lo siguiente:
@@ -16,7 +17,8 @@ import com.trello.project.client.dto.response.UserResponse;
 // - "-command" si va a contener peticiones de tipo POST, PUT, PATCH y DELETE; 
 // (modifica estado), peticiones que no hacen un retry automatico por defecto.
 
-@FeignClient(name = "businessdomain-identity-query", url = "${services.identity.url}", configuration = FeignClientConfig.class)
+// FallbackFactory sirve para manejar fallos de un cliente HTTP cuando el servicio remoto no responde o lanza error
+@FeignClient(name = "businessdomain-identity-query", url = "${services.identity.url}", configuration = FeignClientConfig.class, fallbackFactory = IdentityQueryClientFallbackFactory.class)
 public interface IdentityQueryClient {
 
     @GetMapping("/users/batch")
