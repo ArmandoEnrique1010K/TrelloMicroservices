@@ -17,8 +17,16 @@ import lombok.extern.slf4j.Slf4j;
 public class IdentityQueryClientFallbackFactory
         implements FallbackFactory<IdentityQueryClient> {
 
-    // Cualquier excepción que ocurra cuando se haga un llamado al endpoint, caera
-    // en un ServiceUnavailableException
+    // FallbackFactory recibe la excepción que provocó el fallo
+    // de la llamada realizada mediante OpenFeign.
+    //
+    // Esto permite conocer la causa original del fallo, por ejemplo:
+    //
+    // feign.RetryableException
+    // -> Connection refused
+    //
+    // o cualquier otra excepción producida durante la comunicación
+    // con el microservicio Identity.
     @Override
     public IdentityQueryClient create(Throwable cause) {
         log.error(
@@ -26,11 +34,29 @@ public class IdentityQueryClientFallbackFactory
                 cause.toString(),
                 cause);
 
+        // Se devuelve una implementación alternativa del cliente.
+        //
+        // En lugar de devolver datos falsos o vacíos, cada operación
+        // transforma el fallo de comunicación en una excepción de
+        // dominio de la aplicación:
+        //
+        // ServiceUnavailableException
+        //
+        // Esta excepción es importante porque Resilience4j Retry está
+        // configurado para reconocerla como una excepción reintentable.
         return new IdentityQueryClient() {
 
             @Override
             public List<UserResponse> findUsersByIds(List<UUID> usersIds) {
                 log.error("Error relacionado con findUsersByIds");
+
+                // El Fallback transforma el error original en una
+                // excepción que puede ser procesada por la capa
+                // superior.
+                //
+                // En IdentityClientServiceImpl, Resilience4j Retry
+                // reconoce esta excepción y realiza otro intento
+                // mientras no se alcance max-attempts.
                 throw new ServiceUnavailableException();
             }
 
@@ -39,6 +65,8 @@ public class IdentityQueryClientFallbackFactory
                     String email,
                     List<UUID> ids) {
                 log.error("Error relacionado con listAllUsersByEmailAndExcludingIds");
+
+                // Mismo comportamiento para esta operación.
                 throw new ServiceUnavailableException();
             }
         };
