@@ -426,7 +426,7 @@ public class InvitationAdminRestController {
                     """))),
     })
     @GetMapping("/search/availableUsers/board/{boardId}")
-    public ResponseEntity<List<UserResponse>> searchAvailableUsers(
+    public ResponseEntity<List<UserResponse>> listAllAvailableUsers(
             @AuthenticationPrincipal Jwt jwt,
             @Parameter(description = "ID del tablero", required = true, example = "550e8400-e29b-41d4-a716-446655440000") @PathVariable("boardId") UUID boardId,
             // Recordar que el correo es obligatorio y debe tener minimo 6 caracteres

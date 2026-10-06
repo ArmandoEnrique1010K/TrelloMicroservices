@@ -89,6 +89,7 @@ public class IdentityClientServiceImpl implements IdentityClientService {
 
     }
 
+    @Retry(name = "businessdomain-identity-query")
     @Override
     public List<UserResponse> listAllUsersByEmailAndExcludingIds(String email,
             List<UUID> excludedUsersIds) {

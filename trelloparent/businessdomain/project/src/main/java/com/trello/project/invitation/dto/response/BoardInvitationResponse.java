@@ -29,6 +29,9 @@ public class BoardInvitationResponse {
     @Schema(name = "status", example = "ACCEPTED", description = "Estado de la invitación")
     private Status status;
 
+    @Schema(name = "userDataAvailable", example = "true", description = "Confirmación si se puede obtener los datos del usuario")
+    private boolean userDataAvailable;
+
     // DTO para mapear los datos del usuario obtenido
     // El usuario a quien se le envio la invitación (receptor)
     @Schema(name = "recipientUser", description = "Usuario receptor de la invitación")

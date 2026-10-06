@@ -41,6 +41,9 @@ public class ReceivedInvitationResponse {
     // espacio de trabajo en la base de datos")
     // private UUID workspaceId;
 
+    @Schema(name = "userDataAvailable", example = "true", description = "Confirmación si se puede obtener los datos del usuario")
+    private boolean userDataAvailable;
+
     @Schema(name = "workspaceName", example = "Proyecto de prueba", description = "Nombre del espacio de trabajo en la base de datos")
     private String workspaceName;
 }

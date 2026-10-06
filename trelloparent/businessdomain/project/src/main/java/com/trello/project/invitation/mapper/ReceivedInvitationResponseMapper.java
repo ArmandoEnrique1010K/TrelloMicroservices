@@ -13,6 +13,7 @@ import com.trello.project.invitation.dto.response.ReceivedInvitationResponse;
 public interface ReceivedInvitationResponseMapper {
     @Mappings({
             @Mapping(target = "senderUser", ignore = true),
+            @Mapping(target = "userDataAvailable", ignore = true),
             @Mapping(target = "boardName", source = "board.name"),
             @Mapping(target = "workspaceName", source = "board.workspace.name")
 

@@ -25,7 +25,6 @@ public class UserMemberResponse {
     @Schema(name = "active", example = "true", description = "¿El usuario puede hacer operaciones?")
     private boolean active;
 
-    // Por defecto es false
     @Schema(name = "userDataAvailable", example = "true", description = "Confirmación si se puede obtener los datos del usuario")
     private boolean userDataAvailable;
 
