@@ -21,25 +21,37 @@ public class FeignCircuitBreakerConfig {
      * cliente Feign. El nombre generado por defecto puede ser
      * diferente al nombre definido en @FeignClient.
      *
-     * En este proyecto se utiliza el siguiente formato:
-     *
-     * <nombre definido en @FeignClient>_<nombre del método>
-     *
-     * Por ejemplo:
-     *
-     * @FeignClient(name = "businessdomain-identity-query")
-     *                   List<UserResponse> findUsersByIds(...)
-     *
-     *                   genera:
-     *
-     *                   businessdomain-identity-query_findUsersByIds
-     *
-     *                   Este nombre también se utiliza como identificador de la
-     *                   instancia de Circuit Breaker configurada en
-     *                   application.properties.
      */
     @Bean
     public CircuitBreakerNameResolver circuitBreakerNameResolver() {
-        return (String feignClientName, Target<?> target, Method method) -> feignClientName + "_" + method.getName();
+
+        // En este caso se utiliza el siguiente formato:
+        //
+        // <nombre definido en @FeignClient>_<nombre del método>
+        //
+        // Por ejemplo:
+        //
+        // @FeignClient(name = "businessdomain-identity-query")
+        // List<UserResponse> findUsersByIds(...)
+        //
+        // genera:
+        //
+        // businessdomain-identity-query_findUsersByIds
+        //
+        // Este nombre también se utiliza como identificador de la
+        // instancia de Circuit Breaker configurada en
+        // application.properties.
+
+        // return (String feignClientName, Target<?> target, Method method) ->
+        // feignClientName + "_" + method.getName();
+
+        // Una forma más limpia es utilizar solamente el nombre del feignClient
+        // Ahorra varias lineas de codigo en application.properties para no definir las
+        // mismas propiedades por cada método definido en el FeignClient
+
+        // genera:
+
+        // businessdomain-identity-query
+        return (String feignClientName, Target<?> target, Method method) -> feignClientName;
     }
 }
