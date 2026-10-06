@@ -19,6 +19,16 @@
             "projectName": "identity",
             "args": "",
             "envFile": "${workspaceFolder}/.env"
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-WorkflowApplication<workflow>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.trello.workflow.WorkflowApplication",
+            "projectName": "workflow",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
         }
     ]
 }
