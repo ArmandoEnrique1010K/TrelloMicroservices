@@ -31,12 +31,12 @@ public class FeignCircuitBreakerConfig {
         //
         // Por ejemplo:
         //
-        // @FeignClient(name = "businessdomain-identity-query")
+        // @FeignClient(name = "businessdomain-identity-user-query")
         // List<UserResponse> findUsersByIds(...)
         //
         // genera:
         //
-        // businessdomain-identity-query_findUsersByIds
+        // businessdomain-identity-user-query_findUsersByIds
         //
         // Este nombre también se utiliza como identificador de la
         // instancia de Circuit Breaker configurada en
@@ -51,7 +51,7 @@ public class FeignCircuitBreakerConfig {
 
         // genera:
 
-        // businessdomain-identity-query
+        // businessdomain-identity-user-query
         return (String feignClientName, Target<?> target, Method method) -> feignClientName;
     }
 }

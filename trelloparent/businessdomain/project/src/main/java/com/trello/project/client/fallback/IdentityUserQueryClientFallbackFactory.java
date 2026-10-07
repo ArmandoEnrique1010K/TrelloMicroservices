@@ -6,7 +6,7 @@ import java.util.UUID;
 import org.springframework.cloud.openfeign.FallbackFactory;
 import org.springframework.stereotype.Component;
 
-import com.trello.project.client.IdentityQueryClient;
+import com.trello.project.client.IdentityUserQueryClient;
 import com.trello.project.client.dto.response.UserResponse;
 import com.trello.project.exception.ServiceUnavailableException;
 
@@ -14,8 +14,8 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Component
-public class IdentityQueryClientFallbackFactory
-        implements FallbackFactory<IdentityQueryClient> {
+public class IdentityUserQueryClientFallbackFactory
+        implements FallbackFactory<IdentityUserQueryClient> {
 
     // FallbackFactory recibe la excepción que provocó el fallo
     // de la llamada realizada mediante OpenFeign.
@@ -28,9 +28,9 @@ public class IdentityQueryClientFallbackFactory
     // o cualquier otra excepción producida durante la comunicación
     // con el microservicio Identity.
     @Override
-    public IdentityQueryClient create(Throwable cause) {
+    public IdentityUserQueryClient create(Throwable cause) {
         log.error(
-                "Fallback ejecutado para IdentityQueryClient. Causa: {}",
+                "Fallback ejecutado para IdentityUserQueryClient. Causa: {}",
                 cause.toString(),
                 cause);
 
@@ -44,7 +44,7 @@ public class IdentityQueryClientFallbackFactory
         //
         // Esta excepción es importante porque Resilience4j Retry está
         // configurado para reconocerla como una excepción reintentable.
-        return new IdentityQueryClient() {
+        return new IdentityUserQueryClient() {
 
             @Override
             public List<UserResponse> findUsersByIds(List<UUID> usersIds) {

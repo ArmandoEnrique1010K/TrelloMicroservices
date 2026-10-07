@@ -33,7 +33,7 @@ import com.trello.project.service.MemberProjectService;
 @Service
 public class MemberServiceImpl implements MemberService {
 
-    private final IdentityClientService identityQueryClientService;
+    private final IdentityClientService identityClientService;
     private final MemberResponseMapper memberResponseMapper;
     private final UserMemberResponseMapper userMemberResponseMapper;
     private final BoardProjectService boardProjectService;
@@ -43,13 +43,13 @@ public class MemberServiceImpl implements MemberService {
 
     public MemberServiceImpl(BoardProjectService boardProjectService, MemberProjectService memberProjectService,
             MemberResponseMapper memberResponseMapper, UserMemberResponseMapper userMemberResponseMapper,
-            IdentityClientService identityQueryClientService, InvitationProjectService invitationProjectService,
+            IdentityClientService identityClientService, InvitationProjectService invitationProjectService,
             WorkflowClientService workflowClientService) {
         this.boardProjectService = boardProjectService;
         this.memberProjectService = memberProjectService;
         this.memberResponseMapper = memberResponseMapper;
         this.userMemberResponseMapper = userMemberResponseMapper;
-        this.identityQueryClientService = identityQueryClientService;
+        this.identityClientService = identityClientService;
         this.invitationProjectService = invitationProjectService;
         this.workflowClientService = workflowClientService;
     }
@@ -150,7 +150,7 @@ public class MemberServiceImpl implements MemberService {
         // Si al llamar al endpoint del microservicio, se obtiene una excepción
         // ServiceUnavailableException, se devuelve una lista vacia
         try {
-            Map<UUID, UserResponse> usersById = identityQueryClientService.findUsersByIds(userIds)
+            Map<UUID, UserResponse> usersById = identityClientService.findUsersByIds(userIds)
                     .stream()
                     .collect(Collectors.toMap(
                             user -> user.getId(),

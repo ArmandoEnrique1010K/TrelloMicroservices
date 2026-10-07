@@ -12,4 +12,7 @@ public interface BoardAccessWorkflowService {
             throws BoardAccessNotFoundException;
 
     boolean existsBoardAccessByBoardIdAndUserId(UUID boardId, UUID userId);
+
+    BoardAccess findBoardAccessByBoardIdAndUserIdAndUserInactive(UUID boardId, UUID userId)
+            throws BoardAccessNotFoundException;
 }

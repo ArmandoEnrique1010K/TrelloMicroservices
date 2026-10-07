@@ -12,6 +12,8 @@ public interface BoardAccessRepository extends JpaRepository<BoardAccess, UUID> 
 
     Optional<BoardAccess> findByBoardIdAndUserIdAndUserActiveTrue(UUID boardId, UUID userId);
 
+    Optional<BoardAccess> findByBoardIdAndUserIdAndUserActiveFalse(UUID boardId, UUID userId);
+
     boolean existsByBoardIdAndUserId(UUID boardId, UUID userId);
 
     Optional<BoardAccess> findByBoardIdAndUserIdAndRole(

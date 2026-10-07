@@ -8,7 +8,7 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.trello.project.client.IdentityQueryClient;
+import com.trello.project.client.IdentityUserQueryClient;
 import com.trello.project.client.dto.response.UserResponse;
 
 import io.github.resilience4j.retry.annotation.Retry;
@@ -17,10 +17,10 @@ import io.github.resilience4j.retry.annotation.Retry;
 @Service
 public class IdentityClientServiceImpl implements IdentityClientService {
 
-    private final IdentityQueryClient identityQueryClient;
+    private final IdentityUserQueryClient identityUserQueryClient;
 
-    public IdentityClientServiceImpl(IdentityQueryClient identityQueryClient) {
-        this.identityQueryClient = identityQueryClient;
+    public IdentityClientServiceImpl(IdentityUserQueryClient identityUserQueryClient) {
+        this.identityUserQueryClient = identityUserQueryClient;
     }
 
     // Retry se encarga de volver a ejecutar este método cuando se
@@ -32,7 +32,7 @@ public class IdentityClientServiceImpl implements IdentityClientService {
     // ↓
     // Feign/OpenFeign detecta el error
     // ↓
-    // IdentityQueryClientFallbackFactory se ejecuta
+    // identityUserQueryClientFallbackFactory se ejecuta
     // ↓
     // Fallback lanza ServiceUnavailableException
     // ↓
@@ -43,8 +43,8 @@ public class IdentityClientServiceImpl implements IdentityClientService {
     // El nombre utilizado aquí debe coincidir con la instancia
     // configurada en application.properties:
     //
-    // resilience4j.retry.instances.businessdomain-identity-query...
-    @Retry(name = "businessdomain-identity-query")
+    // resilience4j.retry.instances.businessdomain-identity-user-query...
+    @Retry(name = "businessdomain-identity-user-query")
 
     // La operación solamente realiza una consulta.
     // Por eso la transacción se marca como readOnly.
@@ -58,14 +58,14 @@ public class IdentityClientServiceImpl implements IdentityClientService {
 
         // No es necesario utilizar try/catch aquí.
         //
-        // IdentityQueryClientFallbackFactory ya transforma el error
+        // identityUserQueryClientFallbackFactory ya transforma el error
         // producido por la comunicación con Identity en:
         //
         // ServiceUnavailableException
         //
         // Como esta excepción está configurada en Retry mediante:
         //
-        // resilience4j.retry.instances.businessdomain-identity-query.retry-exceptions
+        // resilience4j.retry.instances.businessdomain-identity-user-query.retry-exceptions
         //
         // Resilience4j vuelve a ejecutar este método automáticamente.
         //
@@ -84,15 +84,15 @@ public class IdentityClientServiceImpl implements IdentityClientService {
         //
         // Se alcanzó max-attempts=3
         // -> no se realizan más intentos
-        return identityQueryClient.findUsersByIds(
+        return identityUserQueryClient.findUsersByIds(
                 new ArrayList<>(usersIds));
 
     }
 
-    @Retry(name = "businessdomain-identity-query")
+    @Retry(name = "businessdomain-identity-user-query")
     @Override
     public List<UserResponse> listAllUsersByEmailAndExcludingIds(String email,
             List<UUID> excludedUsersIds) {
-        return identityQueryClient.listAllUsersByEmailAndExcludingIds(email, excludedUsersIds);
+        return identityUserQueryClient.listAllUsersByEmailAndExcludingIds(email, excludedUsersIds);
     }
 }

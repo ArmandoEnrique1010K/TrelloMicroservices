@@ -49,7 +49,7 @@ public class InvitationServiceImpl implements InvitationService {
     private final InvitationProjectService invitationProjectService;
     private final InvitationResponseMapper invitationResponseMapper;
     private final MemberProjectService memberProjectService;
-    private final IdentityClientService identityQueryClientService;
+    private final IdentityClientService identityClientService;
     private final BoardInvitationResponseMapper boardInvitationResponseMapper;
     private final ReceivedInvitationResponseMapper receivedInvitationResponseMapper;
 
@@ -57,7 +57,7 @@ public class InvitationServiceImpl implements InvitationService {
             BoardProjectService boardProjectService,
             InvitationRequestMapper invitationRequestMapper, InvitationProjectService invitationProjectService,
             InvitationResponseMapper invitationResponseMapper,
-            MemberProjectService memberProjectService, IdentityClientService identityQueryClientService,
+            MemberProjectService memberProjectService, IdentityClientService identityClientService,
             BoardInvitationResponseMapper boardInvitationResponseMapper,
             ReceivedInvitationResponseMapper receivedInvitationResponseMapper,
             WorkflowClientService workflowClientService) {
@@ -66,7 +66,7 @@ public class InvitationServiceImpl implements InvitationService {
         this.invitationProjectService = invitationProjectService;
         this.invitationResponseMapper = invitationResponseMapper;
         this.memberProjectService = memberProjectService;
-        this.identityQueryClientService = identityQueryClientService;
+        this.identityClientService = identityClientService;
         this.boardInvitationResponseMapper = boardInvitationResponseMapper;
         this.receivedInvitationResponseMapper = receivedInvitationResponseMapper;
         this.workflowClientService = workflowClientService;
@@ -250,7 +250,7 @@ public class InvitationServiceImpl implements InvitationService {
                 .collect(Collectors.toSet());
 
         try {
-            Map<UUID, UserResponse> usersById = identityQueryClientService.findUsersByIds(userIds)
+            Map<UUID, UserResponse> usersById = identityClientService.findUsersByIds(userIds)
                     .stream()
                     .collect(Collectors.toMap(
                             // UserResponse::getId,
@@ -382,7 +382,7 @@ public class InvitationServiceImpl implements InvitationService {
         List<UUID> excludedUsersIds = Stream.concat(memberIds.stream(), invitationIds.stream()).toList();
 
         // Llamado al servicio del cliente
-        List<UserResponse> response = identityQueryClientService.listAllUsersByEmailAndExcludingIds(email,
+        List<UserResponse> response = identityClientService.listAllUsersByEmailAndExcludingIds(email,
                 excludedUsersIds);
 
         return response;

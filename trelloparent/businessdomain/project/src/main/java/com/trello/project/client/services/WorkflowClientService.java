@@ -11,6 +11,11 @@ public interface WorkflowClientService {
             UUID boardId,
             WorkflowRole roleName);
 
+    void activateBoardAccess(
+            UUID boardId,
+            UUID memberUserId,
+            WorkflowRole roleName);
+
     void changeRoleBoardAccess(
             UUID boardId,
             UUID memberUserId,
@@ -19,11 +24,6 @@ public interface WorkflowClientService {
     void deactivateBoardAccess(
             UUID boardId,
             UUID memberUserId);
-
-    void activateBoardAccess(
-            UUID boardId,
-            UUID memberUserId,
-            WorkflowRole roleName);
 
     void addBoardAndBoardAccessUserOwner(UUID boardId);
 
