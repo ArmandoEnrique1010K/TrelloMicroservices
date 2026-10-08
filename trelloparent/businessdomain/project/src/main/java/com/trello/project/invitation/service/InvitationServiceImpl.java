@@ -164,6 +164,13 @@ public class InvitationServiceImpl implements InvitationService {
     @Transactional(rollbackFor = Exception.class)
     @Override
     public void acceptInvitation(UUID invitationId, UUID recipientUserId) {
+
+        // Identifica de forma única esta operación de negocio.
+        // El mismo operationId se propaga a Workflow para permitir
+        // detectar solicitudes duplicadas en caso de reintentos
+        // o resultados inciertos de la comunicación.
+        UUID operationId = UUID.randomUUID();
+
         Invitation findedInvitation = invitationProjectService.findInvitationByIdAndRecipientUserId(invitationId,
                 recipientUserId);
 
@@ -202,7 +209,8 @@ public class InvitationServiceImpl implements InvitationService {
 
             // Reactivar acceso en el microservicio Workflow
             // Buscar un permiso de acceso al tablero con estado false
-            workflowClientService.activateBoardAccess(findedBoard.getId(), member.getUserId(), workflowRole);
+            workflowClientService.activateBoardAccess(findedBoard.getId(), member.getUserId(), workflowRole,
+                    operationId);
 
         } else {
             // Crear nuevo miembro
@@ -219,7 +227,7 @@ public class InvitationServiceImpl implements InvitationService {
             // Guarda los datos en la base de datos del microservicio Workflow/
             // Solamente los datos necesarios: ID de tablero, Rol (WorkflowRole) e ID de
             // usuario
-            workflowClientService.addBoardAccess(findedBoard.getId(), workflowRole);
+            workflowClientService.addBoardAccess(findedBoard.getId(), workflowRole, operationId);
         }
 
     }
