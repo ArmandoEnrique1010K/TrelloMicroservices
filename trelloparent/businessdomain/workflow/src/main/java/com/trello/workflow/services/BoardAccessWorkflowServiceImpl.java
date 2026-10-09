@@ -7,6 +7,7 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 
 import com.trello.workflow.entities.BoardAccess;
+import com.trello.workflow.enums.Role;
 import com.trello.workflow.exception.BoardAccessNotFoundException;
 
 @Service
@@ -42,6 +43,26 @@ public class BoardAccessWorkflowServiceImpl implements BoardAccessWorkflowServic
         BoardAccess boardAccess = boardAccessRepository.findByBoardIdAndUserIdAndUserActiveFalse(boardId, userId)
                 .orElseThrow(BoardAccessNotFoundException::new);
         return boardAccess;
+    }
+
+    @Override
+    public void deleteBoardAccess(UUID boardId, UUID userId)
+            throws BoardAccessNotFoundException {
+        BoardAccess boardAccess = boardAccessRepository.findByBoardIdAndUserId(boardId, userId)
+                .orElseThrow(BoardAccessNotFoundException::new);
+        boardAccessRepository.delete(boardAccess);
+    }
+
+    @Override
+    public void revertActivateBoardAccess(UUID boardId, UUID userId, Role previousRole)
+            throws BoardAccessNotFoundException {
+        BoardAccess boardAccess = boardAccessRepository.findByBoardIdAndUserId(boardId, userId)
+                .orElseThrow(BoardAccessNotFoundException::new);
+
+        boardAccess.setUserActive(false);
+        boardAccess.setRole(previousRole);
+
+        boardAccessRepository.save(boardAccess);
     }
 
 }

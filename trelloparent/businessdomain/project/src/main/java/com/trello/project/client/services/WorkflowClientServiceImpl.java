@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 import com.trello.project.client.WorkflowBoardAccessCommandClient;
 import com.trello.project.client.WorkflowBoardCommandClient;
+import com.trello.project.client.WorkflowOperationCommandClient;
 import com.trello.project.client.enums.WorkflowRole;
 
 @Service
@@ -14,11 +15,14 @@ public class WorkflowClientServiceImpl implements WorkflowClientService {
 
     private final WorkflowBoardAccessCommandClient workflowBoardAccessCommandClient;
     private final WorkflowBoardCommandClient workflowBoardCommandClient;
+    private final WorkflowOperationCommandClient workflowOperationCommandClient;
 
     public WorkflowClientServiceImpl(WorkflowBoardAccessCommandClient workflowBoardAccessCommandClient,
-            WorkflowBoardCommandClient workflowBoardCommandClient) {
+            WorkflowBoardCommandClient workflowBoardCommandClient,
+            WorkflowOperationCommandClient workflowOperationCommandClient) {
         this.workflowBoardAccessCommandClient = workflowBoardAccessCommandClient;
         this.workflowBoardCommandClient = workflowBoardCommandClient;
+        this.workflowOperationCommandClient = workflowOperationCommandClient;
     }
 
     @Override
@@ -55,4 +59,11 @@ public class WorkflowClientServiceImpl implements WorkflowClientService {
     public void deleteManyBoardsByIdsAndBoardAccessAndTasks(List<UUID> boardIds) {
         workflowBoardCommandClient.deleteManyBoardsByIdsAndBoardAccessAndTasks(boardIds);
     }
+
+    // Operacion
+    @Override
+    public void compensateOperation(UUID operationId) {
+        workflowOperationCommandClient.compensateOperation(operationId);
+    }
+
 }

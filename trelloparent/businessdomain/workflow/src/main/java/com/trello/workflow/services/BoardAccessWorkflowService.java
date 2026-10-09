@@ -3,6 +3,7 @@ package com.trello.workflow.services;
 import java.util.UUID;
 
 import com.trello.workflow.entities.BoardAccess;
+import com.trello.workflow.enums.Role;
 import com.trello.workflow.exception.BoardAccessNotFoundException;
 
 public interface BoardAccessWorkflowService {
@@ -15,4 +16,8 @@ public interface BoardAccessWorkflowService {
 
     BoardAccess findBoardAccessByBoardIdAndUserIdAndUserInactive(UUID boardId, UUID userId)
             throws BoardAccessNotFoundException;
+
+    void deleteBoardAccess(UUID boardId, UUID userId) throws BoardAccessNotFoundException;
+
+    void revertActivateBoardAccess(UUID boardId, UUID userId, Role previousRole) throws BoardAccessNotFoundException;
 }

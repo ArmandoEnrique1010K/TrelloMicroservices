@@ -21,6 +21,8 @@ public interface BoardAccessRepository extends JpaRepository<BoardAccess, UUID> 
             UUID userId,
             Role role);
 
+    Optional<BoardAccess> findByBoardIdAndUserId(UUID boardId, UUID userId);
+
     // Aplicando @Modifying aqui, se evita hacer un SELECT para seleccionar todos
     // los registros que se van a eliminar y se opta por eliminar los registros sin
     // hacer un SELECT

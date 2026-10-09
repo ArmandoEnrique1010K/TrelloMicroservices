@@ -40,6 +40,9 @@ import com.trello.project.service.BoardProjectService;
 import com.trello.project.service.InvitationProjectService;
 import com.trello.project.service.MemberProjectService;
 
+import feign.RetryableException;
+import feign.FeignException.FeignClientException;
+
 @Service
 public class InvitationServiceImpl implements InvitationService {
 
@@ -209,8 +212,22 @@ public class InvitationServiceImpl implements InvitationService {
 
             // Reactivar acceso en el microservicio Workflow
             // Buscar un permiso de acceso al tablero con estado false
-            workflowClientService.activateBoardAccess(findedBoard.getId(), member.getUserId(), workflowRole,
-                    operationId);
+            // workflowClientService.activateBoardAccess(findedBoard.getId(),
+            // member.getUserId(), workflowRole,
+            // operationId);
+
+            try {
+                workflowClientService.activateBoardAccess(findedBoard.getId(), member.getUserId(), workflowRole,
+                        operationId);
+            } catch (RetryableException | FeignClientException e) {
+                try {
+                    workflowClientService.compensateOperation(operationId);
+                } catch (RuntimeException compensationException) {
+                    e.addSuppressed(compensationException);
+                }
+
+                throw e;
+            }
 
         } else {
             // Crear nuevo miembro
@@ -227,9 +244,23 @@ public class InvitationServiceImpl implements InvitationService {
             // Guarda los datos en la base de datos del microservicio Workflow/
             // Solamente los datos necesarios: ID de tablero, Rol (WorkflowRole) e ID de
             // usuario
-            workflowClientService.addBoardAccess(findedBoard.getId(), workflowRole, operationId);
-        }
+            // workflowClientService.addBoardAccess(findedBoard.getId(), workflowRole,
+            // operationId);
 
+            // Mecanismo para restaturar los datos que se han modificado si ha ocurrido un
+            // error en la base de datos del microservicio externo
+            try {
+                workflowClientService.addBoardAccess(findedBoard.getId(), workflowRole, operationId);
+            } catch (RetryableException | FeignClientException e) {
+                try {
+                    workflowClientService.compensateOperation(operationId);
+                } catch (RuntimeException compensationException) {
+                    e.addSuppressed(compensationException);
+                }
+
+                throw e;
+            }
+        }
     }
 
     @Override

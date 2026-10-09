@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -83,11 +84,12 @@ public class BoardAccessRestController {
     @PostMapping("/board/{boardId}/role/{roleName}")
     public ResponseEntity<Void> addBoardAccess(@AuthenticationPrincipal Jwt jwt,
             @Parameter(description = "ID del tablero", required = true, example = "550e8400-e29b-41d4-a716-446655440000") @PathVariable UUID boardId,
-            @Parameter(description = "Rol del miembro", required = true, example = "OWNER") @PathVariable Role roleName) {
+            @Parameter(description = "Rol del miembro", required = true, example = "OWNER") @PathVariable Role roleName,
+            @RequestHeader("X-Operation-Id") UUID operationId) {
 
         UUID userId = JwtUtils.getUserId(jwt);
 
-        boardAccessService.addBoardAccess(boardId, userId, roleName);
+        boardAccessService.addBoardAccess(boardId, userId, roleName, operationId);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).body(null);
     }
 
@@ -238,8 +240,9 @@ public class BoardAccessRestController {
     public ResponseEntity<Void> activateBoardAccess(
             @Parameter(description = "ID del tablero", required = true, example = "550e8400-e29b-41d4-a716-446655440000") @PathVariable UUID boardId,
             @Parameter(description = "ID del usuario", required = true, example = "550e8400-e29b-41d4-a716-446655440000") @PathVariable UUID memberUserId,
-            @Parameter(description = "Rol del miembro", required = true, example = "OWNER") @PathVariable Role roleName) {
-        boardAccessService.activateBoardAccess(boardId, memberUserId, roleName);
+            @Parameter(description = "Rol del miembro", required = true, example = "OWNER") @PathVariable Role roleName,
+            @RequestHeader("X-Operation-Id") UUID operationId) {
+        boardAccessService.activateBoardAccess(boardId, memberUserId, roleName, operationId);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).body(null);
     }
 }
