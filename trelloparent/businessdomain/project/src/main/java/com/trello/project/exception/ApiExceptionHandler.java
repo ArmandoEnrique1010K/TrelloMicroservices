@@ -250,8 +250,8 @@ public class ApiExceptionHandler {
     public ResponseEntity<StandarizedApiExceptionResponse> handleServiceUnavailableException(
             ServiceUnavailableException ex) {
 
-        // Estado 403 - El servicio no esta disponible
-        HttpStatus status = HttpStatus.FORBIDDEN;
+        // Estado 503 - El servicio no esta disponible
+        HttpStatus status = HttpStatus.SERVICE_UNAVAILABLE;
 
         StandarizedApiExceptionResponse standarizedApiExceptionResponse = new StandarizedApiExceptionResponse(
                 "/errors/service-unavailable",
