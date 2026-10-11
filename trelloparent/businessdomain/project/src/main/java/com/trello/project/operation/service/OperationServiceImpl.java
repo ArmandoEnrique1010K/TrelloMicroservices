@@ -30,6 +30,9 @@ import com.trello.project.service.InvitationProjectService;
 import com.trello.project.service.MemberProjectService;
 import com.trello.project.service.OperationProjectService;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Service
 public class OperationServiceImpl implements OperationService {
     private final WorkflowClientService workflowClientService;
@@ -227,8 +230,13 @@ public class OperationServiceImpl implements OperationService {
         // En la tabla Invitations debe revertir los cambios
         Boolean activeMember = operation.getMemberActive();
 
-        // Obtener la invitación para modificarlo
+        log.info("Operation ID: {}", operationId);
+        log.info("Board ID: {}", boardId);
+        log.info("User ID: {}", userId);
+        log.info("Member active antes de la operación: {}", activeMember);
+        log.info("¿Existe actualmente el miembro?: {}", optionalMember.isPresent());
 
+        // Obtener la invitación para modificarlo
         UUID invitationId = operation.getInvitationId();
         Invitation invitation = invitationProjectService.findInvitationByIdAndRecipientUserId(invitationId, userId);
 
@@ -239,15 +247,31 @@ public class OperationServiceImpl implements OperationService {
         // Member active es null si nunca ha sido miembro
         // false si el miembro ha estado inactivo
         if (activeMember == null) {
+            log.info("EL MIEMBRO ACTIVO ES NULO, ERROR <---");
+
+            // AQUI CAE
+
             // Un miembro puede existir o no existir
             if (optionalMember.isPresent()) {
                 Member member = optionalMember.get();
+
+                log.info("Eliminando miembro con ID: {}", member.getId());
+
                 // Eliminar miembro
                 memberProjectService.deletePermanentlyMember(
                         member.getId(),
                         userId);
+                log.info("Se ejecutó deletePermanentlyMember");
+
+            } else {
+                log.warn(
+                        "No se encontró el miembro que debía eliminarse. Board: {}, User: {}",
+                        boardId,
+                        userId);
             }
         } else if (Boolean.FALSE.equals(activeMember)) {
+            log.info("CAMBIANDO ESTADO");
+
             if (optionalMember.isEmpty()) {
                 operation.setStatus(OperationStatus.MANUAL_REVIEW);
                 operationProjectService.saveOperation(operation);
@@ -261,6 +285,7 @@ public class OperationServiceImpl implements OperationService {
             member.setRole(operation.getRole());
             memberProjectService.saveMember(member);
         } else {
+            log.info("ERROR DEL SISTEMA");
             // Aunque esto nunca podra pasar porque es imposible que un miembro haya
             // registrado true en el campo operation.getMemberActive()
             operation.setStatus(OperationStatus.MANUAL_REVIEW);

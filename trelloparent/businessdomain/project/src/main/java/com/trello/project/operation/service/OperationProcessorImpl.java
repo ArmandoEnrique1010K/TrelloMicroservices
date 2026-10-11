@@ -6,11 +6,14 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 
 import com.trello.project.client.enums.WorkflowRole;
+import com.trello.project.client.exception.RemoteBoardAccessAlreadyExistsException;
+import com.trello.project.client.exception.RemoteBoardAccessNotFoundException;
 import com.trello.project.client.services.WorkflowClientService;
 import com.trello.project.client.utils.WorkflowRoleUtils;
 import com.trello.project.entities.Invitation;
 import com.trello.project.entities.Operation;
 import com.trello.project.enums.OperationStatus;
+import com.trello.project.exception.BusinessRuleException;
 import com.trello.project.exception.ServiceUnavailableException;
 import com.trello.project.service.InvitationProjectService;
 import com.trello.project.service.OperationProjectService;
@@ -91,13 +94,34 @@ public class OperationProcessorImpl implements OperationProcessor {
                         operationId,
                         compensationException);
             }
-        } catch (Exception e) {
+        } catch (RemoteBoardAccessNotFoundException | RemoteBoardAccessAlreadyExistsException
+                | BusinessRuleException e) {
+            // En resumen, si la respuesta del endpoint que se llama desde este
+            // microservicio, cae en una excepción que sea de tipo
+            // BoardAccessNotFountException o BoardAccessAlreadyExistsException, se tendria
+            // que recurrir a la intervención humana para la revision directa en la base de
+            // datos
+
+            // BoardAccessNotFountException y BoardAccessAlreadyExistsException se obtienen
+            // del microservicio Workflow, en la carpeta client, dentro del paquete
+            // exception se utiliza un ErrorDecoder para capturar la excepción y mapearla a
+            // una excepción personalizada segun la propiedad "type" de la excepción
+            // obtenida desde el microservicio Workflow
             log.error(
                     "Unexpected error while processing operation {}",
                     operationId,
                     e);
 
-            // En este caso no se va a revertir la operación
+            // En este caso no se va a revertir la operación, requiere de intervención
+            // manual
+            operation.setStatus(OperationStatus.MANUAL_REVIEW);
+            operationProjectService.saveOperation(operation);
+        } catch (Exception ex) {
+            log.error(
+                    "Unexpected error while processing operation {}",
+                    operationId,
+                    ex);
+
             operation.setStatus(OperationStatus.MANUAL_REVIEW);
             operationProjectService.saveOperation(operation);
         }

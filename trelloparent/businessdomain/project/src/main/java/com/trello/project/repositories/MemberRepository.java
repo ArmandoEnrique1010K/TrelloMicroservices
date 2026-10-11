@@ -24,4 +24,6 @@ public interface MemberRepository extends JpaRepository<Member, UUID> {
     Optional<Member> findByBoardIdAndUserIdAndActiveFalse(UUID boardId, UUID userId);
 
     Optional<Member> findByIdAndUserId(UUID id, UUID userId);
+
+    Optional<Member> findByBoardIdAndUserId(UUID boardId, UUID userId);
 }

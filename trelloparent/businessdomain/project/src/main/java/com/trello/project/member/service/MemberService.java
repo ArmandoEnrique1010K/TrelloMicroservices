@@ -20,5 +20,4 @@ public interface MemberService {
     // Desactivar miembro (solamente permitido por el administrador)
     // Borrado logico (desactiva al usuario)
     MemberResponse deactivateMember(UUID memberId, UUID ownerUserId);
-
 }
