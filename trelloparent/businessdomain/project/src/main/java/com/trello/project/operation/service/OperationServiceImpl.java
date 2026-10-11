@@ -25,6 +25,8 @@ import com.trello.project.invitation.mapper.BoardInvitationResponseMapper;
 import com.trello.project.invitation.mapper.InvitationRequestMapper;
 import com.trello.project.invitation.mapper.InvitationResponseMapper;
 import com.trello.project.invitation.mapper.ReceivedInvitationResponseMapper;
+import com.trello.project.operation.exception.OperationNotFoundException;
+import com.trello.project.operation.exception.OperationNotPendingException;
 import com.trello.project.service.BoardProjectService;
 import com.trello.project.service.InvitationProjectService;
 import com.trello.project.service.MemberProjectService;
@@ -72,7 +74,7 @@ public class OperationServiceImpl implements OperationService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public UUID registerInvitationAcceptance(UUID invitationId, UUID recipientUserId)
-            throws InvitationConfirmedException {
+            throws OperationNotPendingException, InvitationConfirmedException {
 
         // // ============================================================
         // // Idempotencia
@@ -93,7 +95,7 @@ public class OperationServiceImpl implements OperationService {
 
                 case CREATED, PROCESSING, COMPENSATION_PROCESSING, COMPLETED, MANUAL_REVIEW, COMPENSATED ->
                     // TODO: AÑADIR NUEVA EXCEPCIÓN
-                    throw new BusinessRuleException();
+                    throw new OperationNotPendingException();
             }
 
             // TODO: EJECUTAR INMEDIATAMENTE EL MÉTODO DEFINIDO EN SCHEDULER SI ESTA EN
@@ -159,7 +161,13 @@ public class OperationServiceImpl implements OperationService {
         Operation operation = operationProjectService.findOperationById(operationId)
                 .orElseThrow(BusinessRuleException::new);
 
-        operation.setStatus(OperationStatus.PENDING);
+        OperationStatus currentStatus = operation.getStatus();
+
+        // Dependiendo de su estado debe colocar si se trata de una compensación o si es
+        // estado pendiente (si no existe la operación)
+        operation.setStatus(currentStatus == OperationStatus.COMPENSATION_PENDING ? OperationStatus.COMPENSATION_PENDING
+                : OperationStatus.PENDING);
+        // operation.setStatus(OperationStatus.PENDING);
 
         UUID boardId = operation.getBoardId();
         UUID recipientUserId = operation.getUserId();
@@ -211,11 +219,11 @@ public class OperationServiceImpl implements OperationService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void revertInvitationAcceptance(UUID operationId) {
+    public void revertInvitationAcceptance(UUID operationId) throws OperationNotFoundException {
         // Recordar que en operation se almacena los datos de la operacion antes de
         // hacer la modificacion en la base de datos
         Operation operation = operationProjectService.findOperationById(operationId)
-                .orElseThrow(BusinessRuleException::new);
+                .orElseThrow(OperationNotFoundException::new);
 
         // Revertir la operación
         operation.setStatus(OperationStatus.COMPENSATION_PROCESSING);
@@ -230,11 +238,11 @@ public class OperationServiceImpl implements OperationService {
         // En la tabla Invitations debe revertir los cambios
         Boolean activeMember = operation.getMemberActive();
 
-        log.info("Operation ID: {}", operationId);
-        log.info("Board ID: {}", boardId);
-        log.info("User ID: {}", userId);
-        log.info("Member active antes de la operación: {}", activeMember);
-        log.info("¿Existe actualmente el miembro?: {}", optionalMember.isPresent());
+        // log.info("Operation ID: {}", operationId);
+        // log.info("Board ID: {}", boardId);
+        // log.info("User ID: {}", userId);
+        // log.info("Member active antes de la operación: {}", activeMember);
+        // log.info("¿Existe actualmente el miembro?: {}", optionalMember.isPresent());
 
         // Obtener la invitación para modificarlo
         UUID invitationId = operation.getInvitationId();
@@ -247,21 +255,15 @@ public class OperationServiceImpl implements OperationService {
         // Member active es null si nunca ha sido miembro
         // false si el miembro ha estado inactivo
         if (activeMember == null) {
-            log.info("EL MIEMBRO ACTIVO ES NULO, ERROR <---");
-
-            // AQUI CAE
 
             // Un miembro puede existir o no existir
             if (optionalMember.isPresent()) {
                 Member member = optionalMember.get();
 
-                log.info("Eliminando miembro con ID: {}", member.getId());
-
                 // Eliminar miembro
                 memberProjectService.deletePermanentlyMember(
                         member.getId(),
                         userId);
-                log.info("Se ejecutó deletePermanentlyMember");
 
             } else {
                 log.warn(
@@ -285,7 +287,6 @@ public class OperationServiceImpl implements OperationService {
             member.setRole(operation.getRole());
             memberProjectService.saveMember(member);
         } else {
-            log.info("ERROR DEL SISTEMA");
             // Aunque esto nunca podra pasar porque es imposible que un miembro haya
             // registrado true en el campo operation.getMemberActive()
             operation.setStatus(OperationStatus.MANUAL_REVIEW);
@@ -294,7 +295,8 @@ public class OperationServiceImpl implements OperationService {
         }
 
         // La operación se ha compensado
-        operation.setStatus(OperationStatus.COMPENSATED);
+        // TODO: <--- REVISAR AQUI
+        operation.setStatus(OperationStatus.COMPENSATION_PENDING);
         operation.setCompletedAt(LocalDateTime.now());
         operationProjectService.saveOperation(operation);
     }

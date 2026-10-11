@@ -17,7 +17,4 @@ public interface OperationProjectService {
 
     // Guardar operación
     Operation saveOperation(Operation operation);
-
-    // Compensar operación
-    void compensateOperation(UUID operationId);
 }

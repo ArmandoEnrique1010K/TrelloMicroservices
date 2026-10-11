@@ -16,6 +16,8 @@ import com.trello.project.invitation.exception.InvitationConfirmedException;
 import com.trello.project.invitation.exception.InvitationNotFoundException;
 import com.trello.project.member.exception.MemberInactiveException;
 import com.trello.project.member.exception.MemberNotFoundException;
+import com.trello.project.operation.exception.OperationNotFoundException;
+import com.trello.project.operation.exception.OperationNotPendingException;
 import com.trello.project.workspace.exception.WorkspaceAlreadyExistsException;
 
 import lombok.extern.slf4j.Slf4j;
@@ -41,7 +43,7 @@ public class ApiExceptionHandler {
         return ResponseEntity.status(status).body(standarizedApiExceptionResponse);
     }
 
-    // Excepción de violación de reglas de negocio - status 404
+    // Excepción de violación de reglas de negocio - status 409
     @ExceptionHandler(BusinessRuleException.class)
     public ResponseEntity<StandarizedApiExceptionResponse> handleBusinessRuleException(BusinessRuleException ex) {
         HttpStatus status = HttpStatus.CONFLICT;
@@ -52,7 +54,7 @@ public class ApiExceptionHandler {
                 status.value(),
                 "The operation cannot be completed because it violates a business rule",
                 null,
-                ex.getMessage());
+                "Ha ocurrido un error inesperado");
 
         return ResponseEntity.status(status).body(standarizedApiExceptionResponse);
     }
@@ -264,4 +266,82 @@ public class ApiExceptionHandler {
 
         return ResponseEntity.status(status).body(standarizedApiExceptionResponse);
     }
+
+    // Excepción de operación no realizada
+    @ExceptionHandler(OperationManualReviewException.class)
+    public ResponseEntity<StandarizedApiExceptionResponse> handleOperationManualReviewException(
+            OperationManualReviewException ex) {
+
+        // Estado 500 - Error interno del servidor, ponganse en contacto
+        HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
+
+        StandarizedApiExceptionResponse standarizedApiExceptionResponse = new StandarizedApiExceptionResponse(
+                "/errors/operation/manual-review",
+                "Operation manual review",
+                status.value(),
+                "The operation requires careful review by the app administrator. Please get in touch by sending an email to example@gmail.com.",
+                null,
+                // Este mensaje no se va a mostrar al usuario
+                "Ha ocurrido un error, pongase en contacto con el administrador");
+
+        return ResponseEntity.status(status).body(standarizedApiExceptionResponse);
+    }
+
+    // Excepción de operación pendiente de realizar
+    @ExceptionHandler(OperationCompensatedException.class)
+    public ResponseEntity<StandarizedApiExceptionResponse> handleOperationCompensatedException(
+            OperationCompensatedException ex) {
+
+        // Estado 202 - Operación pendiente de recuperación
+        HttpStatus status = HttpStatus.ACCEPTED;
+
+        StandarizedApiExceptionResponse standarizedApiExceptionResponse = new StandarizedApiExceptionResponse(
+                "/errors/operation/compensated",
+                "Operation compensated",
+                status.value(),
+                "The operation has been left in a pending state because one of the services has gone down.",
+                null,
+                // Este mensaje se va a mostrar al usuario
+                "La operación quedo en un estado pendiente, vuelva en un momento");
+
+        return ResponseEntity.status(status).body(standarizedApiExceptionResponse);
+    }
+
+    // Excepción de operación no encontrada
+    @ExceptionHandler(OperationNotFoundException.class)
+    public ResponseEntity<StandarizedApiExceptionResponse> handleOperationNotFoundException(
+            OperationNotFoundException ex) {
+        HttpStatus status = HttpStatus.NOT_FOUND;
+
+        StandarizedApiExceptionResponse standarizedApiExceptionResponse = new StandarizedApiExceptionResponse(
+                "/errors/operation/not-found",
+                "Operation not found",
+                status.value(),
+                "The operation was not found in the system",
+                null,
+                // Este mensaje se va a mostrar al usuario
+                "Ha ocurrido un error");
+
+        return ResponseEntity.status(status).body(standarizedApiExceptionResponse);
+    }
+
+    // Excepción de operación que no tiene un estado "PENDING" o
+    // "COMPENSATION_PENDING"
+    @ExceptionHandler(OperationNotPendingException.class)
+    public ResponseEntity<StandarizedApiExceptionResponse> handleOperationNotPendingException(
+            OperationNotPendingException ex) {
+        HttpStatus status = HttpStatus.NOT_FOUND;
+
+        StandarizedApiExceptionResponse standarizedApiExceptionResponse = new StandarizedApiExceptionResponse(
+                "/errors/operation/not-pending",
+                "Operation not pending",
+                status.value(),
+                "The operation does not have a 'PENDING' or 'COMPENSATION_PENDING' status.",
+                null,
+                // Este mensaje se va a mostrar al usuario
+                "Ha ocurrido un error");
+
+        return ResponseEntity.status(status).body(standarizedApiExceptionResponse);
+    }
+
 }

@@ -14,7 +14,11 @@ import com.trello.project.entities.Invitation;
 import com.trello.project.entities.Operation;
 import com.trello.project.enums.OperationStatus;
 import com.trello.project.exception.BusinessRuleException;
+import com.trello.project.exception.OperationCompensatedException;
+import com.trello.project.exception.OperationManualReviewException;
 import com.trello.project.exception.ServiceUnavailableException;
+import com.trello.project.operation.exception.OperationNotFoundException;
+import com.trello.project.operation.exception.OperationNotPendingException;
 import com.trello.project.service.InvitationProjectService;
 import com.trello.project.service.OperationProjectService;
 
@@ -44,17 +48,18 @@ public class OperationProcessorImpl implements OperationProcessor {
         // 1. Recuperar la operación persistida en Project.
         Operation operation = operationProjectService
                 .findOperationById(operationId)
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "Operation not found: " + operationId));
+                .orElseThrow(OperationNotFoundException::new);
 
         // 2. Evitar reprocesar operaciones ya completadas.
         // Solo se procesan operaciones pendientes de ejecución original.
-        if (operation.getStatus() != OperationStatus.PENDING) {
-            return;
+        if (operation.getStatus() != OperationStatus.PENDING
+                && operation.getStatus() != OperationStatus.COMPENSATION_PENDING) {
+            throw new OperationNotPendingException();
         }
 
         // 3. Marcar que se está procesando la operación.
-        operation.setStatus(OperationStatus.PROCESSING);
+        operation.setStatus(operation.getStatus() == OperationStatus.PENDING ? OperationStatus.PROCESSING
+                : OperationStatus.COMPENSATION_PROCESSING);
         operation.setAttempts(operation.getAttempts() + 1);
         operationProjectService.saveOperation(operation);
 
@@ -72,10 +77,15 @@ public class OperationProcessorImpl implements OperationProcessor {
             }
 
             // 5. Workflow respondió correctamente.
+
             // La operación original finalizó correctamente.
-            operation.setStatus(OperationStatus.COMPLETED);
+            operation.setStatus(operation.getStatus() == OperationStatus.PROCESSING ? OperationStatus.COMPLETED
+                    : OperationStatus.COMPENSATED);
             operation.setCompletedAt(LocalDateTime.now());
             operationProjectService.saveOperation(operation);
+
+            // En este caso todo paso bien y no se mostrara ninguna excepción
+            return;
 
         } catch (ServiceUnavailableException e) {
             // La operación original falló; la compensación está pendiente.
@@ -84,6 +94,7 @@ public class OperationProcessorImpl implements OperationProcessor {
 
             try {
                 operationService.revertInvitationAcceptance(operationId);
+
             } catch (Exception compensationException) {
 
                 // No cambiar a MANUAL_REVIEW automáticamente.
@@ -93,7 +104,17 @@ public class OperationProcessorImpl implements OperationProcessor {
                                 + "It remains pending for recovery.",
                         operationId,
                         compensationException);
+
+                // No ocultar el estado real: la compensación sigue pendiente.
+                // No se puede recuperar porque si llego aqui es porque cayo en un exception
+                // throw new CompensationPendingException();
+
+                throw new BusinessRuleException();
             }
+
+            // Solo si revertInvitationAcceptance terminó correctamente.
+            throw new OperationCompensatedException();
+
         } catch (RemoteBoardAccessNotFoundException | RemoteBoardAccessAlreadyExistsException
                 | BusinessRuleException e) {
             // En resumen, si la respuesta del endpoint que se llama desde este
@@ -116,14 +137,21 @@ public class OperationProcessorImpl implements OperationProcessor {
             // manual
             operation.setStatus(OperationStatus.MANUAL_REVIEW);
             operationProjectService.saveOperation(operation);
+
+            // 500
+            throw new OperationManualReviewException();
+
         } catch (Exception ex) {
             log.error(
                     "Unexpected error while processing operation {}",
                     operationId,
                     ex);
 
-            operation.setStatus(OperationStatus.MANUAL_REVIEW);
-            operationProjectService.saveOperation(operation);
+            // operation.setStatus(OperationStatus.MANUAL_REVIEW);
+            // operationProjectService.saveOperation(operation);
+
+            // // 409
+            throw new BusinessRuleException();
         }
     }
 
@@ -164,9 +192,10 @@ public class OperationProcessorImpl implements OperationProcessor {
 
         } else {
             // Solamente si el miembro es verdadero se lanzara otra excepción
-            throw new IllegalStateException(
-                    "The member was already active before the operation: "
-                            + operation.getId());
+            // throw new IllegalStateException(
+            // "The member was already active before the operation: "
+            // + operation.getId());
+            log.error("The member was already active before the operation: " + operation.getId());
         }
     }
 }
