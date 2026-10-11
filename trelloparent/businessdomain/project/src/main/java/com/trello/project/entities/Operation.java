@@ -3,7 +3,6 @@ package com.trello.project.entities;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import com.trello.project.enums.OperationStatus;
@@ -48,30 +47,34 @@ public class Operation {
 
     // Boolean con B mayuscula para que admita los valores
     // null, true o false
+
+    // El miembro esta previamente activo
     private Boolean memberActive;
 
-    // Rol del usuario
+    // Rol previo del usuario
     @Enumerated(EnumType.STRING)
     private Role role;
 
+    // Número de intentos realizados por el usuario
+    private int manualAttempts;
+
+    // Número de intentos realizados por la máquina
+    // (ejecutor de tareas en segundo plano)
+    private int automaticAttempts;
+
+    // Fecha del siguiente intento automatico por máquina
+    private LocalDateTime nextAutomaticAttemptAt;
+
+    // Fecha de completado
+    // Se llena cuando el campo OperationStatus tenga el estado de "COMPLETED" o
+    // "COMPENSATED"
+    private LocalDateTime completedAt;
+
     // Fecha de creación
-    @CreationTimestamp
+    // @CreationTimestamp
     private LocalDateTime createdAt;
 
     // Fecha de actualización
     @UpdateTimestamp
     private LocalDateTime updatedAt;
-
-    // Intentos
-    private int attempts;
-
-    // Fecha del siguiente intento
-    private LocalDateTime nextAttemptAt;
-
-    // Fecha de completado
-    private LocalDateTime completedAt;
-
-    // Log auxiliar del ultimo error
-    private String lastError;
-
 }

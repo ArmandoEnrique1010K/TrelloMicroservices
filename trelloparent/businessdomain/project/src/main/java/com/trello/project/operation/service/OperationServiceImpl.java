@@ -94,7 +94,6 @@ public class OperationServiceImpl implements OperationService {
                 }
 
                 case CREATED, PROCESSING, COMPENSATION_PROCESSING, COMPLETED, MANUAL_REVIEW, COMPENSATED ->
-                    // TODO: AÑADIR NUEVA EXCEPCIÓN
                     throw new OperationNotPendingException();
             }
 
@@ -139,7 +138,15 @@ public class OperationServiceImpl implements OperationService {
         operation.setBoardId(findedBoard.getId());
         operation.setUserId(recipientUserId);
         operation.setInvitationId(invitationId);
-        operation.setAttempts(0);
+        operation.setManualAttempts(0);
+        operation.setAutomaticAttempts(0);
+
+        // 30 SEGUNDOS PARA LA SIGUIENTE TAREA
+        LocalDateTime currentDateTime = LocalDateTime.now();
+
+        operation.setCreatedAt(currentDateTime);
+        // Aumentar 30 segundos para la siguiente tarea
+        operation.setNextAutomaticAttemptAt(currentDateTime.plusSeconds(30));
 
         // Estado previo real: null si no existía el miembro.
         operation.setMemberActive(

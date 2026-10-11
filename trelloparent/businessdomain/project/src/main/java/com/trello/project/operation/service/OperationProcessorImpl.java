@@ -60,7 +60,12 @@ public class OperationProcessorImpl implements OperationProcessor {
         // 3. Marcar que se está procesando la operación.
         operation.setStatus(operation.getStatus() == OperationStatus.PENDING ? OperationStatus.PROCESSING
                 : OperationStatus.COMPENSATION_PROCESSING);
-        operation.setAttempts(operation.getAttempts() + 1);
+        operation.setManualAttempts(operation.getManualAttempts() + 1);
+
+        // Aumentar el tiempo para la realización automatica de la tarea EN 30 SEGUNDOS
+        // en caso de que falle la realización manual
+        operation.setNextAutomaticAttemptAt(LocalDateTime.now().plusSeconds(30));
+
         operationProjectService.saveOperation(operation);
 
         try {
@@ -82,6 +87,9 @@ public class OperationProcessorImpl implements OperationProcessor {
             operation.setStatus(operation.getStatus() == OperationStatus.PROCESSING ? OperationStatus.COMPLETED
                     : OperationStatus.COMPENSATED);
             operation.setCompletedAt(LocalDateTime.now());
+
+            // Borrar intento automatico
+            operation.setNextAutomaticAttemptAt(null);
             operationProjectService.saveOperation(operation);
 
             // En este caso todo paso bien y no se mostrara ninguna excepción

@@ -9,7 +9,6 @@ import com.trello.project.invitation.dto.response.BoardInvitationResponse;
 import com.trello.project.invitation.dto.response.InvitationResponse;
 import com.trello.project.invitation.dto.response.ReceivedInvitationResponse;
 import com.trello.project.invitation.exception.InvitationAlreadyExistsException;
-import com.trello.project.invitation.exception.InvitationConfirmedException;
 
 public interface InvitationService {
 

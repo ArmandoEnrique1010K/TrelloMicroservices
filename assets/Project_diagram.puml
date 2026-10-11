@@ -45,11 +45,52 @@ enum Status {
     UNCONFIRMED
 }
 
-Workspace "1" *-- "0..*" Board
-Board " 1  " *-- "0..*  " Member
+entity Operation {
+  - id: UUID <<not generated>>
+  - boardId: UUID
+  - userId: UUID
+  - invitationId: UUID
+  'Se utiliza Boolean para poder establecer el valor "null" aparte de true o false
+  - memberActive: Boolean
+  'Ambos son de tipo entero, no pueden ser null
+  - manualAttempts: int
+  - automaticAttempts: int
+  - nextAutomaticAttemptAt: LocalDateTime
+  - completedAt: LocalDateTime
+  - createdAt: LocalDateTime
+  - updatedAt: LocalDateTime
+}
+
+enum OperationType {
+  ACCEPT_INVITATION
+  CHANGE_ROLE_MEMBER
+  DEACTIVATE_MEMBER
+  CREATE_BOARD
+  DELETE_BOARD
+  DELETE_WORKSPACE
+}
+
+
+enum OperationStatus {
+  CREATED
+  PENDING
+  PROCESSING
+  COMPLETED
+  COMPENSATION_PENDING
+  COMPENSATION_PROCESSING
+  COMPENSATED
+  MANUAL_REVIEW
+}
+
+Workspace "1 " *-- "0..*" Board
+Board " 1  " *-- "0..*   " Member
 Board "1  " *-- "0..*" Invitation
 Member "0..*" --> "1  " Role
-Invitation "0..*  " --> "    1" Role
-Invitation "0..*" --> "1" Status
+Invitation "0..*  " --> "1     " Role
+Invitation "0..*" --> "1 " Status
+
+Operation "0..*   " --> "1 " OperationType
+Operation "0..*" --> "1 " OperationStatus
+Operation "0..*" ----> "       1  " Role
 
 @enduml
