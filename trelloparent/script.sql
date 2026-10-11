@@ -32,10 +32,22 @@ insert into members (id, joined_at, role, user_id, board_id, active) values ('c8
 insert into members (id, joined_at, role, user_id, board_id, active) values ('4c08b2a7-5124-4250-b74f-6c748a1e51d3', '2026-09-11 22:30:00.212341', 'MEMBER', '858d7655-6178-458f-b880-3db6aa3beff3', 'ef777773-49ef-4282-a6f0-c233653f274e', true);
 
 # Invitacion de prueba para aceptarla
-# El usuario "enrique@gmail.com" envia una invitación a "example@gmail.com" para que lo pueda aceptar
+# El usuario "enrique@gmail.com" ha enviado una invitación a "example@gmail.com" para que lo pueda aceptar
 insert into invitations (id, sended_at, message, recipient_user_id, role, sender_user_id, status, board_id, accepted_at) values
 ('caadcc35-60f3-4048-a391-ee60bc989a98', '2026-10-08 21:25:00.524886', 'Unete al tablero como administrador', '3e54e44f-8f87-445b-8817-8c13010f5da5', 'ADMIN', 
 'af6cf6ea-05c3-4233-a546-f942386f43ad', 'UNCONFIRMED', '0a2ecb80-3b35-4096-a551-644aecc54338', null);
+
+# Miembro inactivo, requiere que lo activen
+# El usuario "example@gmail.com" fue miembro anterior del tablero "0a2ecb80-3b35-4096-a551-644aecc54338", y si hay una invitación, entonces debe cambiar el valor de active a true
+# No se ha alterado el nuevo rol del usuario
+insert into public.members (id, joined_at, role, user_id, board_id, active) values
+('6931f2fb-56b8-4b05-91fa-7b913e3c3423', '2026-10-10 23:03:13.209771', 'ADMIN', '3e54e44f-8f87-445b-8817-8c13010f5da5', '0a2ecb80-3b35-4096-a551-644aecc54338', false);
+
+# Recordar que tambien debes introducir el board access en la base de datos del microservicio Workflow
+insert into public.board_access (id, role, user_active, user_id, board_id) values
+('88fc7aa7-4d97-417e-ab01-566a8491324e', 'ADMIN', false, '3e54e44f-8f87-445b-8817-8c13010f5da5', '0a2ecb80-3b35-4096-a551-644aecc54338')
+
+
 
 
 # BASE DE DATOS: workflow-postgres-db
