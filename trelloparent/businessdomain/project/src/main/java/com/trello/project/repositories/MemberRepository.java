@@ -22,4 +22,6 @@ public interface MemberRepository extends JpaRepository<Member, UUID> {
     // Metodo para buscar miembro por ID de tablero, ID de usuario y estado del
     // miembro en false
     Optional<Member> findByBoardIdAndUserIdAndActiveFalse(UUID boardId, UUID userId);
+
+    Optional<Member> findByIdAndUserId(UUID id, UUID userId);
 }

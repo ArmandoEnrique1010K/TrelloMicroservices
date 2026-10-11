@@ -46,7 +46,9 @@ public class Operation {
 
     private UUID invitationId;
 
-    private boolean memberActive;
+    // Boolean con B mayuscula para que admita los valores
+    // null, true o false
+    private Boolean memberActive;
 
     // Rol del usuario
     @Enumerated(EnumType.STRING)

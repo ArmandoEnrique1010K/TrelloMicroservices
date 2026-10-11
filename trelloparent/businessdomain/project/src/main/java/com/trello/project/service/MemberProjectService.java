@@ -27,4 +27,8 @@ public interface MemberProjectService {
 
     Optional<Member> findOptionalMemberByBoardIdAndUserId(UUID memberId, UUID userId);
 
+    Member findMemberByIdAndUserId(UUID memberId, UUID userId)
+            throws MemberNotFoundException;
+
+    void deletePermanentlyMember(UUID memberId, UUID userId);
 }

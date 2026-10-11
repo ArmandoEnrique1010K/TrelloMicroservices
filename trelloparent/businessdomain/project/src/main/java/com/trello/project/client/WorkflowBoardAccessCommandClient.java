@@ -12,9 +12,10 @@ import org.springframework.web.bind.annotation.RequestHeader;
 
 import com.trello.project.client.config.FeignClientConfig;
 import com.trello.project.client.enums.WorkflowRole;
+import com.trello.project.client.fallback.WorkflowBoardAccessCommandClientFallbackFactory;
 
 // Como todas las peticiones tratan de hacer modificaciones en la base de datos, el name termina en "-command"
-@FeignClient(name = "businessdomain-workflow-board-access-command", url = "${services.workflow.url}", configuration = FeignClientConfig.class)
+@FeignClient(name = "businessdomain-workflow-board-access-command", url = "${services.workflow.url}", configuration = FeignClientConfig.class, fallbackFactory = WorkflowBoardAccessCommandClientFallbackFactory.class)
 public interface WorkflowBoardAccessCommandClient {
     @PostMapping("/board-access/board/{boardId}/role/{roleName}")
     ResponseEntity<Void> addBoardAccess(

@@ -31,6 +31,12 @@ insert into members (id, joined_at, role, user_id, board_id, active) values ('15
 insert into members (id, joined_at, role, user_id, board_id, active) values ('c87a3e7c-e964-475f-b8fb-f94cab942828', '2026-09-11 22:20:00.212341', 'ADMIN', '5d3498c0-43f1-4760-a4f0-dc0e97bcb641', 'ef777773-49ef-4282-a6f0-c233653f274e', true);
 insert into members (id, joined_at, role, user_id, board_id, active) values ('4c08b2a7-5124-4250-b74f-6c748a1e51d3', '2026-09-11 22:30:00.212341', 'MEMBER', '858d7655-6178-458f-b880-3db6aa3beff3', 'ef777773-49ef-4282-a6f0-c233653f274e', true);
 
+# Invitacion de prueba para aceptarla
+# El usuario "enrique@gmail.com" envia una invitación a "example@gmail.com" para que lo pueda aceptar
+insert into invitations (id, sended_at, message, recipient_user_id, role, sender_user_id, status, board_id, accepted_at) values
+('caadcc35-60f3-4048-a391-ee60bc989a98', '2026-10-08 21:25:00.524886', 'Unete al tablero como administrador', '3e54e44f-8f87-445b-8817-8c13010f5da5', 'ADMIN', 
+'af6cf6ea-05c3-4233-a546-f942386f43ad', 'UNCONFIRMED', '0a2ecb80-3b35-4096-a551-644aecc54338', null);
+
 
 # BASE DE DATOS: workflow-postgres-db
 insert into board (id) values ('6c4f289b-a915-49c6-b18a-9ba2d631834b');

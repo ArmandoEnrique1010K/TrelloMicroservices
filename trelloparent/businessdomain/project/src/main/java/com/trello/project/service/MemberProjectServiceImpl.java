@@ -63,4 +63,18 @@ public class MemberProjectServiceImpl implements MemberProjectService {
         Optional<Member> member = memberRepository.findByBoardIdAndUserIdAndActiveFalse(memberId, userId);
         return member;
     }
+
+    @Override
+    public Member findMemberByIdAndUserId(UUID memberId, UUID userId) throws MemberNotFoundException {
+        Member member = memberRepository.findByIdAndUserId(memberId, userId).orElseThrow(MemberNotFoundException::new);
+        return member;
+    }
+
+    @Override
+    public void deletePermanentlyMember(UUID memberId, UUID userId) {
+        Member optionalMember = memberRepository.findByIdAndUserId(memberId, userId)
+                .orElseThrow(MemberNotFoundException::new);
+        memberRepository.delete(optionalMember);
+    }
+
 }

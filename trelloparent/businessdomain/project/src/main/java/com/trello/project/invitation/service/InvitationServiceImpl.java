@@ -23,8 +23,12 @@ import com.trello.project.client.utils.WorkflowRoleUtils;
 import com.trello.project.entities.Board;
 import com.trello.project.entities.Invitation;
 import com.trello.project.entities.Member;
+import com.trello.project.entities.Operation;
+import com.trello.project.enums.OperationStatus;
+import com.trello.project.enums.OperationType;
 import com.trello.project.enums.Role;
 import com.trello.project.enums.Status;
+import com.trello.project.exception.BusinessRuleException;
 import com.trello.project.exception.ServiceUnavailableException;
 import com.trello.project.invitation.dto.request.InvitationRequest;
 import com.trello.project.invitation.dto.response.BoardInvitationResponse;
@@ -36,9 +40,12 @@ import com.trello.project.invitation.mapper.BoardInvitationResponseMapper;
 import com.trello.project.invitation.mapper.InvitationRequestMapper;
 import com.trello.project.invitation.mapper.InvitationResponseMapper;
 import com.trello.project.invitation.mapper.ReceivedInvitationResponseMapper;
+import com.trello.project.operation.service.OperationProcessor;
+import com.trello.project.operation.service.OperationService;
 import com.trello.project.service.BoardProjectService;
 import com.trello.project.service.InvitationProjectService;
 import com.trello.project.service.MemberProjectService;
+import com.trello.project.service.OperationProjectService;
 
 import feign.RetryableException;
 import feign.FeignException.FeignClientException;
@@ -55,6 +62,8 @@ public class InvitationServiceImpl implements InvitationService {
     private final IdentityClientService identityClientService;
     private final BoardInvitationResponseMapper boardInvitationResponseMapper;
     private final ReceivedInvitationResponseMapper receivedInvitationResponseMapper;
+    private final OperationService operationService;
+    private final OperationProcessor operationProcessor;
 
     public InvitationServiceImpl(
             BoardProjectService boardProjectService,
@@ -63,7 +72,9 @@ public class InvitationServiceImpl implements InvitationService {
             MemberProjectService memberProjectService, IdentityClientService identityClientService,
             BoardInvitationResponseMapper boardInvitationResponseMapper,
             ReceivedInvitationResponseMapper receivedInvitationResponseMapper,
-            WorkflowClientService workflowClientService) {
+            WorkflowClientService workflowClientService,
+            OperationService operationService,
+            OperationProcessor operationProcessor) {
         this.boardProjectService = boardProjectService;
         this.invitationRequestMapper = invitationRequestMapper;
         this.invitationProjectService = invitationProjectService;
@@ -73,6 +84,8 @@ public class InvitationServiceImpl implements InvitationService {
         this.boardInvitationResponseMapper = boardInvitationResponseMapper;
         this.receivedInvitationResponseMapper = receivedInvitationResponseMapper;
         this.workflowClientService = workflowClientService;
+        this.operationService = operationService;
+        this.operationProcessor = operationProcessor;
     }
 
     @Override
@@ -164,103 +177,28 @@ public class InvitationServiceImpl implements InvitationService {
         invitationProjectService.deleteInvitationByIdAndSenderUserId(invitationId, ownerUserId);
     }
 
-    @Transactional(rollbackFor = Exception.class)
+    // @Transactional(rollbackFor = { Exception.class,
+    // ServiceUnavailableException.class })
     @Override
     public void acceptInvitation(UUID invitationId, UUID recipientUserId) {
+        // 1. Registrar la operación y los cambios locales.
 
-        // Identifica de forma única esta operación de negocio.
-        // El mismo operationId se propaga a Workflow para permitir
-        // detectar solicitudes duplicadas en caso de reintentos
-        // o resultados inciertos de la comunicación.
-        UUID operationId = UUID.randomUUID();
-
-        Invitation findedInvitation = invitationProjectService.findInvitationByIdAndRecipientUserId(invitationId,
+        // Agrega la operacion en la tabla operations
+        UUID operationId = operationService.registerInvitationAcceptance(
+                invitationId,
                 recipientUserId);
 
-        Board findedBoard = findedInvitation.getBoard();
+        // Modifica los campos de la tabla invitations
+        operationService.applyInvitationAcceptance(operationId);
 
-        if (findedInvitation.getStatus() != Status.UNCONFIRMED) {
-            throw new InvitationConfirmedException();
-        }
+        // 2. Intentar ejecutar la operación remota.
+        // Este método debe ejecutarse después del commit.
 
-        findedInvitation.setStatus(Status.ACCEPTED);
-        findedInvitation.setAcceptedAt(LocalDateTime.now());
+        // Método final para procesar la operación, encargado de llamar a los endpoints
+        // del microservicio Workflow para hacer las modificaciones en las tablas que se
+        // encargan de replicar datos de la BD de Project
+        operationProcessor.processOperation(operationId);
 
-        invitationProjectService.saveInvitation(findedInvitation);
-
-        // Se utiliza el metodo definido en el package Utils
-        WorkflowRole workflowRole = WorkflowRoleUtils.parseRoleToWorkflowRole(
-                findedInvitation.getRole());
-
-        // Solamente si al buscar miembro por userId y boardId, este ya se encuentra en
-        // la base de datos porque el miembro ha sido desactivado previamente, entonces
-        // se va a volver a activar (campo active pasa a true) y se cambia el rol (si ha
-        // cambiado cuando se le ha invitado al usuario)
-        Optional<Member> findedOptionalInactiveMember = memberProjectService
-                .findOptionalMemberByBoardIdAndUserId(findedBoard.getId(), recipientUserId);
-
-        if (findedOptionalInactiveMember.isPresent()) {
-
-            // Reactivar miembro existente
-            Member member = findedOptionalInactiveMember.get();
-
-            member.setActive(true);
-            member.setRole(findedInvitation.getRole());
-
-            // Los campos userId y Board ya se encuentran guardados previamente
-            memberProjectService.saveMember(member);
-
-            // Reactivar acceso en el microservicio Workflow
-            // Buscar un permiso de acceso al tablero con estado false
-            // workflowClientService.activateBoardAccess(findedBoard.getId(),
-            // member.getUserId(), workflowRole,
-            // operationId);
-
-            try {
-                workflowClientService.activateBoardAccess(findedBoard.getId(), member.getUserId(), workflowRole,
-                        operationId);
-            } catch (RetryableException | FeignClientException e) {
-                try {
-                    workflowClientService.compensateOperation(operationId);
-                } catch (RuntimeException compensationException) {
-                    e.addSuppressed(compensationException);
-                }
-
-                throw e;
-            }
-
-        } else {
-            // Crear nuevo miembro
-            // Agregar usuario receptor como miembro del board
-            Member member = new Member();
-            member.setUserId(recipientUserId);
-            member.setRole(findedInvitation.getRole());
-            member.setBoard(findedBoard);
-            member.setActive(true);
-
-            // Guardar member
-            memberProjectService.saveMember(member);
-
-            // Guarda los datos en la base de datos del microservicio Workflow/
-            // Solamente los datos necesarios: ID de tablero, Rol (WorkflowRole) e ID de
-            // usuario
-            // workflowClientService.addBoardAccess(findedBoard.getId(), workflowRole,
-            // operationId);
-
-            // Mecanismo para restaturar los datos que se han modificado si ha ocurrido un
-            // error en la base de datos del microservicio externo
-            try {
-                workflowClientService.addBoardAccess(findedBoard.getId(), workflowRole, operationId);
-            } catch (RetryableException | FeignClientException e) {
-                try {
-                    workflowClientService.compensateOperation(operationId);
-                } catch (RuntimeException compensationException) {
-                    e.addSuppressed(compensationException);
-                }
-
-                throw e;
-            }
-        }
     }
 
     @Override
