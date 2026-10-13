@@ -15,9 +15,9 @@ import com.trello.project.client.enums.WorkflowRole;
 import com.trello.project.client.fallback.WorkflowBoardAccessCommandClientFallbackFactory;
 
 // Como todas las peticiones tratan de hacer modificaciones en la base de datos, el name termina en "-command"
-@FeignClient(name = "businessdomain-workflow-board-access-command", url = "${services.workflow.url}", configuration = FeignClientConfig.class, fallbackFactory = WorkflowBoardAccessCommandClientFallbackFactory.class)
+@FeignClient(name = "businessdomain-workflow-board-accesses-command", url = "${services.workflow.url}", configuration = FeignClientConfig.class, fallbackFactory = WorkflowBoardAccessCommandClientFallbackFactory.class)
 public interface WorkflowBoardAccessCommandClient {
-    @PostMapping("/board-access/board/{boardId}/role/{roleName}")
+    @PostMapping("/board-accesses/board/{boardId}/role/{roleName}")
     ResponseEntity<Void> addBoardAccess(
             @PathVariable("boardId") UUID boardId,
             @PathVariable("roleName") WorkflowRole roleName,
@@ -25,20 +25,20 @@ public interface WorkflowBoardAccessCommandClient {
             // Identifica la operación que se esta ejecutando
             @RequestHeader("X-Operation-Id") UUID operationId);
 
-    @PatchMapping("/board-access/board/{boardId}/user/{memberUserId}/role/{roleName}")
+    @PatchMapping("/board-accesses/board/{boardId}/user/{memberUserId}/role/{roleName}")
     ResponseEntity<Void> activateBoardAccess(
             @PathVariable("boardId") UUID boardId,
             @PathVariable("memberUserId") UUID memberUserId,
             @PathVariable("roleName") WorkflowRole roleName,
             @RequestHeader("X-Operation-Id") UUID operationId);
 
-    @PutMapping("/board-access/board/{boardId}/user/{memberUserId}/role/{roleName}")
+    @PutMapping("/board-accesses/board/{boardId}/user/{memberUserId}/role/{roleName}")
     ResponseEntity<Void> changeRoleBoardAccess(
             @PathVariable("boardId") UUID boardId,
             @PathVariable("memberUserId") UUID memberUserId,
             @PathVariable("roleName") WorkflowRole roleName);
 
-    @PatchMapping("/board-access/board/{boardId}/user/{memberUserId}")
+    @PatchMapping("/board-accesses/board/{boardId}/user/{memberUserId}")
     ResponseEntity<Void> deactivateBoardAccess(
             @PathVariable("boardId") UUID boardId,
             @PathVariable("memberUserId") UUID memberUserId);

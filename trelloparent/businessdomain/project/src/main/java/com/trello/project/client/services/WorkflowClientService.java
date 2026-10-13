@@ -33,5 +33,7 @@ public interface WorkflowClientService {
 
     void deleteManyBoardsByIdsAndBoardAccessAndTasks(List<UUID> boardIds);
 
-    void compensateOperation(UUID operationId);
+    void revertAddBoardAccess(UUID operationId);
+
+    void revertActivateBoardAccess(UUID operationId);
 }

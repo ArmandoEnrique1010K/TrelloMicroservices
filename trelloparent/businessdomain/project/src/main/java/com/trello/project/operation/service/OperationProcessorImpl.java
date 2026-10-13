@@ -103,6 +103,29 @@ public class OperationProcessorImpl implements OperationProcessor {
             try {
                 operationService.revertInvitationAcceptance(operationId);
 
+                // Metodo para revertir permiso de acceso cuando se añade un usuario en el
+                // microservicio Workflow
+                try {
+                    if (operation.getMemberActive() == null) {
+                        workflowClientService.revertAddBoardAccess(operationId);
+                    } else if (operation.getMemberActive() == false) {
+                        workflowClientService.revertActivateBoardAccess(operationId);
+                    } else {
+                        // Aunque es imposible que llegue a pasar
+                        throw new BusinessRuleException();
+                    }
+                    // Cualquier excepcion caera en un ServiceUnavailableException
+                    // Como si el llamado es cuando se ha acabado el tiempo de respuesta de
+                    // resilence
+                    // Obvio que no pasara porque el tiempo limite va a ser de 10 segundos en
+                    // lugar de los 4 segundos
+                } catch (ServiceUnavailableException exception) {
+                    operation.setStatus(OperationStatus.MANUAL_REVIEW);
+                    operation.setCompletedAt(null);
+                    operationProjectService.saveOperation(operation);
+                    throw new BusinessRuleException();
+                }
+
             } catch (Exception compensationException) {
 
                 // No cambiar a MANUAL_REVIEW automáticamente.

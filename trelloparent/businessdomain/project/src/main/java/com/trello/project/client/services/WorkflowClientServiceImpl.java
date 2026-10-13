@@ -62,8 +62,12 @@ public class WorkflowClientServiceImpl implements WorkflowClientService {
 
     // Operacion
     @Override
-    public void compensateOperation(UUID operationId) {
-        workflowOperationCommandClient.compensateOperation(operationId);
+    public void revertAddBoardAccess(UUID operationId) {
+        workflowOperationCommandClient.revertAddBoardAccess(operationId);
     }
 
+    @Override
+    public void revertActivateBoardAccess(UUID operationId) {
+        workflowOperationCommandClient.revertActivateBoardAccess(operationId);
+    }
 }
