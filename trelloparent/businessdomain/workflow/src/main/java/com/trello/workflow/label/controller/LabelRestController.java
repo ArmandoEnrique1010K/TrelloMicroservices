@@ -107,7 +107,7 @@ public class LabelRestController {
                         "message": "No se ha encontrado el permiso de acceso al tablero",
                         "status": 404,
                         "title": "Board access not found",
-                        "type": "/errors/board-access-not-found"
+                        "type": "/errors/board-accesses-not-found"
                     }
                     """))),
             @ApiResponse(responseCode = "409", description = "La etiqueta existe", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
@@ -187,7 +187,7 @@ public class LabelRestController {
                         "message": "No se ha encontrado el permiso de acceso al tablero",
                         "status": 404,
                         "title": "Board access not found",
-                        "type": "/errors/board-access-not-found"
+                        "type": "/errors/board-accesses-not-found"
                     }
                     """))),
             @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
@@ -269,7 +269,7 @@ public class LabelRestController {
                                 "message": "No se ha encontrado el permiso de acceso al tablero",
                                 "status": 404,
                                 "title": "Board access not found",
-                                "type": "/errors/board-access-not-found"
+                                "type": "/errors/board-accesses-not-found"
                             }
                             """),
                     @ExampleObject(name = "La etiqueta no existe", summary = "La etiqueta no existe", value = """
@@ -363,7 +363,7 @@ public class LabelRestController {
                                 "message": "No se ha encontrado el permiso de acceso al tablero",
                                 "status": 404,
                                 "title": "Board access not found",
-                                "type": "/errors/board-access-not-found"
+                                "type": "/errors/board-accesses-not-found"
                             }
                             """),
                     @ExampleObject(name = "La etiqueta no existe", summary = "La etiqueta no existe", value = """

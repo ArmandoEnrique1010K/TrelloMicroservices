@@ -14,6 +14,7 @@ import com.trello.workflow.board.exception.BoardAlreadyExistsException;
 import com.trello.workflow.boardaccess.exception.BoardAccessAlreadyExistsException;
 import com.trello.workflow.common.StandarizedApiExceptionResponse;
 import com.trello.workflow.label.exception.LabelAlreadyExistsException;
+import com.trello.workflow.operation.exception.OperationNotPendingException;
 import com.trello.workflow.task.exception.LabelAlreadyAssignedException;
 import com.trello.workflow.task.exception.LabelNotAssignedToTaskException;
 
@@ -93,7 +94,7 @@ public class ApiExceptionHandler {
         HttpStatus status = HttpStatus.NOT_FOUND;
 
         StandarizedApiExceptionResponse standarizedApiExceptionResponse = new StandarizedApiExceptionResponse(
-                "/errors/board-access-not-found",
+                "/errors/board-accesses-not-found",
                 "Board access not found",
                 status.value(),
                 "The board access was not found in the system",
@@ -110,7 +111,7 @@ public class ApiExceptionHandler {
         HttpStatus status = HttpStatus.CONFLICT;
 
         StandarizedApiExceptionResponse response = new StandarizedApiExceptionResponse(
-                "/errors/board-access/already-exists",
+                "/errors/board-accesses/already-exists",
                 "Board access already exists",
                 status.value(),
                 "A board access with the provided board ID and user ID already exists",
@@ -326,6 +327,25 @@ public class ApiExceptionHandler {
         return ResponseEntity
                 .status(status)
                 .body(response);
+    }
+
+    // Excepción de operación que no tiene un estado "PENDING" o
+    // "COMPENSATION_PENDING"
+    @ExceptionHandler(OperationNotPendingException.class)
+    public ResponseEntity<StandarizedApiExceptionResponse> handleOperationNotPendingException(
+            OperationNotPendingException ex) {
+        HttpStatus status = HttpStatus.NOT_FOUND;
+
+        StandarizedApiExceptionResponse standarizedApiExceptionResponse = new StandarizedApiExceptionResponse(
+                "/errors/operation/not-pending",
+                "Operation not pending",
+                status.value(),
+                "The operation does not have a 'PENDING' or 'COMPENSATION_PENDING' status.",
+                null,
+                // Este mensaje se va a mostrar al usuario
+                "Ha ocurrido un error");
+
+        return ResponseEntity.status(status).body(standarizedApiExceptionResponse);
     }
 
 }

@@ -31,7 +31,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 
 @Tag(name = "Board Access API", description = "API para la gestión de permisos de acceso al tablero por usuarios")
 @RestController
-@RequestMapping("/board-access")
+@RequestMapping("/board-accesses")
 public class BoardAccessRestController {
 
     private final BoardAccessService boardAccessService;
@@ -65,7 +65,7 @@ public class BoardAccessRestController {
                         "message": "Ya existe un permiso de acceso al tablero",
                         "status": 409,
                         "title": "Board access already exists",
-                        "type": "/errors/board-access/already-exists"
+                        "type": "/errors/board-accesses/already-exists"
                     }
                     """))),
 
@@ -128,7 +128,7 @@ public class BoardAccessRestController {
                         "message": "No se ha encontrado el permiso de acceso al tablero",
                         "status": 404,
                         "title": "Board access not found",
-                        "type": "/errors/board-access-not-found"
+                        "type": "/errors/board-accesses-not-found"
                     }
                     """))),
 
@@ -180,7 +180,7 @@ public class BoardAccessRestController {
                         "message": "No se ha encontrado el permiso de acceso al tablero",
                         "status": 404,
                         "title": "Board access not found",
-                        "type": "/errors/board-access-not-found"
+                        "type": "/errors/board-accesses-not-found"
                     }
                     """))),
 
@@ -229,7 +229,7 @@ public class BoardAccessRestController {
                         "message": "No se ha encontrado el permiso de acceso al tablero",
                         "status": 404,
                         "title": "Board access not found",
-                        "type": "/errors/board-access-not-found"
+                        "type": "/errors/board-accesses-not-found"
                     }
                     """))),
 

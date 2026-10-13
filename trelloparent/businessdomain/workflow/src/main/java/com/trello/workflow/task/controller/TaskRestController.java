@@ -116,7 +116,7 @@ public class TaskRestController {
                         "message": "No se ha encontrado el permiso de acceso al tablero",
                         "status": 404,
                         "title": "Board access not found",
-                        "type": "/errors/board-access-not-found"
+                        "type": "/errors/board-accesses-not-found"
                     }
                     """))),
             @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
@@ -171,7 +171,7 @@ public class TaskRestController {
                         "message": "No se ha encontrado el permiso de acceso al tablero",
                         "status": 404,
                         "title": "Board access not found",
-                        "type": "/errors/board-access-not-found"
+                        "type": "/errors/board-accesses-not-found"
                     }
                     """))),
             @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
@@ -270,7 +270,7 @@ public class TaskRestController {
                                 "message": "No se ha encontrado el permiso de acceso al tablero",
                                 "status": 404,
                                 "title": "Board access not found",
-                                "type": "/errors/board-access-not-found"
+                                "type": "/errors/board-accesses-not-found"
                             }
                             """),
                     @ExampleObject(name = "La tarea no existe", summary = "La tarea no existe", value = """
@@ -351,7 +351,7 @@ public class TaskRestController {
                                 "message": "No se ha encontrado el permiso de acceso al tablero",
                                 "status": 404,
                                 "title": "Board access not found",
-                                "type": "/errors/board-access-not-found"
+                                "type": "/errors/board-accesses-not-found"
                             }
                             """),
                     @ExampleObject(name = "La tarea no existe", summary = "La tarea no existe", value = """
@@ -449,7 +449,7 @@ public class TaskRestController {
                                 "message": "No se ha encontrado el permiso de acceso al tablero",
                                 "status": 404,
                                 "title": "Board access not found",
-                                "type": "/errors/board-access-not-found"
+                                "type": "/errors/board-accesses-not-found"
                             }
                             """),
                     @ExampleObject(name = "La tarea no existe", summary = "La tarea no existe", value = """
@@ -515,7 +515,7 @@ public class TaskRestController {
                                 "message": "No se ha encontrado el permiso de acceso al tablero",
                                 "status": 404,
                                 "title": "Board access not found",
-                                "type": "/errors/board-access-not-found"
+                                "type": "/errors/board-accesses-not-found"
                             }
                             """),
                     @ExampleObject(name = "La tarea no existe", summary = "La tarea no existe", value = """
@@ -602,7 +602,7 @@ public class TaskRestController {
                                 "message": "No se ha encontrado el permiso de acceso al tablero",
                                 "status": 404,
                                 "title": "Board access not found",
-                                "type": "/errors/board-access-not-found"
+                                "type": "/errors/board-accesses-not-found"
                             }
                             """),
                     @ExampleObject(name = "La tarea no existe", summary = "La tarea no existe", value = """
@@ -716,7 +716,7 @@ public class TaskRestController {
                                 "message": "No se ha encontrado el permiso de acceso al tablero",
                                 "status": 404,
                                 "title": "Board access not found",
-                                "type": "/errors/board-access-not-found"
+                                "type": "/errors/board-accesses-not-found"
                             }
                             """),
                     @ExampleObject(name = "La tarea no existe", summary = "La tarea no existe", value = """
@@ -830,7 +830,7 @@ public class TaskRestController {
                                 "message": "No se ha encontrado el permiso de acceso al tablero",
                                 "status": 404,
                                 "title": "Board access not found",
-                                "type": "/errors/board-access-not-found"
+                                "type": "/errors/board-accesses-not-found"
                             }
                             """),
                     @ExampleObject(name = "La tarea no existe", summary = "La tarea no existe", value = """
