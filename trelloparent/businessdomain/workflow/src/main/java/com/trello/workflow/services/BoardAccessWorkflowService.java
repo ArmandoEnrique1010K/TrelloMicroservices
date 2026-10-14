@@ -17,7 +17,8 @@ public interface BoardAccessWorkflowService {
     BoardAccess findBoardAccessByBoardIdAndUserIdAndUserInactive(UUID boardId, UUID userId)
             throws BoardAccessNotFoundException;
 
-    void deleteBoardAccess(UUID boardId, UUID userId) throws BoardAccessNotFoundException;
+    void deleteBoardAccessByBoardIdAndUserId(UUID boardId, UUID userId) throws BoardAccessNotFoundException;
 
-    void revertActivateBoardAccess(UUID boardId, UUID userId, Role previousRole) throws BoardAccessNotFoundException;
+    void inactivateBoardAccessAndChangeRoleByBoardIdAndUserId(UUID boardId, UUID userId, Role previousRole)
+            throws BoardAccessNotFoundException;
 }

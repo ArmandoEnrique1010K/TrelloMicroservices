@@ -1,7 +1,6 @@
 package com.trello.workflow.boardaccess.service;
 
 import com.trello.workflow.services.BoardAccessWorkflowService;
-import com.trello.workflow.services.BoardWorkflowService;
 
 import java.util.UUID;
 
@@ -9,55 +8,63 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.trello.workflow.boardaccess.exception.BoardAccessAlreadyExistsException;
-import com.trello.workflow.entities.Board;
 import com.trello.workflow.entities.BoardAccess;
+import com.trello.workflow.entities.Operation;
 import com.trello.workflow.enums.Role;
 import com.trello.workflow.exception.BusinessRuleException;
+import com.trello.workflow.operation.service.procesors.OperationProcessor;
+import com.trello.workflow.operation.service.registers.OperationRegistersService;
 
 @Service
 public class BoardAccessServiceImpl implements BoardAccessService {
 
     private final BoardAccessWorkflowService boardAccessWorkflowService;
-    private final BoardWorkflowService boardWorkflowService;
+    private final OperationProcessor operationProcessor;
+    private final OperationRegistersService operationRegistersService;
 
-    public BoardAccessServiceImpl(BoardAccessWorkflowService boardAccessWorkflowService,
-            BoardWorkflowService boardWorkflowService) {
+    public BoardAccessServiceImpl(
+            BoardAccessWorkflowService boardAccessWorkflowService,
+            OperationProcessor operationProcessor,
+            OperationRegistersService operationRegistersService) {
         this.boardAccessWorkflowService = boardAccessWorkflowService;
-        this.boardWorkflowService = boardWorkflowService;
+        this.operationProcessor = operationProcessor;
+        this.operationRegistersService = operationRegistersService;
     }
 
-    @Transactional(rollbackFor = Exception.class)
     @Override
     public void addBoardAccess(UUID boardId, UUID userId, Role role,
             UUID operationId) throws BoardAccessAlreadyExistsException {
+        Operation operation = operationRegistersService.registerAddBoardAccess(boardId, userId, role, operationId);
 
-        // ============================================================
-        // Operación de negocio
-        // ============================================================
-        Board board = boardWorkflowService.findBoardById(boardId);
+        operationProcessor.processOperation(operation.getId());
 
-        if (boardAccessWorkflowService.existsBoardAccessByBoardIdAndUserId(boardId, userId)) {
-            throw new BoardAccessAlreadyExistsException();
-        }
+        // try {
+        // Operation operation =
+        // operationRegistersService.registerAddBoardAccess(boardId, userId, role,
+        // operationId);
 
-        BoardAccess savedBoardAccess = new BoardAccess();
-        savedBoardAccess.setUserId(userId);
-        savedBoardAccess.setRole(role);
-        savedBoardAccess.setUserActive(true);
-        savedBoardAccess.setBoard(board);
+        // operationProcessor.processOperation(operation.getId());
 
-        boardAccessWorkflowService.saveBoardAccess(savedBoardAccess);
+        // } catch (Exception e) {
+        // operationProcessor.compensateOperation(operationId);
+        // }
     }
 
-    @Transactional(rollbackFor = Exception.class)
+    // @Transactional(rollbackFor = Exception.class)
     @Override
-    public void activateBoardAccess(UUID boardId, UUID memberUserId, Role role,
+    public void activateBoardAccess(UUID boardId, UUID memberUserId, Role newRole,
             UUID operationId) {
 
+        Operation operation = operationRegistersService.registerAddBoardAccess(boardId, memberUserId,
+                newRole,
+                operationId);
+
+        operationProcessor.processOperation(operation.getId());
         // Guardar el rol anterior
-        BoardAccess findedBoardAccess = boardAccessWorkflowService.findBoardAccessByBoardIdAndUserIdAndUserInactive(
-                boardId,
-                memberUserId);
+        // BoardAccess findedBoardAccess =
+        // boardAccessWorkflowService.findBoardAccessByBoardIdAndUserIdAndUserInactive(
+        // boardId,
+        // memberUserId);
 
         // ============================================================
         // Operación de negocio
@@ -67,13 +74,13 @@ public class BoardAccessServiceImpl implements BoardAccessService {
         // desactivar
         // Este error nunca pasara porque el no se podra alterar un usuario con el rol
         // de OWNER
-        if (findedBoardAccess.getRole().equals(Role.OWNER)) {
-            throw new BusinessRuleException();
-        }
+        // if (findedBoardAccess.getRole().equals(Role.OWNER)) {
+        // throw new BusinessRuleException();
+        // }
 
-        findedBoardAccess.setUserActive(true);
-        findedBoardAccess.setRole(role);
-        boardAccessWorkflowService.saveBoardAccess(findedBoardAccess);
+        // findedBoardAccess.setUserActive(true);
+        // findedBoardAccess.setRole(role);
+        // boardAccessWorkflowService.saveBoardAccess(findedBoardAccess);
 
     }
 

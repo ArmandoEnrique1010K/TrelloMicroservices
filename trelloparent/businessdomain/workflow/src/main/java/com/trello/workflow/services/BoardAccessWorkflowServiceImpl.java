@@ -46,7 +46,7 @@ public class BoardAccessWorkflowServiceImpl implements BoardAccessWorkflowServic
     }
 
     @Override
-    public void deleteBoardAccess(UUID boardId, UUID userId)
+    public void deleteBoardAccessByBoardIdAndUserId(UUID boardId, UUID userId)
             throws BoardAccessNotFoundException {
         BoardAccess boardAccess = boardAccessRepository.findByBoardIdAndUserId(boardId, userId)
                 .orElseThrow(BoardAccessNotFoundException::new);
@@ -54,14 +54,13 @@ public class BoardAccessWorkflowServiceImpl implements BoardAccessWorkflowServic
     }
 
     @Override
-    public void revertActivateBoardAccess(UUID boardId, UUID userId, Role previousRole)
+    public void inactivateBoardAccessAndChangeRoleByBoardIdAndUserId(UUID boardId, UUID userId, Role previousRole)
             throws BoardAccessNotFoundException {
-        BoardAccess boardAccess = boardAccessRepository.findByBoardIdAndUserId(boardId, userId)
-                .orElseThrow(BoardAccessNotFoundException::new);
+        BoardAccess boardAccess = boardAccessRepository.findByBoardIdAndUserId(
+                boardId, userId).orElseThrow(BoardAccessNotFoundException::new);
 
-        boardAccess.setUserActive(false);
         boardAccess.setRole(previousRole);
-
+        boardAccess.setUserActive(false);
         boardAccessRepository.save(boardAccess);
     }
 

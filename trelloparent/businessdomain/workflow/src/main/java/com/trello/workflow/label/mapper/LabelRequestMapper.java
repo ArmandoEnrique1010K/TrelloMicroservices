@@ -12,7 +12,8 @@ public interface LabelRequestMapper {
 
     @Mappings({
             @Mapping(target = "id", ignore = true),
-            @Mapping(target = "board", ignore = true)
+            @Mapping(target = "board", ignore = true),
+            @Mapping(target = "color", ignore = true)
     })
     Label labelRequestToLabel(LabelRequest source);
 }
