@@ -1,32 +1,31 @@
 package com.trello.project.enums;
 
 public enum OperationStatus {
-    // La operación está registrada, pero aún no se han aplicado
-    // los cambios locales en Project.
+    // Operación registrada; aún no se aplicaron cambios locales
     CREATED,
 
-    // Los cambios locales están aplicados y la operación
-    // está lista para enviarse a Workflow.
+    // Cambios locales aplicados; falta ejecutar la acción remota
     PENDING,
 
-    // Se está procesando la operación distribuida.
+    // Ejecución de la acción remota en curso
     PROCESSING,
 
-    // La operación distribuida terminó correctamente.
+    // Operación completada (incluye si una operación ya no esta compensada)
     COMPLETED,
 
-    // Se decidió compensar, pero todavía no ha terminado.
+    // Compensación pendiente de completar
     COMPENSATION_PENDING,
 
-    // Un proceso está ejecutando la compensación.
+    // Compensación en curso
     COMPENSATION_PROCESSING,
 
-    // Toda la compensación distribuida terminó correctamente.
+    // Los cambios locales se revirtieron, pero falta completar o confirmar la
+    // compensación distribuida
     COMPENSATED,
 
-    // Se requiere intervención manual.
-    MANUAL_REVIEW
+    // Ambos servicios compensados; se permite una nueva aceptación
+    COMPENSATION_COMPLETED,
 
-    // Los estados de PEDING y COMPENSATION_PENDING indican una operación que ha
-    // quedado pendiente
+    // Existe una inconsistencia que requiere revisión
+    MANUAL_REVIEW
 }
