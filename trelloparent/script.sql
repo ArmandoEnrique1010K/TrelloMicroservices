@@ -40,12 +40,21 @@ insert into invitations (id, sended_at, message, recipient_user_id, role, sender
 # Miembro inactivo, requiere que lo activen
 # El usuario "example@gmail.com" fue miembro anterior del tablero "0a2ecb80-3b35-4096-a551-644aecc54338", y si hay una invitación, entonces debe cambiar el valor de active a true
 # No se ha alterado el nuevo rol del usuario
-insert into public.members (id, joined_at, role, user_id, board_id, active) values
+insert into members (id, joined_at, role, user_id, board_id, active) values
 ('6931f2fb-56b8-4b05-91fa-7b913e3c3423', '2026-10-10 23:03:13.209771', 'ADMIN', '3e54e44f-8f87-445b-8817-8c13010f5da5', '0a2ecb80-3b35-4096-a551-644aecc54338', false);
 
 # Recordar que tambien debes introducir el board access en la base de datos del microservicio Workflow
-insert into public.board_access (id, role, user_active, user_id, board_id) values
+insert into board_access (id, role, user_active, user_id, board_id) values
 ('88fc7aa7-4d97-417e-ab01-566a8491324e', 'ADMIN', false, '3e54e44f-8f87-445b-8817-8c13010f5da5', '0a2ecb80-3b35-4096-a551-644aecc54338')
+
+# Borrar todos los datos de las tablas de las bases de datos
+TRUNCATE TABLE invitations;
+TRUNCATE TABLE members;
+TRUNCATE TABLE operations;
+
+TRUNCATE TABLE board_accesses;
+TRUNCATE TABLE operations;
+
 
 
 
