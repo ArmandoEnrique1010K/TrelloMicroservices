@@ -4,7 +4,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
@@ -12,23 +11,15 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.trello.project.client.dto.response.UserResponse;
 import com.trello.project.client.dto.response.UsersByIdResponse;
-import com.trello.project.client.enums.WorkflowRole;
 import com.trello.project.client.services.IdentityClientService;
-import com.trello.project.client.services.WorkflowClientService;
-import com.trello.project.client.utils.WorkflowRoleUtils;
 import com.trello.project.entities.Board;
 import com.trello.project.entities.Invitation;
-import com.trello.project.entities.Member;
 import com.trello.project.entities.Operation;
 import com.trello.project.enums.OperationStatus;
-import com.trello.project.enums.OperationType;
 import com.trello.project.enums.Role;
 import com.trello.project.enums.Status;
-import com.trello.project.exception.BusinessRuleException;
 import com.trello.project.exception.ServiceUnavailableException;
 import com.trello.project.invitation.dto.request.InvitationRequest;
 import com.trello.project.invitation.dto.response.BoardInvitationResponse;
@@ -40,52 +31,46 @@ import com.trello.project.invitation.mapper.BoardInvitationResponseMapper;
 import com.trello.project.invitation.mapper.InvitationRequestMapper;
 import com.trello.project.invitation.mapper.InvitationResponseMapper;
 import com.trello.project.invitation.mapper.ReceivedInvitationResponseMapper;
-import com.trello.project.operation.service.OperationProcessor;
-import com.trello.project.operation.service.OperationService;
+import com.trello.project.operation.service.handler.OperationAcceptInvitationService;
+import com.trello.project.operation.service.processor.OperationProcessor;
+import com.trello.project.operation.service.register.OperationRegisterService;
 import com.trello.project.service.BoardProjectService;
 import com.trello.project.service.InvitationProjectService;
-import com.trello.project.service.MemberProjectService;
-import com.trello.project.service.OperationProjectService;
-
-import feign.RetryableException;
-import feign.FeignException.FeignClientException;
 
 @Service
 public class InvitationServiceImpl implements InvitationService {
 
-    private final WorkflowClientService workflowClientService;
     private final BoardProjectService boardProjectService;
     private final InvitationRequestMapper invitationRequestMapper;
     private final InvitationProjectService invitationProjectService;
     private final InvitationResponseMapper invitationResponseMapper;
-    private final MemberProjectService memberProjectService;
     private final IdentityClientService identityClientService;
     private final BoardInvitationResponseMapper boardInvitationResponseMapper;
     private final ReceivedInvitationResponseMapper receivedInvitationResponseMapper;
-    private final OperationService operationService;
     private final OperationProcessor operationProcessor;
+    private final OperationRegisterService operationRegisterService;
+    private final OperationAcceptInvitationService operationAcceptInvitationService;
 
     public InvitationServiceImpl(
             BoardProjectService boardProjectService,
             InvitationRequestMapper invitationRequestMapper, InvitationProjectService invitationProjectService,
             InvitationResponseMapper invitationResponseMapper,
-            MemberProjectService memberProjectService, IdentityClientService identityClientService,
+            IdentityClientService identityClientService,
             BoardInvitationResponseMapper boardInvitationResponseMapper,
             ReceivedInvitationResponseMapper receivedInvitationResponseMapper,
-            WorkflowClientService workflowClientService,
-            OperationService operationService,
-            OperationProcessor operationProcessor) {
+            OperationProcessor operationProcessor,
+            OperationRegisterService operationRegisterService,
+            OperationAcceptInvitationService operationAcceptInvitationService) {
         this.boardProjectService = boardProjectService;
         this.invitationRequestMapper = invitationRequestMapper;
         this.invitationProjectService = invitationProjectService;
         this.invitationResponseMapper = invitationResponseMapper;
-        this.memberProjectService = memberProjectService;
         this.identityClientService = identityClientService;
         this.boardInvitationResponseMapper = boardInvitationResponseMapper;
         this.receivedInvitationResponseMapper = receivedInvitationResponseMapper;
-        this.workflowClientService = workflowClientService;
-        this.operationService = operationService;
         this.operationProcessor = operationProcessor;
+        this.operationRegisterService = operationRegisterService;
+        this.operationAcceptInvitationService = operationAcceptInvitationService;
     }
 
     @Override
@@ -177,28 +162,25 @@ public class InvitationServiceImpl implements InvitationService {
         invitationProjectService.deleteInvitationByIdAndSenderUserId(invitationId, ownerUserId);
     }
 
-    // @Transactional(rollbackFor = { Exception.class,
-    // ServiceUnavailableException.class })
+    // Los métodos que van a escribir una opaeración en la base de datos no deben
+    // llevar @Transactional en esta clase
     @Override
     public void acceptInvitation(UUID invitationId, UUID recipientUserId) {
-        // 1. Registrar la operación y los cambios locales.
+        // 1. Registrar o recuperar la operación.
+        Operation operation = operationRegisterService
+                .registerAcceptInvitation(invitationId, recipientUserId);
 
-        // Agrega la operacion en la tabla operations
-        UUID operationId = operationService.registerInvitationAcceptance(
-                invitationId,
-                recipientUserId);
+        // 2. Aplicar cambios locales únicamente si corresponde
+        // iniciar una operación nueva o repetir una ya compensada.
+        if (operation.getStatus() == OperationStatus.CREATED
+                || operation.getStatus() == OperationStatus.COMPENSATION_COMPLETED) {
 
-        // Modifica los campos de la tabla invitations
-        operationService.applyInvitationAcceptance(operationId);
+            operationAcceptInvitationService
+                    .applyAcceptInvitation(operation.getId(), false);
+        }
 
-        // 2. Intentar ejecutar la operación remota.
-        // Este método debe ejecutarse después del commit.
-
-        // Método final para procesar la operación, encargado de llamar a los endpoints
-        // del microservicio Workflow para hacer las modificaciones en las tablas que se
-        // encargan de replicar datos de la BD de Project
-        operationProcessor.processOperation(operationId);
-
+        // 3. Procesar según el estado persistido.
+        operationProcessor.processOperation(operation.getId());
     }
 
     @Override
