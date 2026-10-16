@@ -14,6 +14,7 @@ import com.trello.project.entities.Invitation;
 import com.trello.project.entities.Operation;
 import com.trello.project.enums.OperationStatus;
 import com.trello.project.exception.BusinessRuleException;
+import com.trello.project.exception.OperationCompensatedException;
 import com.trello.project.exception.OperationManualReviewException;
 import com.trello.project.exception.ServiceUnavailableException;
 import com.trello.project.operation.exception.OperationNotFoundException;
@@ -57,24 +58,45 @@ public class OperationProcessorImpl implements OperationProcessor {
 
         // Solamente se acepta con estado PENDING
 
+        // POSIBLES ESTADOS DE OPERACIONES:
+        // EXECUTION_PENDING -> Si se trata de una nueva operación
+        //
+
         // Evitar reprocesar operaciones ya completadas.
-
         switch (currentStatus) {
-            case PENDING -> processOriginalOperation(operation);
+            // La operación original todavía no se ha ejecutado.
+            case EXECUTION_PENDING ->
+                processOriginalOperation(operation);
 
-            case COMPENSATION_PENDING -> processCompensation(operation);
+            // El rollback local de Project está pendiente.
+            // case COMPENSATION_PENDING ->
+            // processLocalCompensation(operation);
 
-            case COMPENSATED -> processRemoteCompensation(operation);
+            // El rollback local ya terminó.
+            // Solo se debe reintentar la compensación remota.
 
+            // Esto no va a funcionar, debe volver a procesar la operación original
+            // processRemoteCompensation(operation)
+
+            // Probar si funciona el caso de cuando el usuario vuelve a llamar al metodo del
+            // endpoint para realizar la misma operación que ya fue realizada y obtener un
+            // status 202 mediante la excepción OperationCompensatedException
+
+            // case COMPENSATION_COMPLETED ->
+            // processOriginalOperation(operation);
+
+            // No ejecutar nuevamente operaciones terminadas
+            // ni operaciones que requieren revisión manual.
             default -> throw new OperationNotPendingException();
         }
     }
 
     // Procesar la operación original
     private void processOriginalOperation(Operation operation) {
+        log.info("ESTADO ACTUAL: " + operation.getStatus());
 
         // 1. Marcar el inicio de la ejecución original.
-        operation.setStatus(OperationStatus.PROCESSING);
+        operation.setStatus(OperationStatus.EXECUTING);
         operationProjectService.saveOperation(operation);
 
         try {
@@ -116,7 +138,32 @@ public class OperationProcessorImpl implements OperationProcessor {
 
             // Intentar compensar inmediatamente.
             // Si falla, el estado y la fecha permiten recuperarlo después.
-            processCompensation(operation);
+            // 2. Intentar compensar inmediatamente.
+            try {
+                processLocalCompensation(operation);
+
+            } catch (ServiceUnavailableException compensationException) {
+                // 3. Comprobar si la compensación local terminó correctamente.
+                Operation updatedOperation = operationProjectService
+                        .findOperationById(operation.getId())
+                        .orElseThrow(OperationNotFoundException::new);
+
+                if (updatedOperation.getStatus() == OperationStatus.COMPENSATION_COMPLETED) {
+                    throw new OperationCompensatedException();
+                }
+
+                // Si no se alcanzó COMPENSATION_COMPLETED, conservar el error original.
+                throw compensationException;
+            }
+
+            // 4. Si no hubo excepción, comprobar el estado final.
+            Operation updatedOperation = operationProjectService
+                    .findOperationById(operation.getId())
+                    .orElseThrow(OperationNotFoundException::new);
+
+            if (updatedOperation.getStatus() == OperationStatus.COMPENSATION_COMPLETED) {
+                throw new OperationCompensatedException();
+            }
 
         } catch (RemoteBoardAccessNotFoundException
                 | RemoteBoardAccessAlreadyExistsException e) {
@@ -141,39 +188,45 @@ public class OperationProcessorImpl implements OperationProcessor {
     }
 
     // Ejecutar la compensación Local
-    private void processCompensation(Operation operation) {
+    private void processLocalCompensation(Operation operation) {
+
+        // Posible estado de operacion: COMPENSATION_PENDING
 
         // 1. Confirmar que corresponde compensar.
         if (operation.getStatus() != OperationStatus.COMPENSATION_PENDING) {
             throw new OperationNotPendingException();
         }
 
-        // 2. Marcar el inicio de la compensación.
-        operation.setStatus(OperationStatus.COMPENSATION_PROCESSING);
-        operationProjectService.saveOperation(operation);
-
         try {
 
             // 3. Revertir los cambios locales de Project.
             // La compensación local debe ejecutarse en una transacción
             // independiente y terminar antes de llamar a Workflow.
+            operation.setStatus(OperationStatus.LOCAL_COMPENSATION_IN_PROGRESS);
+            operation.setCompletedAt(null);
+            operation.setNextAutomaticAttemptAt(null);
+            operationProjectService.saveOperation(operation);
+
             operationAcceptInvitationService
                     .revertAcceptInvitation(operation.getId());
 
+            Operation updatedOperation = operationProjectService
+                    .findOperationById(operation.getId())
+                    .orElseThrow(OperationNotFoundException::new);
+
+            if (updatedOperation.getStatus() == OperationStatus.MANUAL_INTERVENTION_REQUIRED) {
+                throw new OperationManualReviewException();
+            }
+
             // 4. La compensación local terminó.
             // A partir de ahora, los reintentos deben continuar en Workflow.
-            operation.setStatus(OperationStatus.COMPENSATED);
+            operation.setStatus(OperationStatus.LOCAL_COMPENSATION_COMPLETED);
             operation.setCompletedAt(null);
             operation.setNextAutomaticAttemptAt(
                     LocalDateTime.now().plusSeconds(30));
 
             operationProjectService.saveOperation(operation);
 
-        } catch (OperationManualReviewException e) {
-            // La transacción de la compensación local debe haberse
-            // revertido si se lanzó esta excepción.
-            markManualReview(operation, e);
-            throw e;
         } catch (Exception e) {
 
             log.error(
@@ -195,8 +248,9 @@ public class OperationProcessorImpl implements OperationProcessor {
     }
 
     private void processRemoteCompensation(Operation operation) {
+        // POSIBLE ESTADO DE OPERACIÓN: LOCAL_COMPENSATION_COMPLETED
 
-        if (operation.getStatus() != OperationStatus.COMPENSATED) {
+        if (operation.getStatus() != OperationStatus.LOCAL_COMPENSATION_COMPLETED) {
             throw new OperationNotPendingException();
         }
 
@@ -238,18 +292,13 @@ public class OperationProcessorImpl implements OperationProcessor {
 
             // Los cambios locales ya fueron revertidos.
             // No regresar a COMPENSATION_PENDING: eso repetiría el rollback.
-            operation.setStatus(OperationStatus.COMPENSATED);
+            operation.setStatus(OperationStatus.LOCAL_COMPENSATION_COMPLETED);
             operation.setNextAutomaticAttemptAt(
                     LocalDateTime.now().plusSeconds(30));
 
             operationProjectService.saveOperation(operation);
 
-            log.warn(
-                    "Workflow no está disponible. Se reintentará "
-                            + "la compensación remota de la operación {}",
-                    operation.getId());
-
-            throw e;
+            throw new OperationCompensatedException();
         }
     }
 
@@ -274,13 +323,26 @@ public class OperationProcessorImpl implements OperationProcessor {
         Boolean memberWasActive = operation.getMemberActive();
 
         if (memberWasActive == null) {
+            log.info(
+                    "Ejecutando addBoardAccess. operationId={}, boardId={}",
+                    operation.getId(),
+                    boardId);
+
             // Si no existia un miembro, crear el permiso de acceso en Workflow
             workflowClientService.addBoardAccess(
                     boardId,
                     workflowRole,
                     operation.getId());
+            log.info(
+                    "addBoardAccess finalizó correctamente. operationId={}",
+                    operation.getId());
 
         } else if (!memberWasActive) {
+            log.info(
+                    "Ejecutando activateBoardAccess. operationId={}, boardId={}",
+                    operation.getId(),
+                    boardId);
+
             // Si existia un miembro inactivo, entonces activar el permiso de acceso en
             // Workflow.
             workflowClientService.activateBoardAccess(
@@ -288,6 +350,11 @@ public class OperationProcessorImpl implements OperationProcessor {
                     operation.getUserId(),
                     workflowRole,
                     operation.getId());
+
+            log.info(
+                    "activateBoardAccess finalizó correctamente. operationId={}",
+                    operation.getId());
+
         } else {
             // Si existia un miembro activo, entonces devolver una excepción
             throw new BusinessRuleException();
@@ -305,7 +372,7 @@ public class OperationProcessorImpl implements OperationProcessor {
                 "Excepción: ",
                 exception);
 
-        operation.setStatus(OperationStatus.MANUAL_REVIEW);
+        operation.setStatus(OperationStatus.MANUAL_INTERVENTION_REQUIRED);
         operation.setCompletedAt(null);
         operation.setNextAutomaticAttemptAt(null);
 

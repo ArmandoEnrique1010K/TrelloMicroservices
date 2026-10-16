@@ -21,6 +21,9 @@ import com.trello.project.service.InvitationProjectService;
 import com.trello.project.service.MemberProjectService;
 import com.trello.project.service.OperationProjectService;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Service
 public class OperationAcceptInvitationServiceImpl implements OperationAcceptInvitationService {
 
@@ -47,9 +50,13 @@ public class OperationAcceptInvitationServiceImpl implements OperationAcceptInvi
 
         // 2. Validar si puede ejecutarse la aceptación.
         OperationStatus currentStatus = persistedOperation.getStatus();
+        log.info("Estado de operación: " + currentStatus);
 
-        if (currentStatus != OperationStatus.CREATED
-                && currentStatus != OperationStatus.COMPENSATION_COMPLETED) {
+        if (currentStatus != OperationStatus.REGISTERED
+                && currentStatus != OperationStatus.LOCAL_COMPENSATION_COMPLETED
+                && currentStatus != OperationStatus.COMPENSATION_COMPLETED
+        // && currentStatus != OperationStatus.MANUAL_INTERVENTION_REQUIRED
+        ) {
 
             throw new OperationNotPendingException();
         }
@@ -64,7 +71,7 @@ public class OperationAcceptInvitationServiceImpl implements OperationAcceptInvi
         }
 
         // 4. Preparar la nueva ejecución.
-        persistedOperation.setStatus(OperationStatus.PENDING);
+        persistedOperation.setStatus(OperationStatus.EXECUTION_PENDING);
         persistedOperation.setCompletedAt(null);
         persistedOperation.setNextAutomaticAttemptAt(
                 LocalDateTime.now().plusSeconds(30));
@@ -123,7 +130,7 @@ public class OperationAcceptInvitationServiceImpl implements OperationAcceptInvi
         Operation operation = operationProjectService.findOperationById(operationId)
                 .orElseThrow(OperationNotFoundException::new);
 
-        operation.setStatus(OperationStatus.COMPENSATION_PROCESSING);
+        operation.setStatus(OperationStatus.LOCAL_COMPENSATION_IN_PROGRESS);
         operationProjectService.saveOperation(operation);
 
         UUID boardId = operation.getBoardId();
@@ -156,8 +163,7 @@ public class OperationAcceptInvitationServiceImpl implements OperationAcceptInvi
             } else {
                 // En el caso de que el miembro no exista, pero indica que se trato de una
                 // operación en la que se trata de eliminar un miembro existente
-
-                // Lanzar excepción de miembro no encontrado
+                return;
 
             }
         } else if (Boolean.FALSE.equals(activeMember)) {
@@ -166,7 +172,7 @@ public class OperationAcceptInvitationServiceImpl implements OperationAcceptInvi
 
             // Si el miembro no existe, establecer estado de MANUAL_REVIEW
             if (optionalMember.isEmpty()) {
-                operation.setStatus(OperationStatus.MANUAL_REVIEW);
+                operation.setStatus(OperationStatus.MANUAL_INTERVENTION_REQUIRED);
                 operationProjectService.saveOperation(operation);
 
                 // Se colocar un return para terminar la ejecución del código y no se lanza una
@@ -183,13 +189,13 @@ public class OperationAcceptInvitationServiceImpl implements OperationAcceptInvi
         } else {
             // En el caso de que activeMember sea true, se tendria una inconsistencia,
             // porque indica que se trata de un miembro activo
-            operation.setStatus(OperationStatus.MANUAL_REVIEW);
+            operation.setStatus(OperationStatus.MANUAL_INTERVENTION_REQUIRED);
             operationProjectService.saveOperation(operation);
             return;
         }
 
         // 4. Dejar operación con el estado de COMPENSATED
-        operation.setStatus(OperationStatus.COMPENSATED);
+        operation.setStatus(OperationStatus.LOCAL_COMPENSATION_COMPLETED);
         operation.setCompletedAt(null);
         operationProjectService.saveOperation(operation);
     }

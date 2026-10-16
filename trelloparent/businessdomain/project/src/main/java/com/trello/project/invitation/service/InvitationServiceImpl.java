@@ -170,16 +170,26 @@ public class InvitationServiceImpl implements InvitationService {
         Operation operation = operationRegisterService
                 .registerAcceptInvitation(invitationId, recipientUserId);
 
-        // 2. Aplicar cambios locales únicamente si corresponde
+        // 2. Si la compensación local ya terminó, permitir que el usuario
+        // intente completar la compensación remota.
+        // if (operation.getStatus() == OperationStatus.COMPENSATED) {
+        // operationProcessor.processOperation(operation.getId());
+        // return;
+        // }
+
+        // 3. Aplicar cambios locales únicamente si corresponde
         // iniciar una operación nueva o repetir una ya compensada.
-        if (operation.getStatus() == OperationStatus.CREATED
+        if (operation.getStatus() == OperationStatus.REGISTERED
+                || operation.getStatus() == OperationStatus.LOCAL_COMPENSATION_COMPLETED
                 || operation.getStatus() == OperationStatus.COMPENSATION_COMPLETED) {
 
+            // Ejecuta la operación de forma manual
+            // Recordar que el método de acceptInvitation se llama desde un endpoint
             operationAcceptInvitationService
                     .applyAcceptInvitation(operation.getId(), false);
         }
 
-        // 3. Procesar según el estado persistido.
+        // 4. Procesar según el estado persistido.
         operationProcessor.processOperation(operation.getId());
     }
 

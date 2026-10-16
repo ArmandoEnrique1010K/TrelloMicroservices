@@ -21,6 +21,9 @@ import com.trello.project.service.InvitationProjectService;
 import com.trello.project.service.MemberProjectService;
 import com.trello.project.service.OperationProjectService;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Service
 public class OperationRegisterServiceImpl implements OperationRegisterService {
 
@@ -45,28 +48,15 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
 
         // 1. Idempotencia
         // Buscar una operación por tipo e ID de invitación
+        // Este metodo devuelve
         Optional<Operation> existingOperation = operationProjectService.findOperationByInvitationIdAndType(
                 invitationId,
                 OperationType.ACCEPT_INVITATION);
 
-        // 2. No registrar nuevamente la operación si existe
-        if (existingOperation.isPresent()) {
-            Operation existing = existingOperation.get();
+        // Nota: Primero debe tomar en cuenta la logica de negocio antes de lanzar una
+        // excepcion relacionada a operaciones
 
-            switch (existing.getStatus()) {
-                case CREATED, COMPENSATION_COMPLETED -> {
-                    // Terminar aqui la ejecución del metodo y devolver la entidad
-                    return existing;
-                }
-
-                // Lanzar una excepción si la operación no esta en un estado pendiente
-                case PENDING, PROCESSING, COMPENSATION_PENDING, COMPENSATION_PROCESSING,
-                        COMPENSATED, COMPLETED, MANUAL_REVIEW ->
-                    throw new OperationNotPendingException();
-            }
-        }
-
-        // 3. Buscar y validar la invitación
+        // 2. Buscar y validar la invitación
         Invitation invitation = invitationProjectService
                 .findInvitationByIdAndRecipientUserId(
                         invitationId,
@@ -74,6 +64,26 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
 
         if (invitation.getStatus() != Status.UNCONFIRMED) {
             throw new InvitationConfirmedException();
+        }
+
+        // 3. No registrar nuevamente la operación si existe
+        if (existingOperation.isPresent()) {
+            Operation existing = existingOperation.get();
+
+            switch (existing.getStatus()) {
+                case REGISTERED, LOCAL_COMPENSATION_COMPLETED, COMPENSATION_COMPLETED -> {
+                    // Terminar aqui la ejecución del metodo y devolver la entidad
+                    return existing;
+                }
+
+                // Lanzar una excepción si la operación no esta en un estado pendiente
+                case EXECUTION_PENDING,
+                        EXECUTING,
+                        COMPLETED, COMPENSATION_PENDING,
+                        LOCAL_COMPENSATION_IN_PROGRESS,
+                        MANUAL_INTERVENTION_REQUIRED ->
+                    throw new OperationNotPendingException();
+            }
         }
 
         // Busca el tablero correspondiente a la invitación
@@ -105,7 +115,7 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
         Operation operation = new Operation();
         operation.setId(operationId);
         operation.setType(OperationType.ACCEPT_INVITATION);
-        operation.setStatus(OperationStatus.CREATED);
+        operation.setStatus(OperationStatus.REGISTERED);
         operation.setManualAttempts(0);
         operation.setAutomaticAttempts(0);
 
