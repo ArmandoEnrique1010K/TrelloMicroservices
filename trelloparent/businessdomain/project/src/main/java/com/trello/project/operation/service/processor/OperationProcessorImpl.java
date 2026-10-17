@@ -168,6 +168,12 @@ public class OperationProcessorImpl implements OperationProcessor {
         } catch (RemoteBoardAccessNotFoundException
                 | RemoteBoardAccessAlreadyExistsException e) {
 
+            // AQUI <---
+            // Solamente si memberActive es false quiere decir que se trata de un miembro
+            // inactivo y se debe ignorar la excepción de
+            // RemoteBoardAccessAlreadyExistsException
+            // Boolean memberActive = operation.getMemberActive();
+
             // 5. Inconsistencia funcional remota.
             // Requiere inspección antes de continuar.
             markManualReview(operation, e);
@@ -345,6 +351,10 @@ public class OperationProcessorImpl implements OperationProcessor {
 
             // Si existia un miembro inactivo, entonces activar el permiso de acceso en
             // Workflow.
+            log.info("DATOS OBTENIDOS: BoardId: " + boardId + " | UserId: " + operation.getUserId() + " | Role: "
+                    + workflowRole
+                    + " | OperationId: " + operation.getId());
+
             workflowClientService.activateBoardAccess(
                     boardId,
                     operation.getUserId(),

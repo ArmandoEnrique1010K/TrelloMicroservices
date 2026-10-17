@@ -12,6 +12,9 @@ import com.trello.workflow.operation.service.OperationActivateBoardAccessService
 import com.trello.workflow.operation.service.OperationAddBoardAccessService;
 import com.trello.workflow.services.OperationWorkflowService;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Service
 public class OperationProcessorImpl implements OperationProcessor {
 
@@ -42,12 +45,14 @@ public class OperationProcessorImpl implements OperationProcessor {
         // WorkflowErrorDecoder QUE PROVOCABA QUE CUALQUIER EXCEPCIÓN NO DEFINIDA
         // SIEMPRE CAIA EN UN BusinessRuleException
 
+        log.info("VERIFICANDO QUE LA OPERACIÓN ESTE PENDIENTE");
         // Solamente ejecutar operaciones con estado PENDING O CREATED
         if (operation.getStatus() != OperationStatus.CREATED && operation.getStatus() != OperationStatus.PENDING) {
             // TODO: CORREGIR LA EXCEPCIÓN
             throw new OperationNotPendingException();
         }
 
+        log.info("APLICANDO EL CASO ADECUADO");
         // Evaluar por cada tipo de operación
         switch (operation.getType()) {
             case ADD_BOARD_ACCESS ->

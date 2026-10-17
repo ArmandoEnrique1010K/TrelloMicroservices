@@ -31,8 +31,8 @@ public class WorkflowClientServiceImpl implements WorkflowClientService {
     }
 
     @Override
-    public void activateBoardAccess(UUID boardId, UUID memberUserId, WorkflowRole roleName, UUID operationId) {
-        workflowBoardAccessCommandClient.activateBoardAccess(boardId, memberUserId, roleName, operationId);
+    public void activateBoardAccess(UUID boardId, UUID userId, WorkflowRole roleName, UUID operationId) {
+        workflowBoardAccessCommandClient.activateBoardAccess(boardId, userId, roleName, operationId);
     }
 
     @Override

@@ -36,11 +36,6 @@ public class OperationActivateBoardAccessServiceImpl implements OperationActivat
                 .findOperationById(operation.getId())
                 .orElseThrow(OperationNotFoundException::new);
 
-        // Solamente ejecutar operaciones con estado PENDING
-        if (currentOperation.getStatus() != OperationStatus.PENDING) {
-            throw new OperationNotPendingException();
-        }
-
         // Aumenta el numero de intentos en 1
         currentOperation.setStatus(OperationStatus.PROCESSING);
         currentOperation.setAttempts(currentOperation.getAttempts() + 1);

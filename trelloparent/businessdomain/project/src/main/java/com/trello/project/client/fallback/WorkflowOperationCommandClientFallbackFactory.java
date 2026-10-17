@@ -17,7 +17,7 @@ public class WorkflowOperationCommandClientFallbackFactory implements FallbackFa
     @Override
     public WorkflowOperationCommandClient create(Throwable cause) {
         log.error(
-                "Fallback ejecutado para WorkflowBoardAccessCommandClient. Causa: {}",
+                "Fallback ejecutado para WorkflowOperationCommandClient. Causa: {}",
                 cause.toString(),
                 cause);
         return new WorkflowOperationCommandClient() {
