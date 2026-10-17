@@ -8,6 +8,7 @@ import com.trello.workflow.entities.Operation;
 import com.trello.workflow.enums.OperationStatus;
 import com.trello.workflow.operation.exception.OperationNotFoundException;
 import com.trello.workflow.operation.exception.OperationNotPendingException;
+import com.trello.workflow.operation.service.OperationActivateBoardAccessService;
 import com.trello.workflow.operation.service.OperationAddBoardAccessService;
 import com.trello.workflow.services.OperationWorkflowService;
 
@@ -16,13 +17,16 @@ public class OperationProcessorImpl implements OperationProcessor {
 
     private final OperationWorkflowService operationWorkflowService;
     private final OperationAddBoardAccessService operationAddBoardAccessService;
+    private final OperationActivateBoardAccessService operationActivateBoardAccessService;
 
     public OperationProcessorImpl(
             OperationWorkflowService operationWorkflowService,
-            OperationAddBoardAccessService operationAddBoardAccessService) {
+            OperationAddBoardAccessService operationAddBoardAccessService,
+            OperationActivateBoardAccessService operationActivateBoardAccessService) {
 
         this.operationWorkflowService = operationWorkflowService;
         this.operationAddBoardAccessService = operationAddBoardAccessService;
+        this.operationActivateBoardAccessService = operationActivateBoardAccessService;
     }
 
     // Ejecuta la operación original
@@ -49,7 +53,8 @@ public class OperationProcessorImpl implements OperationProcessor {
             case ADD_BOARD_ACCESS ->
                 operationAddBoardAccessService.applyAddBoardAccess(operation);
 
-            // case ACTIVATE_BOARD_ACCESS ->
+            case ACTIVATE_BOARD_ACCESS ->
+                operationActivateBoardAccessService.applyActivateBoardAccess(operation);
 
             // NOTA: ESTO NUNCA PASARA
             default -> throw new IllegalArgumentException(

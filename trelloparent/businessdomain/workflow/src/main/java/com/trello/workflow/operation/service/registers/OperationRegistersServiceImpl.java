@@ -7,7 +7,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.trello.workflow.boardaccess.exception.BoardAccessAlreadyExistsException;
-import com.trello.workflow.entities.Board;
 import com.trello.workflow.entities.BoardAccess;
 import com.trello.workflow.entities.Operation;
 import com.trello.workflow.enums.OperationStatus;

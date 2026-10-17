@@ -5,7 +5,6 @@ import com.trello.workflow.services.BoardAccessWorkflowService;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.trello.workflow.boardaccess.exception.BoardAccessAlreadyExistsException;
 import com.trello.workflow.entities.BoardAccess;
@@ -55,7 +54,7 @@ public class BoardAccessServiceImpl implements BoardAccessService {
     public void activateBoardAccess(UUID boardId, UUID memberUserId, Role newRole,
             UUID operationId) {
 
-        Operation operation = operationRegistersService.registerAddBoardAccess(boardId, memberUserId,
+        Operation operation = operationRegistersService.registerActivateBoardAccess(boardId, memberUserId,
                 newRole,
                 operationId);
 

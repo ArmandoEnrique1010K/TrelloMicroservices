@@ -28,6 +28,7 @@ public class OperationActivateBoardAccessServiceImpl implements OperationActivat
         this.boardAccessWorkflowService = boardAccessWorkflowService;
     }
 
+    // TODO: HAY UN PROBLEMA, NO SE PUEDE GUARDAR UNA OPERACION DE ACTIVAR INVITADO
     @Transactional(rollbackFor = Exception.class)
     @Override
     public void applyActivateBoardAccess(Operation operation) {

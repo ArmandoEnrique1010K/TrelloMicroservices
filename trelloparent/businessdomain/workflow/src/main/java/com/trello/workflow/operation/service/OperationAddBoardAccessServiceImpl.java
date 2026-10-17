@@ -85,7 +85,7 @@ public class OperationAddBoardAccessServiceImpl implements OperationAddBoardAcce
     public void revertAddBoardAccess(UUID operationId) {
         Operation operation = operationWorkflowService
                 .findOperationById(operationId)
-                .orElseThrow(IllegalStateException::new);
+                .orElseThrow(OperationNotFoundException::new);
 
         log.info("REVIRTIENDO CAMBIOS");
         if (operation.getType() != OperationType.ADD_BOARD_ACCESS) {
