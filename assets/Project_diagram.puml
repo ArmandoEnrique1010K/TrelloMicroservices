@@ -47,12 +47,13 @@ enum Status {
 
 entity Operation {
   - id: UUID <<not generated>>
+  'Datos necesarios
   - boardId: UUID
   - userId: UUID
   - invitationId: UUID
   'Se utiliza Boolean para poder establecer el valor "null" aparte de true o false
   - memberActive: Boolean
-  'Ambos son de tipo entero, no pueden ser null
+  'Ambos son de tipo entero, no pueden ser "null"
   - manualAttempts: int
   - automaticAttempts: int
   - nextAutomaticAttemptAt: LocalDateTime
@@ -72,14 +73,15 @@ enum OperationType {
 
 
 enum OperationStatus {
-  CREATED
-  PENDING
-  PROCESSING
+  REGISTERED
+  EXECUTION_PENDING
+  EXECUTING
   COMPLETED
   COMPENSATION_PENDING
-  COMPENSATION_PROCESSING
-  COMPENSATED
-  MANUAL_REVIEW
+  LOCAL_COMPENSATION_IN_PROGRESS
+  LOCAL_COMPENSATION_COMPLETED
+  COMPENSATION_COMPLETED
+  MANUAL_INTERVENTION_REQUIRED
 }
 
 Workspace "1 " *-- "0..*" Board

@@ -22,7 +22,7 @@ public interface BoardService {
     // Listar los UUIDs de miembros e invitados por id de board
     List<UUID> listAllMembersIdsAndInvitationsIdsByBoardId(UUID ownerUserId, UUID boardId);
 
-    // TODO: IMPLEMENTAR UN METODO PARA LISTAR TODAS LOS TABLEROS EN DONDE EL
-    // USUARIO ESTA INCLUIDO (SIN IMPORTAR EL ROL) COMO MIEMBRO
+    // Listar los tableros en el cual el usuario autenticado sea miembro sin
+    // importar el rol
     List<BoardMembershipResponse> listAllBoardsByMemberUserId(UUID memberUserId);
 }

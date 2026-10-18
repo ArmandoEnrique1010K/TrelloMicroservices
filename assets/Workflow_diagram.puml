@@ -60,7 +60,36 @@ entity Label {
 }
 
 enum Color {
-  
+  RED
+  ORANGE
+  YELLOW
+  GREEN
+  EMERALD
+  AQUAMARINE
+  SKY
+  BLUE
+  VIOLET
+  LILAC
+  PINK
+  GRAY
+}
+
+enum OperationStatus {
+  CREATED
+  PENDING
+  PROCESSING
+  COMPLETED
+  MANUAL_REVEIW
+}
+
+enum OperationType {
+  ADD_BOARD_ACCESS
+  ACTIVATE_BOARD_ACCESS
+  CHANGE_ROLE_BOARD_ACCESS
+  DEACTIVATE_BOARD_ACCESS
+  ADD_BOARD_AND_BOARD_ACCESS_USER_OWNER
+  DELETE_BOARD_AND_BOARD_ACCESS_AND_TASKS
+  DELETE_MANY_BOARDS_AND_BOARD_ACCESS_AND_TASKS
 }
 
 entity Note {
@@ -81,23 +110,44 @@ entity History {
 }
 
 
+'Operaciones realizadas
+entity Operation {
+  - id: UUID <<not generated>>
+  - boardId: UUID
+  - userId: UUID
+  - oldUserActive: Boolean
+  'El número de intentos se mide por cantidad y no por tipo de intentos: automatico o manual
+  - attempts: int
+  - createdAt: LocalDateTime
+  - completedAt: LocalDateTime
+  - updatedAt: LocalDateTime
+}
+
+
 ' =========================================================
 ' Relaciones
 ' =========================================================
 'Una tarea puede tener ninguno, 1 o varios labels diferentes
-Task "0..*  " -- "0..*" Label
-Task "1" *-- "0..*     " Note
-Task " 1" *-- " 1..*" History
+Task "0..*  " -- "0..*  " Label
+Task "1 " *-- "0..*     " Note
+Task "1 " *-- " 1..*" History
 
-Task "0..*" ---> "1 " Status
+Task "0..*" --> "1 " Status
 History " 0..*  " --> " 1  " Status
 
-Board "1   " *-- "1..*    " BoardAccess
-Board " 1" *-- "0..*   " Task
-BoardAccess "0..*" --> "1  " Role
+Board "1   "*-----" 1..*" BoardAccess
+Board "1 " *-- "0..*   " Task
+BoardAccess "0..*"-up-> "1  " Role
 
 Board " 1 " *-- "0..*" Label
 
 Label "0..*" --> " 1" Color
+ 
+Operation "0..*" --> "1   " OperationType
+Operation "0..*" --> "1 " OperationStatus
+Operation "0..*" --> "1 " Role: - oldRole
+Operation "0..*  " --> "1 " Role: - newRole
+
+
 
 @enduml
