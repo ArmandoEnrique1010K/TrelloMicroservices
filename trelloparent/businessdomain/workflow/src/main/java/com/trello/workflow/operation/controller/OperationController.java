@@ -20,7 +20,9 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
+@Tag(name = "Operation API", description = "API para la gestión de operaciones")
 @RestController
 @RequestMapping("/operations")
 public class OperationController {
@@ -52,17 +54,30 @@ public class OperationController {
                     }
                     """))),
 
-            @ApiResponse(responseCode = "404", description = "La operación no existe", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
-                    {
-                        "detail": "The operation was not found in the system",
-                        "fields": null,
-                        "instance": null,
-                        "message": "Ha ocurrido un error",
-                        "status": 404,
-                        "title": "Operation not found",
-                        "type": "/errors/operation/not-found"
-                    }
-                    """))),
+            @ApiResponse(responseCode = "404", description = "No se ha encontrado el recurso solicitado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = {
+                    @ExampleObject(name = "La operación no tiene un estado 'pendiente'", summary = "La operación no tiene un estado pendiente", value = """
+                            {
+                                "detail": "The operation was not found in the system",
+                                "fields": null,
+                                "instance": null,
+                                "message": "Ha ocurrido un error",
+                                "status": 404,
+                                "title": "Operation not found",
+                                "type": "/errors/operation/not-found"
+                            }
+                            """),
+                    @ExampleObject(name = "Los datos enviados no coinciden con los datos de la operación", summary = "Los datos enviados no coinciden con los datos de la operación", value = """
+                            {
+                                "detail": "The board access was not found in the system",
+                                "fields": null,
+                                "instance": null,
+                                "message": "No se ha encontrado el permiso de acceso al tablero",
+                                "status": 404,
+                                "title": "Board access not found",
+                                "type": "/errors/board-accesses-not-found"
+                            }
+                            """),
+            })),
 
             @ApiResponse(responseCode = "409", description = "Error de lógica de negocio", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = {
                     @ExampleObject(name = "La operación no tiene un estado 'pendiente'", summary = "La operación no tiene un estado pendiente", value = """
@@ -125,17 +140,30 @@ public class OperationController {
                     }
                     """))),
 
-            @ApiResponse(responseCode = "404", description = "La operación no existe", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
-                    {
-                        "detail": "The operation was not found in the system",
-                        "fields": null,
-                        "instance": null,
-                        "message": "Ha ocurrido un error",
-                        "status": 404,
-                        "title": "Operation not found",
-                        "type": "/errors/operation/not-found"
-                    }
-                    """))),
+            @ApiResponse(responseCode = "404", description = "No se ha encontrado el recurso solicitado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = {
+                    @ExampleObject(name = "La operación no tiene un estado 'pendiente'", summary = "La operación no tiene un estado pendiente", value = """
+                            {
+                                "detail": "The operation was not found in the system",
+                                "fields": null,
+                                "instance": null,
+                                "message": "Ha ocurrido un error",
+                                "status": 404,
+                                "title": "Operation not found",
+                                "type": "/errors/operation/not-found"
+                            }
+                            """),
+                    @ExampleObject(name = "Los datos enviados no coinciden con los datos de la operación", summary = "Los datos enviados no coinciden con los datos de la operación", value = """
+                            {
+                                "detail": "The board access was not found in the system",
+                                "fields": null,
+                                "instance": null,
+                                "message": "No se ha encontrado el permiso de acceso al tablero",
+                                "status": 404,
+                                "title": "Board access not found",
+                                "type": "/errors/board-accesses-not-found"
+                            }
+                            """),
+            })),
 
             @ApiResponse(responseCode = "409", description = "Error de lógica de negocio", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = {
                     @ExampleObject(name = "La operación no tiene un estado 'pendiente'", summary = "La operación no tiene un estado pendiente", value = """

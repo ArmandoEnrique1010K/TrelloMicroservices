@@ -58,17 +58,30 @@ public class BoardAccessRestController {
                     }
                     """))),
 
-            @ApiResponse(responseCode = "404", description = "La operación no existe", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
-                    {
-                        "detail": "The operation was not found in the system",
-                        "fields": null,
-                        "instance": null,
-                        "message": "Ha ocurrido un error",
-                        "status": 404,
-                        "title": "Operation not found",
-                        "type": "/errors/operation/not-found"
-                    }
-                    """))),
+            @ApiResponse(responseCode = "404", description = "No se ha encontrado el recurso solicitado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = {
+                    @ExampleObject(name = "La operación no tiene un estado 'pendiente'", summary = "La operación no tiene un estado pendiente", value = """
+                            {
+                                "detail": "The operation was not found in the system",
+                                "fields": null,
+                                "instance": null,
+                                "message": "Ha ocurrido un error",
+                                "status": 404,
+                                "title": "Operation not found",
+                                "type": "/errors/operation/not-found"
+                            }
+                            """),
+                    @ExampleObject(name = "Los datos enviados no coinciden con los datos de la operación", summary = "Los datos enviados no coinciden con los datos de la operación", value = """
+                            {
+                                "detail": "The board access was not found in the system",
+                                "fields": null,
+                                "instance": null,
+                                "message": "No se ha encontrado el permiso de acceso al tablero",
+                                "status": 404,
+                                "title": "Board access not found",
+                                "type": "/errors/board-accesses-not-found"
+                            }
+                            """),
+            })),
 
             @ApiResponse(responseCode = "409", description = "Error de lógica de negocio", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = {
                     @ExampleObject(name = "El permiso de acceso al tablero existe", summary = "El permiso de acceso al tablero existe", value = """
@@ -168,17 +181,30 @@ public class BoardAccessRestController {
                     }
                     """))),
 
-            @ApiResponse(responseCode = "404", description = "La operación no existe", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
-                    {
-                        "detail": "The operation was not found in the system",
-                        "fields": null,
-                        "instance": null,
-                        "message": "Ha ocurrido un error",
-                        "status": 404,
-                        "title": "Operation not found",
-                        "type": "/errors/operation/not-found"
-                    }
-                    """))),
+            @ApiResponse(responseCode = "404", description = "No se ha encontrado el recurso solicitado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = {
+                    @ExampleObject(name = "La operación no tiene un estado 'pendiente'", summary = "La operación no tiene un estado pendiente", value = """
+                            {
+                                "detail": "The operation was not found in the system",
+                                "fields": null,
+                                "instance": null,
+                                "message": "Ha ocurrido un error",
+                                "status": 404,
+                                "title": "Operation not found",
+                                "type": "/errors/operation/not-found"
+                            }
+                            """),
+                    @ExampleObject(name = "Los datos enviados no coinciden con los datos de la operación", summary = "Los datos enviados no coinciden con los datos de la operación", value = """
+                            {
+                                "detail": "The board access was not found in the system",
+                                "fields": null,
+                                "instance": null,
+                                "message": "No se ha encontrado el permiso de acceso al tablero",
+                                "status": 404,
+                                "title": "Board access not found",
+                                "type": "/errors/board-accesses-not-found"
+                            }
+                            """),
+            })),
 
             @ApiResponse(responseCode = "409", description = "Error de lógica de negocio", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = {
                     @ExampleObject(name = "El permiso de acceso al tablero existe", summary = "El permiso de acceso al tablero existe", value = """
