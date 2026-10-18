@@ -1,4 +1,4 @@
-package com.trello.workflow.operation.service.procesors;
+package com.trello.workflow.operation.service.processor;
 
 import java.util.UUID;
 
@@ -6,14 +6,16 @@ import org.springframework.stereotype.Service;
 
 import com.trello.workflow.entities.Operation;
 import com.trello.workflow.enums.OperationStatus;
+import com.trello.workflow.exception.BusinessRuleException;
 import com.trello.workflow.operation.exception.OperationNotFoundException;
 import com.trello.workflow.operation.exception.OperationNotPendingException;
-import com.trello.workflow.operation.service.OperationActivateBoardAccessService;
-import com.trello.workflow.operation.service.OperationAddBoardAccessService;
+import com.trello.workflow.operation.service.handler.OperationActivateBoardAccessService;
+import com.trello.workflow.operation.service.handler.OperationAddBoardAccessService;
 import com.trello.workflow.services.OperationWorkflowService;
 
 import lombok.extern.slf4j.Slf4j;
 
+// Servicio para procesar la operación
 @Slf4j
 @Service
 public class OperationProcessorImpl implements OperationProcessor {
@@ -32,38 +34,29 @@ public class OperationProcessorImpl implements OperationProcessor {
         this.operationActivateBoardAccessService = operationActivateBoardAccessService;
     }
 
-    // Ejecuta la operación original
     @Override
-    public void processOperation(UUID operationId) {
+    public void processOperation(UUID operationId) throws OperationNotPendingException, BusinessRuleException {
+        // 1° Busca la operación y valida su estado
         Operation operation = operationWorkflowService
                 .findOperationById(operationId)
                 .orElseThrow(OperationNotFoundException::new);
 
-        // TODO: AQUI ESTABA EL PROBLEMA DE LA EXCEPCIÓN
-        // SE VEIA QUE EN LA UI DE SWAGGER SIEMPRE LANZABA UN BusinessRuleException Y
-        // ERA PORQUE EN EL MICROSERVICIO PROJECT SE HABIA DEFINIDO UNA CLASE
-        // WorkflowErrorDecoder QUE PROVOCABA QUE CUALQUIER EXCEPCIÓN NO DEFINIDA
-        // SIEMPRE CAIA EN UN BusinessRuleException
-
-        log.info("VERIFICANDO QUE LA OPERACIÓN ESTE PENDIENTE");
-        // Solamente ejecutar operaciones con estado PENDING O CREATED
+        // Solamente ejecutar operaciones con estado CREATED O PENDING
         if (operation.getStatus() != OperationStatus.CREATED && operation.getStatus() != OperationStatus.PENDING) {
-            // TODO: CORREGIR LA EXCEPCIÓN
             throw new OperationNotPendingException();
         }
 
-        log.info("APLICANDO EL CASO ADECUADO");
-        // Evaluar por cada tipo de operación
+        // 2° Evaluar por cada tipo de operación
         switch (operation.getType()) {
             case ADD_BOARD_ACCESS ->
-                operationAddBoardAccessService.applyAddBoardAccess(operation);
+                operationAddBoardAccessService.applyAddBoardAccess(operation.getId());
 
             case ACTIVATE_BOARD_ACCESS ->
-                operationActivateBoardAccessService.applyActivateBoardAccess(operation);
+                operationActivateBoardAccessService.applyActivateBoardAccess(operation.getId());
 
-            // NOTA: ESTO NUNCA PASARA
-            default -> throw new IllegalArgumentException(
-                    "Unsupported operation type: " + operation.getType());
+            // Esto nunca pasara, si el caso no coincide con uno de los valores del enum
+            // OperationType
+            default -> throw new BusinessRuleException();
         }
     }
 }

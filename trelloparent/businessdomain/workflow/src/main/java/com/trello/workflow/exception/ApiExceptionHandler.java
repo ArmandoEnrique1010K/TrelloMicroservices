@@ -12,8 +12,11 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import com.trello.workflow.board.exception.BoardAlreadyExistsException;
 import com.trello.workflow.boardaccess.exception.BoardAccessAlreadyExistsException;
+import com.trello.workflow.boardaccess.exception.BoardAccessUserActiveNotAllowedException;
 import com.trello.workflow.common.StandarizedApiExceptionResponse;
 import com.trello.workflow.label.exception.LabelAlreadyExistsException;
+import com.trello.workflow.operation.exception.OperationConflictException;
+import com.trello.workflow.operation.exception.OperationNotFoundException;
 import com.trello.workflow.operation.exception.OperationNotPendingException;
 import com.trello.workflow.task.exception.LabelAlreadyAssignedException;
 import com.trello.workflow.task.exception.LabelNotAssignedToTaskException;
@@ -23,6 +26,10 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @RestControllerAdvice
 public class ApiExceptionHandler {
+    // -----------------------------------------------
+    // Excepciones de nivel general
+    // -----------------------------------------------
+
     // Excepción general - status 500
     @ExceptionHandler(Exception.class)
     public ResponseEntity<StandarizedApiExceptionResponse> handleInternalServerError(Exception ex) {
@@ -42,7 +49,7 @@ public class ApiExceptionHandler {
         return ResponseEntity.status(status).body(standarizedApiExceptionResponse);
     }
 
-    // Excepción de violación de reglas de negocio - status 404
+    // Excepción de violación de reglas de negocio - status 409
     @ExceptionHandler(BusinessRuleException.class)
     public ResponseEntity<StandarizedApiExceptionResponse> handleBusinessRuleException(BusinessRuleException ex) {
         HttpStatus status = HttpStatus.CONFLICT;
@@ -87,6 +94,69 @@ public class ApiExceptionHandler {
                 .body(response);
     }
 
+    // Excepción de operación no realizada porque el usuario no tiene el rol
+    // permitido
+    @ExceptionHandler(ForbiddenOperationException.class)
+    public ResponseEntity<StandarizedApiExceptionResponse> handleForbiddenOperationException(
+            ForbiddenOperationException ex) {
+        HttpStatus status = HttpStatus.FORBIDDEN;
+
+        StandarizedApiExceptionResponse standarizedApiExceptionResponse = new StandarizedApiExceptionResponse(
+                "/errors/forbidden-operation",
+                "Forbidden operation",
+                status.value(),
+                "The user does not have the required role to perform the operation",
+                null,
+                "Ha ocurrido un error");
+
+        return ResponseEntity.status(status).body(standarizedApiExceptionResponse);
+    }
+
+    // Excepción de autor no correspondiente porque la tarea, nota, etc..., no
+    // corresponde al mismo autor que la creo (el usuario autenticado)
+    @ExceptionHandler(MismatchedAuthorException.class)
+    public ResponseEntity<StandarizedApiExceptionResponse> handleMismatchedAuthorException(
+            MismatchedAuthorException ex) {
+        HttpStatus status = HttpStatus.FORBIDDEN;
+
+        StandarizedApiExceptionResponse standarizedApiExceptionResponse = new StandarizedApiExceptionResponse(
+                "/errors/mismached-author",
+                "Mismached Author",
+                status.value(),
+                "The user is not the author of the requested resource",
+                null,
+                "Ha ocurrido un error");
+
+        return ResponseEntity.status(status).body(standarizedApiExceptionResponse);
+    }
+    // Excepción producida cuando una operación viola una restricción
+    // de integridad de la base de datos, como una clave primaria,
+    // clave foránea, restricción UNIQUE o NOT NULL.
+
+    // Aunque no se va a utilizar...
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<StandarizedApiExceptionResponse> handleDataIntegrityViolationException(
+            DataIntegrityViolationException ex) {
+
+        HttpStatus status = HttpStatus.CONFLICT;
+
+        StandarizedApiExceptionResponse response = new StandarizedApiExceptionResponse(
+                "/errors/database/integrity-violation",
+                "Data integrity violation",
+                status.value(),
+                "The request violates a database constraint",
+                null,
+                "La operación viola una restricción de la base de datos");
+
+        return ResponseEntity
+                .status(status)
+                .body(response);
+    }
+
+    // -----------------------------------------------
+    // Excepciones relacionadas a permiso de acceso
+    // -----------------------------------------------
+
     // Excepción de permiso de acceso no encontrado
     @ExceptionHandler(BoardAccessNotFoundException.class)
     public ResponseEntity<StandarizedApiExceptionResponse> handleBoardAccessNotFoundException(
@@ -123,6 +193,29 @@ public class ApiExceptionHandler {
                 .body(response);
     }
 
+    // Excepción de que el permiso de acceso no puede ser activado o desactivado
+    @ExceptionHandler(BoardAccessUserActiveNotAllowedException.class)
+    public ResponseEntity<StandarizedApiExceptionResponse> handleBoardAccessUserActiveNotAllowedException(
+            BoardAccessUserActiveNotAllowedException ex) {
+        HttpStatus status = HttpStatus.CONFLICT;
+
+        StandarizedApiExceptionResponse response = new StandarizedApiExceptionResponse(
+                "/errors/board-accesses/user-active-not-allowed",
+                "User activate is locked",
+                status.value(),
+                "Activating the user with role OWNER is not permitted for this dashboard access",
+                null,
+                "Ha ocurrido un error");
+
+        return ResponseEntity
+                .status(status)
+                .body(response);
+    }
+
+    // -----------------------------------------------
+    // Excepciones relacionadas a tablero
+    // -----------------------------------------------
+
     // Excepcion de que existe el tablero
     @ExceptionHandler(BoardAlreadyExistsException.class)
     public ResponseEntity<StandarizedApiExceptionResponse> handleBoardAlreadyExistsException(
@@ -136,30 +229,6 @@ public class ApiExceptionHandler {
                 "A board with the provided ID already exists",
                 null,
                 "Ya existe el tablero");
-
-        return ResponseEntity
-                .status(status)
-                .body(response);
-    }
-
-    // Excepción producida cuando una operación viola una restricción
-    // de integridad de la base de datos, como una clave primaria,
-    // clave foránea, restricción UNIQUE o NOT NULL.
-
-    // Aunque no se va a utilizar...
-    @ExceptionHandler(DataIntegrityViolationException.class)
-    public ResponseEntity<StandarizedApiExceptionResponse> handleDataIntegrityViolationException(
-            DataIntegrityViolationException ex) {
-
-        HttpStatus status = HttpStatus.CONFLICT;
-
-        StandarizedApiExceptionResponse response = new StandarizedApiExceptionResponse(
-                "/errors/database/integrity-violation",
-                "Data integrity violation",
-                status.value(),
-                "The request violates a database constraint",
-                null,
-                "La operación viola una restricción de la base de datos");
 
         return ResponseEntity
                 .status(status)
@@ -183,41 +252,9 @@ public class ApiExceptionHandler {
         return ResponseEntity.status(status).body(standarizedApiExceptionResponse);
     }
 
-    // Excepción de operación no realizada porque el usuario no tiene el rol
-    // permitido
-    @ExceptionHandler(ForbiddenOperationException.class)
-    public ResponseEntity<StandarizedApiExceptionResponse> handleForbiddenOperationException(
-            ForbiddenOperationException ex) {
-        HttpStatus status = HttpStatus.FORBIDDEN;
-
-        StandarizedApiExceptionResponse standarizedApiExceptionResponse = new StandarizedApiExceptionResponse(
-                "/errors/forbidden-operation",
-                "Forbidden operation",
-                status.value(),
-                "The user does not have the required role to perform the operation",
-                null,
-                "Ha ocurrido un error");
-
-        return ResponseEntity.status(status).body(standarizedApiExceptionResponse);
-    }
-
-    // Excepción de autor no correspondiente porque la tarea, nota, etc..., no
-    // corresponde al mismo autor que la creo (el usuario autenticado)
-    @ExceptionHandler(MismatchedAuthorException.class)
-    public ResponseEntity<StandarizedApiExceptionResponse> handleMismatchedAuthorException(
-            MismatchedAuthorException ex) {
-        HttpStatus status = HttpStatus.FORBIDDEN;
-
-        StandarizedApiExceptionResponse standarizedApiExceptionResponse = new StandarizedApiExceptionResponse(
-                "/errors/mismached-author",
-                "Mismached Author",
-                status.value(),
-                "The user is not the author of the requested resource",
-                null,
-                "Ha ocurrido un error");
-
-        return ResponseEntity.status(status).body(standarizedApiExceptionResponse);
-    }
+    // -----------------------------------------------
+    // Excepciones relacionadas a tareas
+    // -----------------------------------------------
 
     // Excepción de tarea no encontrada - 404
     @ExceptionHandler(TaskNotFoundException.class)
@@ -236,6 +273,10 @@ public class ApiExceptionHandler {
         return ResponseEntity.status(status).body(standarizedApiExceptionResponse);
     }
 
+    // -----------------------------------------------
+    // Excepciones relacionadas a notas
+    // -----------------------------------------------
+
     // Excepción de nota no encontrada - 404
     @ExceptionHandler(NoteNotFoundException.class)
     public ResponseEntity<StandarizedApiExceptionResponse> handleNoteNotFoundException(
@@ -252,6 +293,10 @@ public class ApiExceptionHandler {
 
         return ResponseEntity.status(status).body(standarizedApiExceptionResponse);
     }
+
+    // -----------------------------------------------
+    // Excepciones relacionadas a etiquetas o labels
+    // -----------------------------------------------
 
     // Excepción de etiqueta o label no encontrado - 404
     @ExceptionHandler(LabelNotFoundException.class)
@@ -329,20 +374,56 @@ public class ApiExceptionHandler {
                 .body(response);
     }
 
-    // Excepción de operación que no tiene un estado "PENDING" o
-    // "COMPENSATION_PENDING"
+    // -----------------------------------------------
+    // Excepciones relacionadas a operaciones
+    // -----------------------------------------------
+
+    // Excepción de operación que no tiene un estado relacionado a "PENDING"
     @ExceptionHandler(OperationNotPendingException.class)
     public ResponseEntity<StandarizedApiExceptionResponse> handleOperationNotPendingException(
             OperationNotPendingException ex) {
-        HttpStatus status = HttpStatus.NOT_FOUND;
+        HttpStatus status = HttpStatus.CONFLICT;
 
         StandarizedApiExceptionResponse standarizedApiExceptionResponse = new StandarizedApiExceptionResponse(
                 "/errors/operation/not-pending",
                 "Operation not pending",
                 status.value(),
-                "The operation does not have a 'PENDING' or 'COMPENSATION_PENDING' status.",
+                "The operation does not have a 'PENDING' or relationated status",
                 null,
-                // Este mensaje se va a mostrar al usuario
+                // Aunque este mensaje no se mostrara al usuario porque las operaciones se
+                // utilizan a nivel de comunicación entre microservicios
+                "Ha ocurrido un error");
+
+        return ResponseEntity.status(status).body(standarizedApiExceptionResponse);
+    }
+
+    @ExceptionHandler(OperationNotFoundException.class)
+    public ResponseEntity<StandarizedApiExceptionResponse> handleOperationNotFoundException(
+            OperationNotFoundException ex) {
+        HttpStatus status = HttpStatus.NOT_FOUND;
+
+        StandarizedApiExceptionResponse standarizedApiExceptionResponse = new StandarizedApiExceptionResponse(
+                "/errors/operation/not-found",
+                "Operation not found",
+                status.value(),
+                "The operation was not found in the system",
+                null,
+                "Ha ocurrido un error");
+
+        return ResponseEntity.status(status).body(standarizedApiExceptionResponse);
+    }
+
+    @ExceptionHandler(OperationConflictException.class)
+    public ResponseEntity<StandarizedApiExceptionResponse> handleOperationConflictException(
+            OperationConflictException ex) {
+        HttpStatus status = HttpStatus.CONFLICT;
+
+        StandarizedApiExceptionResponse standarizedApiExceptionResponse = new StandarizedApiExceptionResponse(
+                "/errors/operation/conflict",
+                "Operation in conflict",
+                status.value(),
+                "The data related to the operation do not match the requested data",
+                null,
                 "Ha ocurrido un error");
 
         return ResponseEntity.status(status).body(standarizedApiExceptionResponse);

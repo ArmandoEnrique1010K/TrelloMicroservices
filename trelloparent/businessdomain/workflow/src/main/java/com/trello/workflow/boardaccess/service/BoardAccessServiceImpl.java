@@ -6,81 +6,49 @@ import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 
-import com.trello.workflow.boardaccess.exception.BoardAccessAlreadyExistsException;
 import com.trello.workflow.entities.BoardAccess;
 import com.trello.workflow.entities.Operation;
 import com.trello.workflow.enums.Role;
 import com.trello.workflow.exception.BusinessRuleException;
-import com.trello.workflow.operation.service.procesors.OperationProcessor;
-import com.trello.workflow.operation.service.registers.OperationRegistersService;
+import com.trello.workflow.operation.service.processor.OperationProcessor;
+import com.trello.workflow.operation.service.register.OperationRegisterService;
 
 @Service
 public class BoardAccessServiceImpl implements BoardAccessService {
 
     private final BoardAccessWorkflowService boardAccessWorkflowService;
     private final OperationProcessor operationProcessor;
-    private final OperationRegistersService operationRegistersService;
+    private final OperationRegisterService operationRegisterService;
 
     public BoardAccessServiceImpl(
             BoardAccessWorkflowService boardAccessWorkflowService,
             OperationProcessor operationProcessor,
-            OperationRegistersService operationRegistersService) {
+            OperationRegisterService operationRegisterService) {
         this.boardAccessWorkflowService = boardAccessWorkflowService;
         this.operationProcessor = operationProcessor;
-        this.operationRegistersService = operationRegistersService;
+        this.operationRegisterService = operationRegisterService;
     }
 
+    // Añadir permiso de acceso
+    // Se utiliza SAGA Pattern para procesar la operación
     @Override
     public void addBoardAccess(UUID boardId, UUID userId, Role role,
-            UUID operationId) throws BoardAccessAlreadyExistsException {
-        Operation operation = operationRegistersService.registerAddBoardAccess(boardId, userId, role, operationId);
+            UUID operationId) {
+        // 1° Registrar la operación
+        Operation operation = operationRegisterService.registerAddBoardAccess(boardId, userId, role, operationId);
 
+        // 2° Procesar la operación registrada
         operationProcessor.processOperation(operation.getId());
-
-        // try {
-        // Operation operation =
-        // operationRegistersService.registerAddBoardAccess(boardId, userId, role,
-        // operationId);
-
-        // operationProcessor.processOperation(operation.getId());
-
-        // } catch (Exception e) {
-        // operationProcessor.compensateOperation(operationId);
-        // }
     }
 
-    // @Transactional(rollbackFor = Exception.class)
+    // Activar permiso de acceso
     @Override
     public void activateBoardAccess(UUID boardId, UUID memberUserId, Role newRole,
             UUID operationId) {
-
-        Operation operation = operationRegistersService.registerActivateBoardAccess(boardId, memberUserId,
+        Operation operation = operationRegisterService.registerActivateBoardAccess(boardId, memberUserId,
                 newRole,
                 operationId);
-
         operationProcessor.processOperation(operation.getId());
-        // Guardar el rol anterior
-        // BoardAccess findedBoardAccess =
-        // boardAccessWorkflowService.findBoardAccessByBoardIdAndUserIdAndUserInactive(
-        // boardId,
-        // memberUserId);
-
-        // ============================================================
-        // Operación de negocio
-        // ============================================================
-
-        // El administrador del tablero no podra ser activado porque nunca se podra
-        // desactivar
-        // Este error nunca pasara porque el no se podra alterar un usuario con el rol
-        // de OWNER
-        // if (findedBoardAccess.getRole().equals(Role.OWNER)) {
-        // throw new BusinessRuleException();
-        // }
-
-        // findedBoardAccess.setUserActive(true);
-        // findedBoardAccess.setRole(role);
-        // boardAccessWorkflowService.saveBoardAccess(findedBoardAccess);
-
     }
 
     @Override

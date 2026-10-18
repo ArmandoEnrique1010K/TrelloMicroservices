@@ -1,4 +1,4 @@
-package com.trello.workflow.operation.service;
+package com.trello.workflow.operation.service.handler;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -13,7 +13,7 @@ import com.trello.workflow.entities.Operation;
 import com.trello.workflow.enums.OperationStatus;
 import com.trello.workflow.enums.OperationType;
 import com.trello.workflow.enums.Role;
-import com.trello.workflow.exception.BusinessRuleException;
+import com.trello.workflow.operation.exception.OperationConflictException;
 import com.trello.workflow.operation.exception.OperationNotFoundException;
 import com.trello.workflow.operation.exception.OperationNotPendingException;
 import com.trello.workflow.services.BoardAccessWorkflowService;
@@ -40,12 +40,14 @@ public class OperationAddBoardAccessServiceImpl implements OperationAddBoardAcce
 
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public void applyAddBoardAccess(Operation operation) throws BoardAccessAlreadyExistsException {
+    public void applyAddBoardAccess(UUID operationId)
+            throws OperationNotFoundException, BoardAccessAlreadyExistsException {
+        // 1° Buscar operación
         Operation currentOperation = operationWorkflowService
-                .findOperationById(operation.getId())
+                .findOperationById(operationId)
                 .orElseThrow(OperationNotFoundException::new);
 
-        // Aumenta el numero de intentos en 1
+        // 2° Aumentar el numero de intentos en 1
         currentOperation.setStatus(OperationStatus.PROCESSING);
         currentOperation.setAttempts(currentOperation.getAttempts() + 1);
         operationWorkflowService.saveOperation(currentOperation);
@@ -60,12 +62,12 @@ public class OperationAddBoardAccessServiceImpl implements OperationAddBoardAcce
         // Buscar por tablero
         Board board = boardWorkflowService.findBoardById(boardId);
 
-        // Volver a preguntar si existe permiso de acceso
+        // 3° Volver a preguntar si existe permiso de acceso
         if (boardAccessWorkflowService.existsBoardAccessByBoardIdAndUserId(boardId, userId)) {
             throw new BoardAccessAlreadyExistsException();
         }
 
-        // Añadir el nuevo permiso de acceso
+        // 4° Añadir el nuevo permiso de acceso
         BoardAccess savedBoardAccess = new BoardAccess();
         savedBoardAccess.setUserId(userId);
         savedBoardAccess.setRole(newRole);
@@ -74,7 +76,7 @@ public class OperationAddBoardAccessServiceImpl implements OperationAddBoardAcce
 
         boardAccessWorkflowService.saveBoardAccess(savedBoardAccess);
 
-        // Marcar la operación como completada
+        // 5° Marcar la operación como completada
         currentOperation.setStatus(OperationStatus.COMPLETED);
         currentOperation.setCompletedAt(LocalDateTime.now());
         operationWorkflowService.saveOperation(currentOperation);
@@ -82,73 +84,53 @@ public class OperationAddBoardAccessServiceImpl implements OperationAddBoardAcce
 
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public void revertAddBoardAccess(UUID operationId) {
+    public void revertAddBoardAccess(UUID operationId)
+            throws OperationNotFoundException, OperationConflictException, OperationNotPendingException {
+        // 1° Buscar operación
         Operation operation = operationWorkflowService
                 .findOperationById(operationId)
                 .orElseThrow(OperationNotFoundException::new);
 
-        log.info("REVIRTIENDO CAMBIOS");
+        // 2° Verificar el tipo de operación
         if (operation.getType() != OperationType.ADD_BOARD_ACCESS) {
-            throw new BusinessRuleException();
+            throw new OperationConflictException();
         }
 
-        // IMPRIMIO COMPLETED
-        // PERO COMO EL MICROSERVICIO SE HA DEMORADO, SE VA A CAMBIAR EL ESTADO
-        // EN RESUMEN, EL ESTADO NO ES IMPORTANTE PARA REVERTIR LOS CAMBIOS
-
-        log.info("ESTADO: " + operation.getStatus());
         // Solo se puede compensar una operación cuyo estado sea:
-        // Permitido: PROCESSING, PENDING, COMPLETED
-        // No permitido: MANUAL_REVIEW,CREATED
-        if (operation.getStatus() == OperationStatus.MANUAL_REVIEW
-                && operation.getStatus() == OperationStatus.CREATED) {
-
-            // TODO: CORREGIR LA EXCEPCIÓN
+        // Permitido: PROCESSING, PENDING
+        if (operation.getStatus() == OperationStatus.CREATED
+                && operation.getStatus() == OperationStatus.COMPLETED
+                && operation.getStatus() == OperationStatus.MANUAL_REVIEW) {
             throw new OperationNotPendingException();
         }
 
-        log.info("PROCESANDO...");
+        // 3° Actualizar estado de la operación
         operation.setStatus(OperationStatus.PROCESSING);
         operation.setCompletedAt(null);
         operationWorkflowService.saveOperation(operation);
 
-        try {
-            // Elimina únicamente el acceso asociado a esta operación.
-            log.info("ELIMINANDO PERMISO DE ACCESO");
+        // 4° Intentar ejecutar el metodo para borrar permiso de acceso por ID de
+        // tablero e ID de usuario
+        UUID boardId = operation.getBoardId();
+        UUID userId = operation.getUserId();
 
-            boardAccessWorkflowService.deleteBoardAccessByBoardIdAndUserId(operation.getBoardId(),
-                    operation.getUserId());
+        boardAccessWorkflowService.deleteBoardAccessByBoardIdAndUserId(
+                boardId, userId);
 
-            // Solamente existe la BoardAccessNotFoundException, pero todas las excepciones
-            // se tratan como runtime exception
-        } catch (RuntimeException exception) {
-            /*
-             * Si la consulta es estrictamente por operationId,
-             * la ausencia del efecto puede tratarse como idempotencia:
-             * el acceso ya no existe o nunca llegó a crearse.
-             *
-             * Esto es válido únicamente si se ha verificado que no
-             * hay otros efectos pendientes de compensar.
-             */
-            log.info("SE SOLICITA REVISION MANUAL");
+        // try {
+        // boardAccessWorkflowService.deleteBoardAccessByBoardIdAndUserId(operation.getBoardId(),
+        // operation.getUserId());
+        // } catch (RuntimeException exception) {
+        // operation.setStatus(OperationStatus.MANUAL_REVIEW);
+        // operation.setCompletedAt(null);
+        // operationWorkflowService.saveOperation(operation);
+        // } catch (Exception ex) {
+        // throw ex;
+        // }
 
-            operation.setStatus(OperationStatus.MANUAL_REVIEW);
-            operation.setCompletedAt(null);
-            operationWorkflowService.saveOperation(operation);
-
-        } catch (Exception ex) {
-            // No asumir que cualquier excepción es un error permanente.
-            // Registrar el error y propagarlo para evitar confirmar
-            // silenciosamente una transacción potencialmente inconsistente.
-            throw ex;
-        }
-
-        // La compensación ha finalizado correctamente.
+        // 5° La compensación ha finalizado correctamente.
         operation.setStatus(OperationStatus.PENDING);
         operation.setCompletedAt(LocalDateTime.now());
         operationWorkflowService.saveOperation(operation);
-
-        log.info("SE SOLICITA REINTENTAR LA OPERACION");
     }
-
 }
