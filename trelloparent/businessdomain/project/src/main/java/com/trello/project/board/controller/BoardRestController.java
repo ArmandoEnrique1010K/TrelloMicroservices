@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.trello.project.board.dto.request.BoardRequest;
+import com.trello.project.board.dto.response.BoardMembershipResponse;
 import com.trello.project.board.dto.response.BoardResponse;
 import com.trello.project.board.dto.response.common.SuccessfulBoardResponse;
 import com.trello.project.board.exception.BoardAlreadyExistsException;
@@ -181,6 +182,60 @@ public class BoardRestController {
         UUID userId = JwtUtils.getUserId(jwt);
         List<BoardResponse> response = boardService.listAllBoardsByWorkspaceId(workspaceId, userId);
 
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    // Listar todos los tableros por ID de usuario miembro
+    @Operation(summary = "Listar tableros donde el usuario autenticado es miembro", description = "Devuelve todos los tableros en los que el usuario autenticado participa como miembro, junto con la información relevante de su relación con cada tablero")
+    @SecurityRequirement(name = "bearerAuth")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Obtiene la lista de tableros con datos del usuario propietario", content = @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = BoardMembershipResponse.class)), examples = @ExampleObject(value = """
+                    [
+                        {
+                            "description": "Primer tablero",
+                            "id": "0a2ecb80-3b35-4096-a551-644aecc54338",
+                            "name": "Tablero A",
+                            "ownerUser": {
+                                "email": "enrique@gmail.com",
+                                "firstName": "Armando",
+                                "id": "af6cf6ea-05c3-4233-a546-f942386f43ad",
+                                "lastName": "Enrique"
+                            },
+                            "role": "ADMIN",
+                            "userDataAvailable": true
+                        }
+                    ]
+                    """))),
+
+            @ApiResponse(responseCode = "401", description = "El usuario no esta autenticado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
+                    {
+                        "detail": "Authentication is required to access this resource",
+                        "fields": null,
+                        "instance": null,
+                        "message": "Ha ocurrido un error inesperado",
+                        "status": 401,
+                        "title": "Unauthorized",
+                        "type": "/errors/authentication/not-authenticated"
+                    }
+                    """))),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
+                    {
+                      "detail": "An unexpected error occurred while processing the request",
+                      "fields": null,
+                      "instance": null,
+                      "message": "Ha ocurrido un error inesperado",
+                      "status": 500,
+                      "title": "Internal server error",
+                      "type": "/errors/internal-server-error"
+                    }
+                    """))),
+    })
+    @GetMapping("/membership")
+    public ResponseEntity<List<BoardMembershipResponse>> listAllBoardsByMemberUserId(
+            @AuthenticationPrincipal Jwt jwt) {
+        UUID userId = JwtUtils.getUserId(jwt);
+
+        List<BoardMembershipResponse> response = boardService.listAllBoardsByMemberUserId(userId);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 

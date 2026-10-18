@@ -32,4 +32,6 @@ public interface BoardProjectService {
 
     Board findBoardByIdAndOwnerUserIdAndInactiveUserId(UUID boardId, UUID ownerUserId, UUID userId)
             throws WorkspaceNotFoundException, BoardNotFoundException, MemberNotFoundException;
+
+    List<Board> findAllBoardsByMemberActiveTrueAndMemberUserId(UUID memberUserId);
 }

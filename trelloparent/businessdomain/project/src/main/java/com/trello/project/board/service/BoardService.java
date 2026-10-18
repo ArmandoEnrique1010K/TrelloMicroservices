@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.UUID;
 
 import com.trello.project.board.dto.request.BoardRequest;
+import com.trello.project.board.dto.response.BoardMembershipResponse;
 import com.trello.project.board.dto.response.BoardResponse;
 import com.trello.project.board.exception.BoardAlreadyExistsException;
 
@@ -23,4 +24,5 @@ public interface BoardService {
 
     // TODO: IMPLEMENTAR UN METODO PARA LISTAR TODAS LOS TABLEROS EN DONDE EL
     // USUARIO ESTA INCLUIDO (SIN IMPORTAR EL ROL) COMO MIEMBRO
+    List<BoardMembershipResponse> listAllBoardsByMemberUserId(UUID memberUserId);
 }

@@ -47,4 +47,16 @@ public interface BoardRepository extends JpaRepository<Board, UUID> {
             @Param("boardId") UUID boardId,
             @Param("userId") UUID userId,
             @Param("roles") Set<Role> roles);
+
+    // Listar todos los tableros por ID del usuario en que es miembro
+    // Recordar que el usuario administrador del espacio de trabajo no sera miembro
+    // porque es el administrador
+    @Query("""
+                SELECT b
+                FROM Board b
+                JOIN b.members m
+                WHERE m.userId = :userId
+                  AND m.active = true
+            """)
+    List<Board> findByMemberActiveTrueAndMemberUserId(@Param("userId") UUID userId);
 }

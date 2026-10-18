@@ -116,4 +116,9 @@ public class BoardProjectServiceImpl implements BoardProjectService {
 
         return board;
     }
+
+    @Override
+    public List<Board> findAllBoardsByMemberActiveTrueAndMemberUserId(UUID memberUserId) {
+        return boardRepository.findByMemberActiveTrueAndMemberUserId(memberUserId);
+    }
 }
