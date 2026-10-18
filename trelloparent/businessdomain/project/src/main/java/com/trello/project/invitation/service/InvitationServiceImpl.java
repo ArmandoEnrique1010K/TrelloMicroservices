@@ -134,7 +134,8 @@ public class InvitationServiceImpl implements InvitationService {
     }
 
     @Override
-    public InvitationResponse editInvitation(UUID invitationId, InvitationRequest invitationRequest, UUID ownerUserId) {
+    public InvitationResponse editInvitation(UUID invitationId, InvitationRequest invitationRequest, UUID ownerUserId)
+            throws InvitationConfirmedException {
         String message = invitationRequest.getMessage();
         Role role = invitationRequest.getRole();
 
@@ -161,6 +162,84 @@ public class InvitationServiceImpl implements InvitationService {
     public void deleteInvitation(UUID invitationId, UUID ownerUserId) {
         invitationProjectService.deleteInvitationByIdAndSenderUserId(invitationId, ownerUserId);
     }
+
+    @Override
+    public void declineInvitation(UUID invitationId, UUID recipientUserId) {
+        Invitation findedInvitation = invitationProjectService.findInvitationByIdAndRecipientUserId(invitationId,
+                recipientUserId);
+
+        if (findedInvitation.getStatus() != Status.UNCONFIRMED) {
+            throw new InvitationConfirmedException();
+        }
+
+        // Marcar la invitación como rechazada
+        // El administrador del espacio de trabajo podra verlo que ha sido rechazado
+        findedInvitation.setStatus(Status.REJECTED);
+        invitationProjectService.saveInvitation(findedInvitation);
+    }
+
+    @Override
+    public InvitationResponse resendInvitation(UUID boardId, UUID ownerUserId, UUID memberUserId,
+            InvitationRequest invitationRequest) throws InvitationAlreadyExistsException {
+
+        // Buscar si el usuario receptor esta como miembro inactivo en el tablero
+        Board board = boardProjectService.findBoardByIdAndOwnerUserIdAndInactiveUserId(boardId, ownerUserId,
+                memberUserId);
+
+        // El usuario receptor ahora es el miembro del usuario
+        // Si existe una invitación, entonces no se debe volver a enviar la invitación
+        // por segunda vez
+        if (invitationProjectService.existsInvitationByBoardIdAndRecipientUserId(boardId, memberUserId)) {
+            throw new InvitationAlreadyExistsException();
+        }
+
+        Invitation invitationToInvitationRequest = invitationRequestMapper
+                .invitationRequestToInvitation(invitationRequest);
+
+        invitationToInvitationRequest.setSenderUserId(ownerUserId);
+        invitationToInvitationRequest.setRecipientUserId(memberUserId);
+
+        invitationToInvitationRequest.setBoard(board);
+        invitationToInvitationRequest.setStatus(Status.UNCONFIRMED);
+        invitationToInvitationRequest.setSendedAt(LocalDateTime.now());
+
+        Invitation savedInvitation = invitationProjectService.saveInvitation(invitationToInvitationRequest);
+        InvitationResponse invitationResponse = invitationResponseMapper
+                .invitationToInvitationResponse(savedInvitation);
+        return invitationResponse;
+
+    }
+
+    @Override
+    public List<UserResponse> listAllAvailableUsers(UUID boardId, UUID ownerUserId, String email) {
+        // Buscar el tablero por ID y usuario administrador del espacio de trabajo
+        // Recordar que el administrador del espacio de trabajo es el unico en buscar
+        // usuarios disponibles para invitarlos
+
+        // Se excluye de la lista desde el controlador del microservicio Identity
+        Board findedBoard = boardProjectService.findBoardByIdAndOwnerUserId(boardId, ownerUserId);
+        List<UUID> memberIds = findedBoard.getMembers()
+                .stream()
+                .map(member -> member.getUserId())
+                .toList();
+
+        List<UUID> invitationIds = findedBoard.getInvitations()
+                .stream()
+                .map(invitation -> invitation.getRecipientUserId())
+                .distinct().toList();
+
+        List<UUID> excludedUsersIds = Stream.concat(memberIds.stream(), invitationIds.stream()).toList();
+
+        // Llamado al servicio del cliente
+        List<UserResponse> response = identityClientService.listAllUsersByEmailAndExcludingIds(email,
+                excludedUsersIds);
+
+        return response;
+    }
+
+    // ----------------------------------------
+    // A partir de aqui los metodos estan orientado a operaciones
+    // ----------------------------------------
 
     // Los métodos que van a escribir una opaeración en la base de datos no deben
     // llevar @Transactional en esta clase
@@ -193,20 +272,9 @@ public class InvitationServiceImpl implements InvitationService {
         operationProcessor.processOperation(operation.getId());
     }
 
-    @Override
-    public void declineInvitation(UUID invitationId, UUID recipientUserId) {
-        Invitation findedInvitation = invitationProjectService.findInvitationByIdAndRecipientUserId(invitationId,
-                recipientUserId);
-
-        if (findedInvitation.getStatus() != Status.UNCONFIRMED) {
-            throw new InvitationConfirmedException();
-        }
-
-        // Marcar la invitación como rechazada
-        // El administrador del espacio de trabajo podra verlo que ha sido rechazado
-        findedInvitation.setStatus(Status.REJECTED);
-        invitationProjectService.saveInvitation(findedInvitation);
-    }
+    // --------------------------------------
+    // Metodos auxiliares
+    // --------------------------------------
 
     // Método para tener los datos de los usuarios por ID
     private UsersByIdResponse getUsersById(
@@ -298,62 +366,4 @@ public class InvitationServiceImpl implements InvitationService {
         }
     }
 
-    @Override
-    public InvitationResponse resendInvitation(UUID boardId, UUID ownerUserId, UUID memberUserId,
-            InvitationRequest invitationRequest) throws InvitationAlreadyExistsException {
-
-        // Buscar si el usuario receptor esta como miembro inactivo en el tablero
-        Board board = boardProjectService.findBoardByIdAndOwnerUserIdAndInactiveUserId(boardId, ownerUserId,
-                memberUserId);
-
-        // El usuario receptor ahora es el miembro del usuario
-        // Si existe una invitación, entonces no se debe volver a enviar la invitación
-        // por segunda vez
-        if (invitationProjectService.existsInvitationByBoardIdAndRecipientUserId(boardId, memberUserId)) {
-            throw new InvitationAlreadyExistsException();
-        }
-
-        Invitation invitationToInvitationRequest = invitationRequestMapper
-                .invitationRequestToInvitation(invitationRequest);
-
-        invitationToInvitationRequest.setSenderUserId(ownerUserId);
-        invitationToInvitationRequest.setRecipientUserId(memberUserId);
-
-        invitationToInvitationRequest.setBoard(board);
-        invitationToInvitationRequest.setStatus(Status.UNCONFIRMED);
-        invitationToInvitationRequest.setSendedAt(LocalDateTime.now());
-
-        Invitation savedInvitation = invitationProjectService.saveInvitation(invitationToInvitationRequest);
-        InvitationResponse invitationResponse = invitationResponseMapper
-                .invitationToInvitationResponse(savedInvitation);
-        return invitationResponse;
-
-    }
-
-    @Override
-    public List<UserResponse> listAllAvailableUsers(UUID boardId, UUID ownerUserId, String email) {
-        // Buscar el tablero por ID y usuario administrador del espacio de trabajo
-        // Recordar que el administrador del espacio de trabajo es el unico en buscar
-        // usuarios disponibles para invitarlos
-
-        // Se excluye de la lista desde el controlador del microservicio Identity
-        Board findedBoard = boardProjectService.findBoardByIdAndOwnerUserId(boardId, ownerUserId);
-        List<UUID> memberIds = findedBoard.getMembers()
-                .stream()
-                .map(member -> member.getUserId())
-                .toList();
-
-        List<UUID> invitationIds = findedBoard.getInvitations()
-                .stream()
-                .map(invitation -> invitation.getRecipientUserId())
-                .distinct().toList();
-
-        List<UUID> excludedUsersIds = Stream.concat(memberIds.stream(), invitationIds.stream()).toList();
-
-        // Llamado al servicio del cliente
-        List<UserResponse> response = identityClientService.listAllUsersByEmailAndExcludingIds(email,
-                excludedUsersIds);
-
-        return response;
-    }
 }

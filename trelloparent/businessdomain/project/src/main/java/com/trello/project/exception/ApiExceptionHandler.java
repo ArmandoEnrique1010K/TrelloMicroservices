@@ -13,9 +13,8 @@ import com.trello.project.board.exception.BoardAlreadyExistsException;
 import com.trello.project.common.StandarizedApiExceptionResponse;
 import com.trello.project.invitation.exception.InvitationAlreadyExistsException;
 import com.trello.project.invitation.exception.InvitationConfirmedException;
-import com.trello.project.invitation.exception.InvitationNotFoundException;
-import com.trello.project.member.exception.MemberInactiveException;
-import com.trello.project.member.exception.MemberNotFoundException;
+import com.trello.project.operation.exception.OperationCompensatedException;
+import com.trello.project.operation.exception.OperationManualReviewException;
 import com.trello.project.operation.exception.OperationNotFoundException;
 import com.trello.project.operation.exception.OperationNotPendingException;
 import com.trello.project.workspace.exception.WorkspaceAlreadyExistsException;
@@ -25,6 +24,11 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @RestControllerAdvice
 public class ApiExceptionHandler {
+
+    // -----------------------------------------------
+    // Excepciones de nivel general
+    // -----------------------------------------------
+
     // Excepción general - status 500
     @ExceptionHandler(Exception.class)
     public ResponseEntity<StandarizedApiExceptionResponse> handleInternalServerError(Exception ex) {
@@ -85,6 +89,31 @@ public class ApiExceptionHandler {
                 .body(response);
     }
 
+    // Excepción global de microservicio caido
+    // ServiceUnavailableException
+    @ExceptionHandler(ServiceUnavailableException.class)
+    public ResponseEntity<StandarizedApiExceptionResponse> handleServiceUnavailableException(
+            ServiceUnavailableException ex) {
+
+        // Estado 503 - El servicio no esta disponible
+        HttpStatus status = HttpStatus.SERVICE_UNAVAILABLE;
+
+        StandarizedApiExceptionResponse standarizedApiExceptionResponse = new StandarizedApiExceptionResponse(
+                "/errors/service-unavailable",
+                "Service unavailable",
+                status.value(),
+                "One o more services has fallen",
+                null,
+                // Este mensaje no se va a mostrar al usuario
+                "Ha ocurrido un error");
+
+        return ResponseEntity.status(status).body(standarizedApiExceptionResponse);
+    }
+
+    // -----------------------------------------------
+    // Excepciones relacionadas a espacio de trabajo
+    // -----------------------------------------------
+
     // Excepción de espacio de trabajo existente - status 409
     @ExceptionHandler(WorkspaceAlreadyExistsException.class)
     public ResponseEntity<StandarizedApiExceptionResponse> handleWorkspaceAlreadyExists(
@@ -121,6 +150,10 @@ public class ApiExceptionHandler {
         return ResponseEntity.status(status).body(standarizedApiExceptionResponse);
     }
 
+    // -----------------------------------------------
+    // Excepciones relacionadas a tablero
+    // -----------------------------------------------
+
     // Excepción de tablero existente - status 409
     @ExceptionHandler(BoardAlreadyExistsException.class)
     public ResponseEntity<StandarizedApiExceptionResponse> handleBoardAlreadyExists(
@@ -156,6 +189,10 @@ public class ApiExceptionHandler {
 
         return ResponseEntity.status(status).body(standarizedApiExceptionResponse);
     }
+
+    // -----------------------------------------------
+    // Excepciones relacionadas a invitación
+    // -----------------------------------------------
 
     // Excepción de invitación existente
     @ExceptionHandler(InvitationAlreadyExistsException.class)
@@ -210,6 +247,10 @@ public class ApiExceptionHandler {
         return ResponseEntity.status(status).body(standarizedApiExceptionResponse);
     }
 
+    // -----------------------------------------------
+    // Excepciones relacionadas a miembro
+    // -----------------------------------------------
+
     // Excepción de miembro no encontrado
     @ExceptionHandler(MemberNotFoundException.class)
     public ResponseEntity<StandarizedApiExceptionResponse> handleMemberNotFoundException(
@@ -246,23 +287,26 @@ public class ApiExceptionHandler {
         return ResponseEntity.status(status).body(standarizedApiExceptionResponse);
     }
 
-    // Excepción global de microservicio caido
-    // ServiceUnavailableException
-    @ExceptionHandler(ServiceUnavailableException.class)
-    public ResponseEntity<StandarizedApiExceptionResponse> handleServiceUnavailableException(
-            ServiceUnavailableException ex) {
+    // -----------------------------------------------
+    // Excepciones relacionadas a operación
+    // -----------------------------------------------
 
-        // Estado 503 - El servicio no esta disponible
-        HttpStatus status = HttpStatus.SERVICE_UNAVAILABLE;
+    // Excepción de operación pendiente de realizar
+    @ExceptionHandler(OperationCompensatedException.class)
+    public ResponseEntity<StandarizedApiExceptionResponse> handleOperationCompensatedException(
+            OperationCompensatedException ex) {
+
+        // Estado 202 - Operación pendiente de recuperación
+        HttpStatus status = HttpStatus.ACCEPTED;
 
         StandarizedApiExceptionResponse standarizedApiExceptionResponse = new StandarizedApiExceptionResponse(
-                "/errors/service-unavailable",
-                "Service unavailable",
+                "/errors/operation/compensated",
+                "Operation compensated",
                 status.value(),
-                "One o more services has fallen",
+                "The operation has been left in a pending state because one of the services has gone down",
                 null,
-                // Este mensaje no se va a mostrar al usuario
-                "Ha ocurrido un error");
+                // Este mensaje se va a mostrar al usuario
+                "La operación quedo en un estado pendiente, vuelva a intentarlo en un momento");
 
         return ResponseEntity.status(status).body(standarizedApiExceptionResponse);
     }
@@ -279,30 +323,10 @@ public class ApiExceptionHandler {
                 "/errors/operation/manual-review",
                 "Operation manual review",
                 status.value(),
-                "The operation requires careful review by the app administrator. Please get in touch by sending an email to example@gmail.com.",
+                "The operation requires careful review by the app administrator; please get in touch by sending an email to example@gmail.com",
                 null,
                 // Este mensaje no se va a mostrar al usuario
                 "Ha ocurrido un error, pongase en contacto con el administrador");
-
-        return ResponseEntity.status(status).body(standarizedApiExceptionResponse);
-    }
-
-    // Excepción de operación pendiente de realizar
-    @ExceptionHandler(OperationCompensatedException.class)
-    public ResponseEntity<StandarizedApiExceptionResponse> handleOperationCompensatedException(
-            OperationCompensatedException ex) {
-
-        // Estado 202 - Operación pendiente de recuperación
-        HttpStatus status = HttpStatus.ACCEPTED;
-
-        StandarizedApiExceptionResponse standarizedApiExceptionResponse = new StandarizedApiExceptionResponse(
-                "/errors/operation/compensated",
-                "Operation compensated",
-                status.value(),
-                "The operation has been left in a pending state because one of the services has gone down.",
-                null,
-                // Este mensaje se va a mostrar al usuario
-                "La operación quedo en un estado pendiente, vuelva en un momento");
 
         return ResponseEntity.status(status).body(standarizedApiExceptionResponse);
     }
@@ -325,18 +349,17 @@ public class ApiExceptionHandler {
         return ResponseEntity.status(status).body(standarizedApiExceptionResponse);
     }
 
-    // Excepción de operación que no tiene un estado "PENDING" o
-    // "COMPENSATION_PENDING"
+    // Excepción de operación que no tiene un estado "PENDING" o relacionado
     @ExceptionHandler(OperationNotPendingException.class)
     public ResponseEntity<StandarizedApiExceptionResponse> handleOperationNotPendingException(
             OperationNotPendingException ex) {
-        HttpStatus status = HttpStatus.NOT_FOUND;
+        HttpStatus status = HttpStatus.CONFLICT;
 
         StandarizedApiExceptionResponse standarizedApiExceptionResponse = new StandarizedApiExceptionResponse(
                 "/errors/operation/not-pending",
                 "Operation not pending",
                 status.value(),
-                "The operation does not have a 'PENDING' or 'COMPENSATION_PENDING' status.",
+                "The operation does not have a 'PENDING' or relationated status",
                 null,
                 // Este mensaje se va a mostrar al usuario
                 "Ha ocurrido un error");

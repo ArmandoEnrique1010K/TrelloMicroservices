@@ -14,9 +14,9 @@ import com.trello.project.entities.Invitation;
 import com.trello.project.entities.Operation;
 import com.trello.project.enums.OperationStatus;
 import com.trello.project.exception.BusinessRuleException;
-import com.trello.project.exception.OperationCompensatedException;
-import com.trello.project.exception.OperationManualReviewException;
 import com.trello.project.exception.ServiceUnavailableException;
+import com.trello.project.operation.exception.OperationCompensatedException;
+import com.trello.project.operation.exception.OperationManualReviewException;
 import com.trello.project.operation.exception.OperationNotFoundException;
 import com.trello.project.operation.exception.OperationNotPendingException;
 import com.trello.project.operation.service.handler.OperationAcceptInvitationService;
@@ -47,7 +47,8 @@ public class OperationProcessorImpl implements OperationProcessor {
     // No se coloca un @Transactional porque este método se encarga de hacer un
     // llamado al cliente
     @Override
-    public void processOperation(UUID operationId) {
+    public void processOperation(UUID operationId)
+            throws OperationNotFoundException, OperationNotPendingException {
         // 1. Recuperar la operación persistida en Project.
         Operation operation = operationProjectService
                 .findOperationById(operationId)
@@ -92,9 +93,9 @@ public class OperationProcessorImpl implements OperationProcessor {
     }
 
     // Procesar la operación original
-    private void processOriginalOperation(Operation operation) {
-        log.info("ESTADO ACTUAL: " + operation.getStatus());
-
+    private void processOriginalOperation(Operation operation)
+            throws BusinessRuleException, OperationNotFoundException, OperationCompensatedException,
+            OperationManualReviewException {
         // 1. Marcar el inicio de la ejecución original.
         operation.setStatus(OperationStatus.EXECUTING);
         operationProjectService.saveOperation(operation);
@@ -107,8 +108,7 @@ public class OperationProcessorImpl implements OperationProcessor {
                 case ACCEPT_INVITATION ->
                     processAcceptInvitation(operation);
 
-                default -> throw new IllegalArgumentException(
-                        "Unsupported operation type: " + operation.getType());
+                default -> throw new BusinessRuleException();
             }
 
             // 3. La operación original terminó correctamente.
@@ -194,7 +194,8 @@ public class OperationProcessorImpl implements OperationProcessor {
     }
 
     // Ejecutar la compensación Local
-    private void processLocalCompensation(Operation operation) {
+    private void processLocalCompensation(Operation operation) throws OperationNotPendingException,
+            OperationNotFoundException, OperationManualReviewException {
 
         // Posible estado de operacion: COMPENSATION_PENDING
 
@@ -235,17 +236,10 @@ public class OperationProcessorImpl implements OperationProcessor {
 
         } catch (Exception e) {
 
-            log.error(
-                    "Error en la compensación local de la operación {}",
-                    operation.getId(),
-                    e);
-
             // Una excepción inesperada durante el rollback local
             // no debe considerarse automáticamente recuperable.
-
             markManualReview(operation, e);
             throw new OperationManualReviewException();
-
         }
 
         // La compensación local ya terminó.
@@ -253,7 +247,8 @@ public class OperationProcessorImpl implements OperationProcessor {
         processRemoteCompensation(operation);
     }
 
-    private void processRemoteCompensation(Operation operation) {
+    private void processRemoteCompensation(Operation operation) throws OperationNotPendingException,
+            OperationManualReviewException, OperationCompensatedException {
         // POSIBLE ESTADO DE OPERACIÓN: LOCAL_COMPENSATION_COMPLETED
 
         if (operation.getStatus() != OperationStatus.LOCAL_COMPENSATION_COMPLETED) {
@@ -312,7 +307,7 @@ public class OperationProcessorImpl implements OperationProcessor {
 
     // Método para llamar a los respectivos clientes para ejecutar la operación de
     // aceptar invitacion en el microservicio Workflow
-    private void processAcceptInvitation(Operation operation) {
+    private void processAcceptInvitation(Operation operation) throws BusinessRuleException {
 
         // 1. Recuperar la invitación para obtener el tablero y el rol.
         Invitation invitation = invitationProjectService
@@ -329,42 +324,20 @@ public class OperationProcessorImpl implements OperationProcessor {
         Boolean memberWasActive = operation.getMemberActive();
 
         if (memberWasActive == null) {
-            log.info(
-                    "Ejecutando addBoardAccess. operationId={}, boardId={}",
-                    operation.getId(),
-                    boardId);
-
             // Si no existia un miembro, crear el permiso de acceso en Workflow
             workflowClientService.addBoardAccess(
                     boardId,
                     workflowRole,
                     operation.getId());
-            log.info(
-                    "addBoardAccess finalizó correctamente. operationId={}",
-                    operation.getId());
 
         } else if (!memberWasActive) {
-            log.info(
-                    "Ejecutando activateBoardAccess. operationId={}, boardId={}",
-                    operation.getId(),
-                    boardId);
-
             // Si existia un miembro inactivo, entonces activar el permiso de acceso en
             // Workflow.
-            log.info("DATOS OBTENIDOS: BoardId: " + boardId + " | UserId: " + operation.getUserId() + " | Role: "
-                    + workflowRole
-                    + " | OperationId: " + operation.getId());
-
             workflowClientService.activateBoardAccess(
                     boardId,
                     operation.getUserId(),
                     workflowRole,
                     operation.getId());
-
-            log.info(
-                    "activateBoardAccess finalizó correctamente. operationId={}",
-                    operation.getId());
-
         } else {
             // Si existia un miembro activo, entonces devolver una excepción
             throw new BusinessRuleException();
@@ -375,12 +348,6 @@ public class OperationProcessorImpl implements OperationProcessor {
     private void markManualReview(
             Operation operation,
             Exception exception) {
-
-        log.error(
-                "La operación {} requiere revisión manual: ",
-                operation.getId(),
-                "Excepción: ",
-                exception);
 
         operation.setStatus(OperationStatus.MANUAL_INTERVENTION_REQUIRED);
         operation.setCompletedAt(null);

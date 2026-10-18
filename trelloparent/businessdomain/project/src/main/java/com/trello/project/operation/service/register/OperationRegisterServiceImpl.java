@@ -44,7 +44,8 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
     // base de datos
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public Operation registerAcceptInvitation(UUID invitationId, UUID recipientUserId) {
+    public Operation registerAcceptInvitation(UUID invitationId, UUID recipientUserId)
+            throws InvitationConfirmedException, OperationNotPendingException {
 
         // 1. Idempotencia
         // Buscar una operación por tipo e ID de invitación

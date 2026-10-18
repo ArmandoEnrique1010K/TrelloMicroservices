@@ -13,7 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.trello.project.entities.Invitation;
 import com.trello.project.enums.Status;
 import com.trello.project.exception.BoardNotFoundException;
-import com.trello.project.invitation.exception.InvitationNotFoundException;
+import com.trello.project.exception.InvitationNotFoundException;
 
 @Service
 public class InvitationProjectServiceImpl implements InvitationProjectService {
@@ -21,7 +21,7 @@ public class InvitationProjectServiceImpl implements InvitationProjectService {
     private final BoardRepository boardRepository;
     private final InvitationRepository invitationRepository;
 
-    InvitationProjectServiceImpl(InvitationRepository invitationRepository, BoardRepository boardRepository) {
+    public InvitationProjectServiceImpl(InvitationRepository invitationRepository, BoardRepository boardRepository) {
         this.invitationRepository = invitationRepository;
         this.boardRepository = boardRepository;
     }
@@ -44,7 +44,7 @@ public class InvitationProjectServiceImpl implements InvitationProjectService {
     }
 
     @Override
-    public List<Invitation> findAllInvitationsByBoardId(UUID boardId) {
+    public List<Invitation> findAllInvitationsByBoardId(UUID boardId) throws BoardNotFoundException {
         boardRepository.findById(boardId).orElseThrow(BoardNotFoundException::new);
         return invitationRepository.findByBoardId(boardId);
     }
@@ -58,15 +58,6 @@ public class InvitationProjectServiceImpl implements InvitationProjectService {
     }
 
     @Override
-    public void deleteInvitationByIdAndSenderUserId(UUID invitationId, UUID senderUserId)
-            throws InvitationNotFoundException {
-        Invitation invitation = invitationRepository.findByIdAndSenderUserId(invitationId, senderUserId)
-                .orElseThrow(InvitationNotFoundException::new);
-
-        invitationRepository.delete(invitation);
-    }
-
-    @Override
     public Invitation findInvitationByIdAndRecipientUserId(UUID invitationId, UUID recipientUserId)
             throws InvitationNotFoundException {
         Invitation invitation = invitationRepository.findByIdAndRecipientUserId(invitationId,
@@ -74,6 +65,15 @@ public class InvitationProjectServiceImpl implements InvitationProjectService {
                 .orElseThrow(InvitationNotFoundException::new);
         return invitation;
 
+    }
+
+    @Override
+    public void deleteInvitationByIdAndSenderUserId(UUID invitationId, UUID senderUserId)
+            throws InvitationNotFoundException {
+        Invitation invitation = invitationRepository.findByIdAndSenderUserId(invitationId, senderUserId)
+                .orElseThrow(InvitationNotFoundException::new);
+
+        invitationRepository.delete(invitation);
     }
 
     // Un delete que no encuentra coincidencias simplemente afecta 0 registros
@@ -88,8 +88,8 @@ public class InvitationProjectServiceImpl implements InvitationProjectService {
 
     // Como este método se va a ejecutar automaticamente cada cierto tiempo debe
     // tener un @Transactional
-    @Override
     @Transactional
+    @Override
     public void deleteAllAcceptedInvitations() {
         LocalDateTime now = LocalDateTime.now();
         invitationRepository.deleteAcceptedInvitations(now);

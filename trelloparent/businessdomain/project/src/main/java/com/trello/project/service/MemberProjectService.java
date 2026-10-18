@@ -5,7 +5,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import com.trello.project.entities.Member;
-import com.trello.project.member.exception.MemberNotFoundException;
+import com.trello.project.exception.MemberNotFoundException;
 
 public interface MemberProjectService {
 

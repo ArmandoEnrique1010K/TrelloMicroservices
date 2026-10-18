@@ -5,7 +5,7 @@ import java.util.UUID;
 
 import com.trello.project.entities.Invitation;
 import com.trello.project.exception.BoardNotFoundException;
-import com.trello.project.invitation.exception.InvitationNotFoundException;
+import com.trello.project.exception.InvitationNotFoundException;
 
 public interface InvitationProjectService {
     Invitation saveInvitation(Invitation invitation);
@@ -16,15 +16,16 @@ public interface InvitationProjectService {
     // Listar invitaciones que aun no han sido confirmadas para el usuario receptor
     List<Invitation> findAllUnconfirmedInvitationsByRecipientUserId(UUID recipientUserId);
 
-    List<Invitation> findAllInvitationsByBoardId(UUID boardId);
+    List<Invitation> findAllInvitationsByBoardId(UUID boardId)
+            throws BoardNotFoundException;
 
     Invitation findInvitationByIdAndSenderUserId(UUID invitationId, UUID senderUserId)
             throws InvitationNotFoundException;
 
-    void deleteInvitationByIdAndSenderUserId(UUID invitationId, UUID senderUserId)
+    Invitation findInvitationByIdAndRecipientUserId(UUID invitationId, UUID recipientUserId)
             throws InvitationNotFoundException;
 
-    Invitation findInvitationByIdAndRecipientUserId(UUID invitationId, UUID recipientUserId)
+    void deleteInvitationByIdAndSenderUserId(UUID invitationId, UUID senderUserId)
             throws InvitationNotFoundException;
 
     void deleteInvitationIfExistsByBoardIdAndRecipientUserId(

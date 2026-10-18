@@ -97,6 +97,7 @@ public class InvitationRecipientRestController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
+    // Este endpoint hace un llamado al microservicio Workflow
     // Aceptar invitación por el usuario receptor
     @Operation(summary = "Acepta una invitación", description = "Acepta una invitación y agrega al usuario receptor como miembro del tablero")
     @SecurityRequirement(name = "bearerAuth")
@@ -107,6 +108,18 @@ public class InvitationRecipientRestController {
                         "message": "Aceptastes la invitación"
                     }
                     """))),
+            @ApiResponse(responseCode = "202", description = "La operación quedo en un estado pendiente", content = @Content(mediaType = "application/json", schema = @Schema(implementation = SuccessfulVoidResponse.class), examples = @ExampleObject(value = """
+                    {
+                        "detail": "The operation has been left in a pending state because one of the services has gone down",
+                        "fields": null,
+                        "instance": null,
+                        "message": "La operación quedo en un estado pendiente, vuelva a intentarlo en un momento",
+                        "status": 202,
+                        "title": "Operation compensated",
+                        "type": "/errors/operation/compensated"
+                    }
+                    """))),
+
             @ApiResponse(responseCode = "401", description = "El usuario no esta autenticado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
                     {
                         "detail": "Authentication is required to access this resource",
@@ -118,39 +131,102 @@ public class InvitationRecipientRestController {
                         "type": "/errors/authentication/not-authenticated"
                     }
                     """))),
-            @ApiResponse(responseCode = "404", description = "No se ha encontrado la invitación", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
+
+            @ApiResponse(responseCode = "404", description = "No se ha encontrado el recurso solicitado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = {
+                    @ExampleObject(name = "No se ha encontrado la invitación", summary = "No se ha encontrado la invitación", value = """
+                            {
+                                    "detail": "The invitation was not found in the system",
+                                    "fields": null,
+                                    "instance": null,
+                                    "message": "No se ha encontrado la invitación",
+                                    "status": 404,
+                                    "title": "Invitation not found",
+                                    "type": "/errors/invitation-not-found"
+                            }
+                            """),
+                    @ExampleObject(name = "La operación no existe", summary = "La operación no existe", value = """
+                            {
+                                    "detail": "The operation was not found in the system",
+                                    "fields": null,
+                                    "instance": null,
+                                    "message": "Ha ocurrido un error",
+                                    "status": 404,
+                                    "title": "Operation not found",
+                                    "type": "/errors/operation/not-found"
+                            }
+                            """),
+            })),
+
+            @ApiResponse(responseCode = "409", description = "Error de lógica de negocio", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = {
+                    @ExampleObject(name = "La invitación ya ha sido confirmada", summary = "La invitación ya ha sido confirmada", value = """
+                            {
+                                "detail": "The invitation has already been confirmed",
+                                "fields": null,
+                                "instance": null,
+                                "message": "La invitación ya ha sido confirmada",
+                                "status": 404,
+                                "title": "Invitation confirmed",
+                                "type": "/errors/invitation-confirmed"
+                            }
+                            """),
+                    @ExampleObject(name = "La operación no tiene un estado pendiente", summary = "La operación no tiene un estado pendiente", value = """
+                            {
+                                    "detail": "The operation does not have a 'PENDING' or relationated status",
+                                    "fields": null,
+                                    "instance": null,
+                                    "message": "Ha ocurrido un error",
+                                    "status": 404,
+                                    "title": "Operation not pending",
+                                    "type": "/errors/operation/not-pending"
+                            }
+                            """),
+                    @ExampleObject(name = "Error de lógica de negocio", summary = "Error de lógica de negocio", value = """
+                            {
+                                    "detail": "The operation cannot be completed because it violates a business rule",
+                                    "fields": null,
+                                    "instance": null,
+                                    "message": "Ha ocurrido un error inesperado",
+                                    "status": 409,
+                                    "title": "Business rule violation",
+                            }
+                            """),
+            })),
+            @ApiResponse(responseCode = "500", description = "Error interno", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = {
+                    @ExampleObject(name = "Error interno del servidor", summary = "Error interno del servidor", value = """
+                            {
+                                    "detail": "An unexpected error occurred while processing the request",
+                                    "fields": null,
+                                    "instance": null,
+                                    "message": "Ha ocurrido un error inesperado",
+                                    "status": 500,
+                                    "title": "Internal server error",
+                                    "type": "/errors/internal-server-error"
+                            }
+                            """),
+                    @ExampleObject(name = "Se requiere de una revisión manual en la base de datos", summary = "Se requiere de una revisión manual en la base de datos", value = """
+                            {
+                                    "detail": "The operation requires careful review by the app administrator; please get in touch by sending an email to example@gmail.com",
+                                    "fields": null,
+                                    "instance": null,
+                                    "message": "Ha ocurrido un error, pongase en contacto con el administrador",
+                                    "status": 500,
+                                    "title": "Operation manual review",
+                                    "type": "/errors/operation/manual-review"
+                            }
+                            """),
+            })),
+            @ApiResponse(responseCode = "503", description = "Servicio no disponible", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
                     {
-                        "detail": "The invitation was not found in the system",
-                        "fields": null,
-                        "instance": null,
-                        "message": "No se ha encontrado la invitación",
-                        "status": 404,
-                        "title": "Invitation not found",
-                        "type": "/errors/invitation-not-found"
-                    }
-                    """))),
-            @ApiResponse(responseCode = "409", description = "La invitación ya ha sido confirmada", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
-                    {
-                        "detail": "The invitation has already been confirmed",
-                        "fields": null,
-                        "instance": null,
-                        "message": "La invitación ya ha sido confirmada",
-                        "status": 404,
-                        "title": "Invitation confirmed",
-                        "type": "/errors/invitation-confirmed"
-                    }
-                    """))),
-            @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
-                    {
-                      "detail": "An unexpected error occurred while processing the request",
+                      "detail": "One o more services has fallen",
                       "fields": null,
                       "instance": null,
                       "message": "Ha ocurrido un error inesperado",
-                      "status": 500,
-                      "title": "Internal server error",
-                      "type": "/errors/internal-server-error"
+                      "status": 503,
+                      "title": "Service unavailable",
+                      "type": "/errors/service-unavailable"
                     }
                     """))),
+
     })
     @PutMapping("/accept/{invitationId}")
     public ResponseEntity<SuccessfulResponse<SuccessfulVoidResponse>> acceptInvitation(

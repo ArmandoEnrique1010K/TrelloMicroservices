@@ -42,7 +42,8 @@ public class OperationAcceptInvitationServiceImpl implements OperationAcceptInvi
 
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public void applyAcceptInvitation(UUID operationId, boolean automatic) {
+    public void applyAcceptInvitation(UUID operationId, boolean automatic)
+            throws OperationNotFoundException, OperationNotPendingException, InvitationConfirmedException {
         // 1. Recuperar la operación persistida.
         Operation persistedOperation = operationProjectService
                 .findOperationById(operationId)
@@ -50,7 +51,6 @@ public class OperationAcceptInvitationServiceImpl implements OperationAcceptInvi
 
         // 2. Validar si puede ejecutarse la aceptación.
         OperationStatus currentStatus = persistedOperation.getStatus();
-        log.info("Estado de operación: " + currentStatus);
 
         if (currentStatus != OperationStatus.REGISTERED
                 && currentStatus != OperationStatus.LOCAL_COMPENSATION_COMPLETED
@@ -125,7 +125,8 @@ public class OperationAcceptInvitationServiceImpl implements OperationAcceptInvi
 
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public void revertAcceptInvitation(UUID operationId) {
+    public void revertAcceptInvitation(UUID operationId)
+            throws OperationNotFoundException {
         // 1. Validar que la operación exista y cambiar de estado
         Operation operation = operationProjectService.findOperationById(operationId)
                 .orElseThrow(OperationNotFoundException::new);

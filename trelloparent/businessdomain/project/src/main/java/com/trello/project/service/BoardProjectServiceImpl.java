@@ -11,8 +11,8 @@ import org.springframework.stereotype.Service;
 import com.trello.project.entities.Board;
 import com.trello.project.enums.Role;
 import com.trello.project.exception.BoardNotFoundException;
+import com.trello.project.exception.MemberNotFoundException;
 import com.trello.project.exception.WorkspaceNotFoundException;
-import com.trello.project.member.exception.MemberNotFoundException;
 import com.trello.project.repositories.BoardRepository;
 
 @Service
