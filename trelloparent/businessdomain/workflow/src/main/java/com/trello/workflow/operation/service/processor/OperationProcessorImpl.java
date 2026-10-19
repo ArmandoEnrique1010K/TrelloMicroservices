@@ -11,6 +11,7 @@ import com.trello.workflow.operation.exception.OperationNotFoundException;
 import com.trello.workflow.operation.exception.OperationNotPendingException;
 import com.trello.workflow.operation.service.handler.OperationActivateBoardAccessService;
 import com.trello.workflow.operation.service.handler.OperationAddBoardAccessService;
+import com.trello.workflow.operation.service.handler.OperationChangeRoleBoardAccessService;
 import com.trello.workflow.services.OperationWorkflowService;
 
 import lombok.extern.slf4j.Slf4j;
@@ -23,15 +24,18 @@ public class OperationProcessorImpl implements OperationProcessor {
     private final OperationWorkflowService operationWorkflowService;
     private final OperationAddBoardAccessService operationAddBoardAccessService;
     private final OperationActivateBoardAccessService operationActivateBoardAccessService;
+    private final OperationChangeRoleBoardAccessService operationChangeRoleBoardAccessService;
 
     public OperationProcessorImpl(
             OperationWorkflowService operationWorkflowService,
             OperationAddBoardAccessService operationAddBoardAccessService,
-            OperationActivateBoardAccessService operationActivateBoardAccessService) {
+            OperationActivateBoardAccessService operationActivateBoardAccessService,
+            OperationChangeRoleBoardAccessService operationChangeRoleBoardAccessService) {
 
         this.operationWorkflowService = operationWorkflowService;
         this.operationAddBoardAccessService = operationAddBoardAccessService;
         this.operationActivateBoardAccessService = operationActivateBoardAccessService;
+        this.operationChangeRoleBoardAccessService = operationChangeRoleBoardAccessService;
     }
 
     @Override
@@ -54,6 +58,8 @@ public class OperationProcessorImpl implements OperationProcessor {
             case ACTIVATE_BOARD_ACCESS ->
                 operationActivateBoardAccessService.applyActivateBoardAccess(operation.getId());
 
+            case CHANGE_ROLE_BOARD_ACCESS ->
+                operationChangeRoleBoardAccessService.applyChangeRoleBoardAccess(operation.getId());
             // Esto nunca pasara, si el caso no coincide con uno de los valores del enum
             // OperationType
             default -> throw new BusinessRuleException();

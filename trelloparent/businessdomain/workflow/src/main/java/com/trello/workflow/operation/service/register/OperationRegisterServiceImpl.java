@@ -151,4 +151,53 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
         // Retornar la entidad completa de la operación
         return operation;
     }
+
+    @Override
+    public Operation registerChangeRoleBoardAccess(UUID boardId, UUID userId, Role newRole, UUID operationId)
+            throws OperationConflictException, OperationNotPendingException, BoardAccessUserActiveNotAllowedException {
+
+        Optional<Operation> existingOperation = operationWorkflowService.findOperationById(operationId);
+
+        if (existingOperation.isPresent()) {
+            Operation existing = existingOperation.get();
+            if (existing.getType() != OperationType.CHANGE_ROLE_BOARD_ACCESS
+                    || !existing.getBoardId().equals(boardId)
+                    || !existing.getUserId().equals(userId)
+                    || existing.getNewRole() != newRole) {
+                throw new OperationConflictException();
+            }
+
+            switch (existing.getStatus()) {
+                case PENDING -> {
+                    return existing;
+                }
+
+                case CREATED, PROCESSING, COMPLETED, MANUAL_REVIEW ->
+                    throw new OperationNotPendingException();
+            }
+        }
+
+        BoardAccess findedBoardAccess = boardAccessWorkflowService.findBoardAccessByBoardIdAndUserIdAndUserActive(
+                boardId,
+                userId);
+
+        if (findedBoardAccess.getRole().equals(Role.OWNER)) {
+            throw new BoardAccessUserActiveNotAllowedException();
+        }
+
+        Operation operation = new Operation();
+        operation.setId(operationId);
+        operation.setType(OperationType.CHANGE_ROLE_BOARD_ACCESS);
+        operation.setStatus(OperationStatus.CREATED);
+        operation.setBoardId(boardId);
+        operation.setUserId(userId);
+
+        operation.setOldRole(findedBoardAccess.getRole());
+        operation.setNewRole(newRole);
+
+        operation.setAttempts(0);
+        operationWorkflowService.saveOperation(operation);
+
+        return operation;
+    }
 }

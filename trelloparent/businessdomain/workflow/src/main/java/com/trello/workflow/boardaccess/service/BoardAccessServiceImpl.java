@@ -52,23 +52,29 @@ public class BoardAccessServiceImpl implements BoardAccessService {
     }
 
     @Override
-    public void changeRoleBoardAccess(UUID boardId, UUID memberUserId, Role role) {
+    public void changeRoleBoardAccess(UUID boardId, UUID memberUserId, Role newRole, UUID operationId) {
+        Operation operation = operationRegisterService.registerChangeRoleBoardAccess(boardId, memberUserId,
+                newRole,
+                operationId);
+
+        operationProcessor.processOperation(operation.getId());
 
         // Buscar el boardAccess por ID de tablero e ID de usuario
         // El ID del usuario no es el mismo ID de miembro
-        BoardAccess findedBoardAccess = boardAccessWorkflowService.findBoardAccessByBoardIdAndUserIdAndUserActive(
-                boardId,
-                memberUserId);
+        // BoardAccess findedBoardAccess =
+        // boardAccessWorkflowService.findBoardAccessByBoardIdAndUserIdAndUserActive(
+        // boardId,
+        // memberUserId);
 
         // Aunque esto es imposible porque el rol que se pasa desde el microservicio
         // Project no existe el rol de OWNER en el enum que se encuentra en el
         // microservicio Project
-        if (findedBoardAccess.getRole().equals(Role.OWNER)) {
-            throw new BusinessRuleException();
-        }
+        // if (findedBoardAccess.getRole().equals(Role.OWNER)) {
+        // throw new BusinessRuleException();
+        // }
 
-        findedBoardAccess.setRole(role);
-        boardAccessWorkflowService.saveBoardAccess(findedBoardAccess);
+        // findedBoardAccess.setRole(newRole);
+        // boardAccessWorkflowService.saveBoardAccess(findedBoardAccess);
     }
 
     @Override

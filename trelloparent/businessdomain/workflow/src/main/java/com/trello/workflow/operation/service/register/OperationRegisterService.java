@@ -19,4 +19,8 @@ public interface OperationRegisterService {
     // Activar permiso de acceso
     Operation registerActivateBoardAccess(UUID boardId, UUID userId, Role newRole, UUID operationId)
             throws OperationConflictException, OperationNotPendingException, BoardAccessUserActiveNotAllowedException;
+
+    // Cambiar rol de permiso de acceso
+    Operation registerChangeRoleBoardAccess(UUID boardId, UUID userId, Role newRole, UUID operationId)
+            throws OperationConflictException, OperationNotPendingException, BoardAccessUserActiveNotAllowedException;
 }
