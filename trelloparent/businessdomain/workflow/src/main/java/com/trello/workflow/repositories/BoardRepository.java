@@ -1,5 +1,6 @@
 package com.trello.workflow.repositories;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -12,4 +13,6 @@ public interface BoardRepository extends JpaRepository<Board, UUID> {
     boolean existsById(UUID id);
 
     Optional<Board> findById(UUID id);
+
+    long countByIdIn(List<UUID> ids);
 }

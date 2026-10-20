@@ -1,6 +1,7 @@
 package com.trello.workflow.entities;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 import org.hibernate.annotations.CreationTimestamp;
@@ -50,6 +51,9 @@ public class Operation {
     // Nuevo rol
     @Enumerated(EnumType.STRING)
     private Role newRole;
+
+    // Lista de ID de tableros
+    private List<UUID> boardIds;
 
     // Número de intentos
     private int attempts;

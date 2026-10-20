@@ -1,5 +1,6 @@
 package com.trello.workflow.services;
 
+import com.trello.workflow.repositories.BoardAccessRepository;
 import com.trello.workflow.repositories.BoardRepository;
 
 import java.util.List;
@@ -8,15 +9,19 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 
 import com.trello.workflow.entities.Board;
+import com.trello.workflow.entities.BoardAccess;
+import com.trello.workflow.exception.BoardAccessNotFoundException;
 import com.trello.workflow.exception.BoardNotFoundException;
 
 @Service
 public class BoardWorkflowServiceImpl implements BoardWorkflowService {
 
     private final BoardRepository boardRepository;
+    private final BoardAccessRepository boardAccessRepository;
 
-    BoardWorkflowServiceImpl(BoardRepository boardRepository) {
+    public BoardWorkflowServiceImpl(BoardRepository boardRepository, BoardAccessRepository boardAccessRepository) {
         this.boardRepository = boardRepository;
+        this.boardAccessRepository = boardAccessRepository;
     }
 
     // Guarda la entidad y fuerza el flush inmediatamente.
@@ -52,5 +57,25 @@ public class BoardWorkflowServiceImpl implements BoardWorkflowService {
     @Override
     public void deleteBoardsByIds(List<UUID> boardsIds) {
         boardRepository.deleteAllById(boardsIds);
+    }
+
+    @Override
+    public long countBoardsByIds(List<UUID> boardsIds) {
+        return boardRepository.countByIdIn(boardsIds);
+    }
+
+    @Override
+    public void deleteBoardByIdAndDeleteBoardAccessByBoardIdAndUserId(UUID boardId, UUID userId)
+            throws BoardNotFoundException, BoardAccessNotFoundException {
+
+        if (!boardRepository.existsById(boardId)) {
+            throw new BoardNotFoundException();
+        }
+
+        BoardAccess boardAccess = boardAccessRepository.findByBoardIdAndUserId(boardId, userId).orElseThrow(
+                BoardAccessNotFoundException::new);
+
+        boardRepository.deleteById(boardId);
+        boardAccessRepository.delete(boardAccess);
     }
 }

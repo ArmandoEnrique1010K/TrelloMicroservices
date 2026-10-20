@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.UUID;
 
 import com.trello.workflow.entities.Board;
+import com.trello.workflow.exception.BoardAccessNotFoundException;
 import com.trello.workflow.exception.BoardNotFoundException;
 
 public interface BoardWorkflowService {
@@ -16,4 +17,9 @@ public interface BoardWorkflowService {
     void deleteBoardById(UUID boardId) throws BoardNotFoundException;
 
     void deleteBoardsByIds(List<UUID> boardsIds);
+
+    long countBoardsByIds(List<UUID> boardsIds);
+
+    void deleteBoardByIdAndDeleteBoardAccessByBoardIdAndUserId(UUID boardId, UUID userId)
+            throws BoardNotFoundException, BoardAccessNotFoundException;
 }

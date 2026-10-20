@@ -1,11 +1,14 @@
 package com.trello.workflow.operation.service.register;
 
+import java.util.List;
 import java.util.UUID;
 
+import com.trello.workflow.board.exception.BoardAlreadyExistsException;
 import com.trello.workflow.boardaccess.exception.BoardAccessAlreadyExistsException;
 import com.trello.workflow.boardaccess.exception.BoardAccessUserActiveNotAllowedException;
 import com.trello.workflow.entities.Operation;
 import com.trello.workflow.enums.Role;
+import com.trello.workflow.exception.BoardNotFoundException;
 import com.trello.workflow.operation.exception.OperationConflictException;
 import com.trello.workflow.operation.exception.OperationNotPendingException;
 
@@ -27,4 +30,14 @@ public interface OperationRegisterService {
     // Desactivar permiso de acceso
     Operation registerDeactivateBoardAccess(UUID boardId, UUID userId, UUID operationId)
             throws OperationConflictException, OperationNotPendingException, BoardAccessUserActiveNotAllowedException;
+
+    // Guardar tablero y permiso de acceso del usuario administrador
+    Operation registerAddBoardAndBoardAccessUserOwner(UUID boardId, UUID userId, UUID operationId)
+            throws OperationConflictException, OperationNotPendingException, BoardAlreadyExistsException;
+
+    Operation registerDeleteBoardAndBoardAccessAndTasks(UUID boardId, UUID operationId)
+            throws OperationConflictException, OperationNotPendingException, BoardNotFoundException;
+
+    Operation registerDeleteAllBoardsByIdAndBoardAccessAndTasks(List<UUID> boardsIds, UUID operationId)
+            throws OperationConflictException, OperationNotPendingException, BoardNotFoundException;
 }
