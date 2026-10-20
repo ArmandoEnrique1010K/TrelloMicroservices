@@ -87,8 +87,6 @@ public class OperationChangeRoleBoardAccessServiceImpl implements OperationChang
         UUID userId = operation.getUserId();
         Role oldRole = operation.getOldRole();
 
-        // boardAccessWorkflowService.
-
         boardAccessWorkflowService.changeBoardAccessByBoardIdAndUserId(boardId, userId, oldRole);
 
         operation.setStatus(OperationStatus.PENDING);

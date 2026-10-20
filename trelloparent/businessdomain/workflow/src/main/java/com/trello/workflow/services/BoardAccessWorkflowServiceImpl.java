@@ -15,7 +15,7 @@ public class BoardAccessWorkflowServiceImpl implements BoardAccessWorkflowServic
 
     private final BoardAccessRepository boardAccessRepository;
 
-    BoardAccessWorkflowServiceImpl(BoardAccessRepository boardAccessRepository) {
+    public BoardAccessWorkflowServiceImpl(BoardAccessRepository boardAccessRepository) {
         this.boardAccessRepository = boardAccessRepository;
     }
 
@@ -74,4 +74,12 @@ public class BoardAccessWorkflowServiceImpl implements BoardAccessWorkflowServic
         boardAccessRepository.save(boardAccess);
     }
 
+    @Override
+    public void activateBoardAccessByBoardIdAndUserId(UUID boardId, UUID userId) throws BoardAccessNotFoundException {
+        BoardAccess boardAccess = boardAccessRepository.findByBoardIdAndUserId(
+                boardId, userId).orElseThrow(BoardAccessNotFoundException::new);
+
+        boardAccess.setUserActive(true);
+        boardAccessRepository.save(boardAccess);
+    }
 }

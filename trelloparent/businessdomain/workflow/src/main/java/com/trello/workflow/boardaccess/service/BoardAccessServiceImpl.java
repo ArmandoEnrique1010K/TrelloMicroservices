@@ -1,30 +1,23 @@
 package com.trello.workflow.boardaccess.service;
 
-import com.trello.workflow.services.BoardAccessWorkflowService;
-
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 
-import com.trello.workflow.entities.BoardAccess;
 import com.trello.workflow.entities.Operation;
 import com.trello.workflow.enums.Role;
-import com.trello.workflow.exception.BusinessRuleException;
 import com.trello.workflow.operation.service.processor.OperationProcessor;
 import com.trello.workflow.operation.service.register.OperationRegisterService;
 
 @Service
 public class BoardAccessServiceImpl implements BoardAccessService {
 
-    private final BoardAccessWorkflowService boardAccessWorkflowService;
     private final OperationProcessor operationProcessor;
     private final OperationRegisterService operationRegisterService;
 
     public BoardAccessServiceImpl(
-            BoardAccessWorkflowService boardAccessWorkflowService,
             OperationProcessor operationProcessor,
             OperationRegisterService operationRegisterService) {
-        this.boardAccessWorkflowService = boardAccessWorkflowService;
         this.operationProcessor = operationProcessor;
         this.operationRegisterService = operationRegisterService;
     }
@@ -78,16 +71,22 @@ public class BoardAccessServiceImpl implements BoardAccessService {
     }
 
     @Override
-    public void deactivateBoardAccess(UUID boardId, UUID memberUserId) {
-        BoardAccess findedBoardAccess = boardAccessWorkflowService.findBoardAccessByBoardIdAndUserIdAndUserActive(
-                boardId,
-                memberUserId);
+    public void deactivateBoardAccess(UUID boardId, UUID memberUserId, UUID operationId) {
+        Operation operation = operationRegisterService.registerDeactivateBoardAccess(boardId, memberUserId,
+                operationId);
 
-        if (findedBoardAccess.getRole().equals(Role.OWNER)) {
-            throw new BusinessRuleException();
-        }
+        operationProcessor.processOperation(operation.getId());
 
-        findedBoardAccess.setUserActive(false);
-        boardAccessWorkflowService.saveBoardAccess(findedBoardAccess);
+        // BoardAccess findedBoardAccess =
+        // boardAccessWorkflowService.findBoardAccessByBoardIdAndUserIdAndUserActive(
+        // boardId,
+        // memberUserId);
+
+        // if (findedBoardAccess.getRole().equals(Role.OWNER)) {
+        // throw new BusinessRuleException();
+        // }
+
+        // findedBoardAccess.setUserActive(false);
+        // boardAccessWorkflowService.saveBoardAccess(findedBoardAccess);
     }
 }

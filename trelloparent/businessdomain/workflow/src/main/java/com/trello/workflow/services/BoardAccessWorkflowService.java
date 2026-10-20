@@ -24,4 +24,6 @@ public interface BoardAccessWorkflowService {
 
     void changeBoardAccessByBoardIdAndUserId(UUID boardId, UUID userId, Role previousRole)
             throws BoardAccessNotFoundException;
+
+    void activateBoardAccessByBoardIdAndUserId(UUID boardId, UUID userId) throws BoardAccessNotFoundException;
 }

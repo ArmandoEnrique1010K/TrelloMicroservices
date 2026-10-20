@@ -12,6 +12,7 @@ import com.trello.workflow.operation.exception.OperationNotPendingException;
 import com.trello.workflow.operation.service.handler.OperationActivateBoardAccessService;
 import com.trello.workflow.operation.service.handler.OperationAddBoardAccessService;
 import com.trello.workflow.operation.service.handler.OperationChangeRoleBoardAccessService;
+import com.trello.workflow.operation.service.handler.OperationDeactivateBoardAccessService;
 import com.trello.workflow.services.OperationWorkflowService;
 
 import lombok.extern.slf4j.Slf4j;
@@ -25,17 +26,20 @@ public class OperationProcessorImpl implements OperationProcessor {
     private final OperationAddBoardAccessService operationAddBoardAccessService;
     private final OperationActivateBoardAccessService operationActivateBoardAccessService;
     private final OperationChangeRoleBoardAccessService operationChangeRoleBoardAccessService;
+    private final OperationDeactivateBoardAccessService operationDeactivateBoardAccessService;
 
     public OperationProcessorImpl(
             OperationWorkflowService operationWorkflowService,
             OperationAddBoardAccessService operationAddBoardAccessService,
             OperationActivateBoardAccessService operationActivateBoardAccessService,
-            OperationChangeRoleBoardAccessService operationChangeRoleBoardAccessService) {
+            OperationChangeRoleBoardAccessService operationChangeRoleBoardAccessService,
+            OperationDeactivateBoardAccessService operationDeactivateBoardAccessService) {
 
         this.operationWorkflowService = operationWorkflowService;
         this.operationAddBoardAccessService = operationAddBoardAccessService;
         this.operationActivateBoardAccessService = operationActivateBoardAccessService;
         this.operationChangeRoleBoardAccessService = operationChangeRoleBoardAccessService;
+        this.operationDeactivateBoardAccessService = operationDeactivateBoardAccessService;
     }
 
     @Override
@@ -60,6 +64,10 @@ public class OperationProcessorImpl implements OperationProcessor {
 
             case CHANGE_ROLE_BOARD_ACCESS ->
                 operationChangeRoleBoardAccessService.applyChangeRoleBoardAccess(operation.getId());
+
+            case DEACTIVATE_BOARD_ACCESS ->
+                operationDeactivateBoardAccessService.applyDeactivateBoardAccess(operation.getId());
+
             // Esto nunca pasara, si el caso no coincide con uno de los valores del enum
             // OperationType
             default -> throw new BusinessRuleException();
