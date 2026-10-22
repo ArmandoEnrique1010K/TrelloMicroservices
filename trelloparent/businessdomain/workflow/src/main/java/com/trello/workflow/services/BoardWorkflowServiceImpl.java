@@ -37,17 +37,17 @@ public class BoardWorkflowServiceImpl implements BoardWorkflowService {
 
     @Override
     public boolean existsBoardById(UUID boardId) {
-        return boardRepository.existsById(boardId);
+        return boardRepository.existsByIdAndStatusTrue(boardId);
     }
 
     @Override
     public Board findBoardById(UUID boardId) throws BoardNotFoundException {
-        return boardRepository.findById(boardId).orElseThrow(BoardNotFoundException::new);
+        return boardRepository.findByIdAndStatusTrue(boardId).orElseThrow(BoardNotFoundException::new);
     }
 
     @Override
     public void deleteBoardById(UUID boardId) throws BoardNotFoundException {
-        if (!boardRepository.existsById(boardId)) {
+        if (!boardRepository.existsByIdAndStatusTrue(boardId)) {
             throw new BoardNotFoundException();
         }
 
@@ -68,14 +68,64 @@ public class BoardWorkflowServiceImpl implements BoardWorkflowService {
     public void deleteBoardByIdAndDeleteBoardAccessByBoardIdAndUserId(UUID boardId, UUID userId)
             throws BoardNotFoundException, BoardAccessNotFoundException {
 
-        if (!boardRepository.existsById(boardId)) {
+        if (!boardRepository.existsByIdAndStatusTrue(boardId)) {
             throw new BoardNotFoundException();
         }
 
-        BoardAccess boardAccess = boardAccessRepository.findByBoardIdAndUserId(boardId, userId).orElseThrow(
-                BoardAccessNotFoundException::new);
+        BoardAccess boardAccess = boardAccessRepository.findByBoardIdAndUserIdAndStatusTrue(boardId, userId)
+                .orElseThrow(
+                        BoardAccessNotFoundException::new);
 
         boardRepository.deleteById(boardId);
         boardAccessRepository.delete(boardAccess);
     }
+
+    @Override
+    public void disableBoardStatusById(UUID boardId) throws BoardNotFoundException {
+        Board board = boardRepository.findByIdAndStatusTrue(boardId).orElseThrow(BoardNotFoundException::new);
+
+        board.setStatus(false);
+        boardRepository.save(board);
+    }
+
+    @Override
+    public void disableBoardsStatusesByIds(List<UUID> boardsIds) {
+        List<Board> boards = boardRepository.findAllByIdInAndStatusTrue(boardsIds);
+
+        if (boards.isEmpty()) {
+            return;
+        }
+
+        boards.forEach(board -> board.setStatus(false));
+        boardRepository.saveAll(boards);
+    }
+
+    @Override
+    public void enableBoardStatusById(UUID boardId) throws BoardNotFoundException {
+        Board board = boardRepository.findByIdAndStatusFalse(boardId).orElseThrow(BoardNotFoundException::new);
+
+        board.setStatus(true);
+        boardRepository.save(board);
+    }
+
+    @Override
+    public void enableBoardsStatusesByIds(List<UUID> boardsIds) {
+        List<Board> boards = boardRepository.findAllByIdInAndStatusFalse(boardsIds);
+
+        if (boards.isEmpty()) {
+            return;
+        }
+
+        boards.forEach(board -> board.setStatus(true));
+        boardRepository.saveAll(boards);
+    }
+
+    @Override
+    public void disableBoardStatusByIdAndDisableBoardAccessStatusByBoardAndUserId(UUID boardId, UUID userId)
+            throws BoardNotFoundException, BoardAccessNotFoundException {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException(
+                "Unimplemented method 'disableBoardStatusByIdAndDisableBoardAccessStatusByBoardAndUserId'");
+    }
+
 }

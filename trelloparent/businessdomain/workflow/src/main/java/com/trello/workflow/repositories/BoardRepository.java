@@ -10,9 +10,15 @@ import com.trello.workflow.entities.Board;
 
 public interface BoardRepository extends JpaRepository<Board, UUID> {
 
-    boolean existsById(UUID id);
+    boolean existsByIdAndStatusTrue(UUID id);
 
-    Optional<Board> findById(UUID id);
+    Optional<Board> findByIdAndStatusTrue(UUID id);
 
     long countByIdIn(List<UUID> ids);
+
+    Optional<Board> findByIdAndStatusFalse(UUID id);
+
+    List<Board> findAllByIdInAndStatusTrue(List<UUID> ids);
+
+    List<Board> findAllByIdInAndStatusFalse(List<UUID> ids);
 }

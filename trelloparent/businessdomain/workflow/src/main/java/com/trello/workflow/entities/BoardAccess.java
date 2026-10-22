@@ -44,6 +44,9 @@ public class BoardAccess {
 
     private boolean userActive;
 
+    // Estado del permiso de acceso
+    private boolean status;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Role role;

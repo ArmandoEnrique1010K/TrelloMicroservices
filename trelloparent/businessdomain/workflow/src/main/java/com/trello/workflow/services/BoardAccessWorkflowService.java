@@ -26,4 +26,8 @@ public interface BoardAccessWorkflowService {
             throws BoardAccessNotFoundException;
 
     void activateBoardAccessByBoardIdAndUserId(UUID boardId, UUID userId) throws BoardAccessNotFoundException;
+
+    void disableAllBoardAccessStatusByBoardId(UUID boardId);
+
+    void enableAllBoardAccessStatusByBoardId(UUID boardId);
 }

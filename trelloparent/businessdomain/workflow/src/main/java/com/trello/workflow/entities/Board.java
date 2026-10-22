@@ -24,6 +24,11 @@ public class Board {
     @Id
     private UUID id;
 
+    // Acceso del tablero
+    // true = si tiene acceso
+    // false = si no tiene acceso y va a ser eliminado
+    private boolean status;
+
     // CascadeType.REMOVE permite propagar la eliminación del Board a las entidades
     // relacionadas, eliminando automáticamente sus BoardAccess y Task asociados.
     @OneToMany(mappedBy = "board", cascade = CascadeType.REMOVE, orphanRemoval = true)
