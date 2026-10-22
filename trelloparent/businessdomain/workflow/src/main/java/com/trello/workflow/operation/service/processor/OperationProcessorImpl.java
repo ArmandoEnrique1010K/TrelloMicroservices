@@ -14,6 +14,7 @@ import com.trello.workflow.operation.service.handler.OperationAddBoardAccessServ
 import com.trello.workflow.operation.service.handler.OperationAddBoardAndBoardAccessUserOwnerService;
 import com.trello.workflow.operation.service.handler.OperationChangeRoleBoardAccessService;
 import com.trello.workflow.operation.service.handler.OperationDeactivateBoardAccessService;
+import com.trello.workflow.operation.service.handler.OperationDeleteAllBoardsAndBoardAccessAndTasksService;
 import com.trello.workflow.operation.service.handler.OperationDeleteBoardAndBoardAccessAndTasksService;
 import com.trello.workflow.services.OperationWorkflowService;
 
@@ -31,6 +32,7 @@ public class OperationProcessorImpl implements OperationProcessor {
     private final OperationDeactivateBoardAccessService operationDeactivateBoardAccessService;
     private final OperationAddBoardAndBoardAccessUserOwnerService operationAddBoardAndBoardAccessUserOwnerService;
     private final OperationDeleteBoardAndBoardAccessAndTasksService operationDeleteBoardAndBoardAccessAndTasksService;
+    private final OperationDeleteAllBoardsAndBoardAccessAndTasksService operationDeleteAllBoardsAndBoardAccessAndTasksService;
 
     public OperationProcessorImpl(
             OperationWorkflowService operationWorkflowService,
@@ -39,8 +41,8 @@ public class OperationProcessorImpl implements OperationProcessor {
             OperationChangeRoleBoardAccessService operationChangeRoleBoardAccessService,
             OperationDeactivateBoardAccessService operationDeactivateBoardAccessService,
             OperationAddBoardAndBoardAccessUserOwnerService operationAddBoardAndBoardAccessUserOwnerService,
-            OperationDeleteBoardAndBoardAccessAndTasksService operationDeleteBoardAndBoardAccessAndTasksService) {
-
+            OperationDeleteBoardAndBoardAccessAndTasksService operationDeleteBoardAndBoardAccessAndTasksService,
+            OperationDeleteAllBoardsAndBoardAccessAndTasksService operationDeleteAllBoardsAndBoardAccessAndTasksService) {
         this.operationWorkflowService = operationWorkflowService;
         this.operationAddBoardAccessService = operationAddBoardAccessService;
         this.operationActivateBoardAccessService = operationActivateBoardAccessService;
@@ -48,6 +50,7 @@ public class OperationProcessorImpl implements OperationProcessor {
         this.operationDeactivateBoardAccessService = operationDeactivateBoardAccessService;
         this.operationAddBoardAndBoardAccessUserOwnerService = operationAddBoardAndBoardAccessUserOwnerService;
         this.operationDeleteBoardAndBoardAccessAndTasksService = operationDeleteBoardAndBoardAccessAndTasksService;
+        this.operationDeleteAllBoardsAndBoardAccessAndTasksService = operationDeleteAllBoardsAndBoardAccessAndTasksService;
     }
 
     @Override
@@ -82,6 +85,11 @@ public class OperationProcessorImpl implements OperationProcessor {
             case DELETE_BOARD_AND_BOARD_ACCESS_AND_TASKS ->
                 operationDeleteBoardAndBoardAccessAndTasksService
                         .applyDeleteBoardAndBoardAccessAndTasks(operation.getId());
+
+            case DELETE_ALL_BOARDS_AND_BOARD_ACCESS_AND_TASKS ->
+                operationDeleteAllBoardsAndBoardAccessAndTasksService
+                        .applyDeleteAllBoardsAndBoardAccessAndTasks(operation.getId());
+
             // Esto nunca pasara, si el caso no coincide con uno de los valores del enum
             // OperationType
             default -> throw new BusinessRuleException();

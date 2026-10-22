@@ -73,6 +73,7 @@ public class OperationAddBoardAccessServiceImpl implements OperationAddBoardAcce
         savedBoardAccess.setRole(newRole);
         savedBoardAccess.setUserActive(true);
         savedBoardAccess.setBoard(board);
+        savedBoardAccess.setStatus(true);
 
         boardAccessWorkflowService.saveBoardAccess(savedBoardAccess);
 

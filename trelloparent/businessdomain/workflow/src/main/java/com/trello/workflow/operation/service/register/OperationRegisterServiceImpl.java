@@ -275,7 +275,7 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
 
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public Operation registerDeleteAllBoardsByIdAndBoardAccessAndTasks(List<UUID> boardsIds, UUID operationId)
+    public Operation registerDeleteAllBoardsAndBoardAccessAndTasks(List<UUID> boardsIds, UUID operationId)
             throws OperationConflictException, OperationNotPendingException, BoardNotFoundException {
 
         validateExistingOperationOrReturnPending(operationId, null, null, null,

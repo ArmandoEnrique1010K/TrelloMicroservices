@@ -38,6 +38,6 @@ public interface OperationRegisterService {
     Operation registerDeleteBoardAndBoardAccessAndTasks(UUID boardId, UUID operationId)
             throws OperationConflictException, OperationNotPendingException, BoardNotFoundException;
 
-    Operation registerDeleteAllBoardsByIdAndBoardAccessAndTasks(List<UUID> boardsIds, UUID operationId)
+    Operation registerDeleteAllBoardsAndBoardAccessAndTasks(List<UUID> boardsIds, UUID operationId)
             throws OperationConflictException, OperationNotPendingException, BoardNotFoundException;
 }

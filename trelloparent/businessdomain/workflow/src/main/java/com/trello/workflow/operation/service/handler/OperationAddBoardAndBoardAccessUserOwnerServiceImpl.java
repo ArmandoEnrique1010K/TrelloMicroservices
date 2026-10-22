@@ -76,6 +76,7 @@ public class OperationAddBoardAndBoardAccessUserOwnerServiceImpl
 
         Board board = new Board();
         board.setId(boardId);
+        board.setStatus(true);
 
         Board savedBoard;
 
@@ -96,6 +97,7 @@ public class OperationAddBoardAndBoardAccessUserOwnerServiceImpl
         boardAccess.setUserActive(true);
         boardAccess.setRole(newRole);
         boardAccess.setBoard(savedBoard);
+        boardAccess.setStatus(true);
 
         boardAccessWorkflowService.saveBoardAccess(boardAccess);
 

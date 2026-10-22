@@ -32,6 +32,10 @@ public interface BoardWorkflowService {
 
     void enableBoardsStatusesByIds(List<UUID> boardsIds);
 
-    void disableBoardStatusByIdAndDisableBoardAccessStatusByBoardAndUserId(UUID boardId, UUID userId)
+    void disableBoardStatusByIdAndDisableAllBoardAccessStatus(UUID boardId)
             throws BoardNotFoundException, BoardAccessNotFoundException;
+
+    void disableAllBoardsStatusByIdAndDisableAllBoardAccessesStatus(List<UUID> boardsIds);
+
+    void enableAllBoardsStatusByIdAndEnableAllBoardAccessesStatus(List<UUID> boardsIds);
 }

@@ -121,11 +121,62 @@ public class BoardWorkflowServiceImpl implements BoardWorkflowService {
     }
 
     @Override
-    public void disableBoardStatusByIdAndDisableBoardAccessStatusByBoardAndUserId(UUID boardId, UUID userId)
+    public void disableBoardStatusByIdAndDisableAllBoardAccessStatus(UUID boardId)
             throws BoardNotFoundException, BoardAccessNotFoundException {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException(
-                "Unimplemented method 'disableBoardStatusByIdAndDisableBoardAccessStatusByBoardAndUserId'");
+
+        // Desactivar tablero
+        Board board = boardRepository.findByIdAndStatusTrue(boardId).orElseThrow(BoardNotFoundException::new);
+
+        board.setStatus(false);
+        boardRepository.save(board);
+
+        // Desactivar todos los permisos de acceso del tablero
+        List<BoardAccess> boardAcceses = boardAccessRepository.findAllByBoardIdAndStatusTrue(boardId);
+
+        if (boardAcceses.isEmpty()) {
+            return;
+        }
+
+        // Deshabilitar de todos boardAccess el estado sin excepciones
+        boardAcceses.forEach(boardAccess -> boardAccess.setStatus(false));
+        boardAccessRepository.saveAll(boardAcceses);
     }
 
+    @Override
+    public void disableAllBoardsStatusByIdAndDisableAllBoardAccessesStatus(List<UUID> boardsIds) {
+        List<Board> boards = boardRepository.findAllByIdInAndStatusTrue(boardsIds);
+
+        if (boards.isEmpty()) {
+            return;
+        }
+
+        boards.forEach(board -> board.setStatus(false));
+        boardRepository.saveAll(boards);
+
+        // De la lista de tableros, tomar los boardsAccess de cada uno y cambiar su
+        // estado a false
+        // Con el ID de un tablero
+        // List<BoardAccess> boardAccesses =
+        // boardAccessRepository.findAllByBoardIdAndStatusTrue(board);
+        boardAccessRepository.disableAllByBoardIds(boardsIds);
+    }
+
+    @Override
+    public void enableAllBoardsStatusByIdAndEnableAllBoardAccessesStatus(List<UUID> boardsIds) {
+        List<Board> boards = boardRepository.findAllByIdInAndStatusTrue(boardsIds);
+
+        if (boards.isEmpty()) {
+            return;
+        }
+
+        boards.forEach(board -> board.setStatus(true));
+        boardRepository.saveAll(boards);
+
+        // De la lista de tableros, tomar los boardsAccess de cada uno y cambiar su
+        // estado a false
+        // Con el ID de un tablero
+        // List<BoardAccess> boardAccesses =
+        // boardAccessRepository.findAllByBoardIdAndStatusTrue(board);
+        boardAccessRepository.enableAllByBoardIds(boardsIds);
+    }
 }

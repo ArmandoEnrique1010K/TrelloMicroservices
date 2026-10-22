@@ -94,6 +94,7 @@ public class BoardAccessWorkflowServiceImpl implements BoardAccessWorkflowServic
             return;
         }
 
+        // Deshabilitar de todos boardAccess el estado sin excepciones
         boardAcceses.forEach(boardAccess -> boardAccess.setStatus(false));
         boardAccessRepository.saveAll(boardAcceses);
     }

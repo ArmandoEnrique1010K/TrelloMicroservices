@@ -14,6 +14,8 @@ import com.trello.workflow.operation.service.handler.OperationActivateBoardAcces
 import com.trello.workflow.operation.service.handler.OperationAddBoardAccessService;
 import com.trello.workflow.operation.service.handler.OperationChangeRoleBoardAccessService;
 import com.trello.workflow.operation.service.handler.OperationDeactivateBoardAccessService;
+import com.trello.workflow.operation.service.handler.OperationDeleteAllBoardsAndBoardAccessAndTasksService;
+import com.trello.workflow.operation.service.handler.OperationDeleteBoardAndBoardAccessAndTasksService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -33,15 +35,21 @@ public class OperationController {
     private final OperationActivateBoardAccessService operationActivateBoardAccessService;
     private final OperationChangeRoleBoardAccessService operationChangeRoleBoardAccessService;
     private final OperationDeactivateBoardAccessService operationDeactivateBoardAccessService;
+    private final OperationDeleteBoardAndBoardAccessAndTasksService operationDeleteBoardAndBoardAccessAndTasksService;
+    private final OperationDeleteAllBoardsAndBoardAccessAndTasksService operationDeleteAllBoardsAndBoardAccessAndTasksService;
 
     public OperationController(OperationAddBoardAccessService operationAddBoardAccessService,
             OperationActivateBoardAccessService operationActivateBoardAccessService,
             OperationChangeRoleBoardAccessService operationChangeRoleBoardAccessService,
-            OperationDeactivateBoardAccessService operationDeactivateBoardAccessService) {
+            OperationDeactivateBoardAccessService operationDeactivateBoardAccessService,
+            OperationDeleteBoardAndBoardAccessAndTasksService operationDeleteBoardAndBoardAccessAndTasksService,
+            OperationDeleteAllBoardsAndBoardAccessAndTasksService operationDeleteAllBoardsAndBoardAccessAndTasksService) {
         this.operationAddBoardAccessService = operationAddBoardAccessService;
         this.operationActivateBoardAccessService = operationActivateBoardAccessService;
         this.operationChangeRoleBoardAccessService = operationChangeRoleBoardAccessService;
         this.operationDeactivateBoardAccessService = operationDeactivateBoardAccessService;
+        this.operationDeleteBoardAndBoardAccessAndTasksService = operationDeleteBoardAndBoardAccessAndTasksService;
+        this.operationDeleteAllBoardsAndBoardAccessAndTasksService = operationDeleteAllBoardsAndBoardAccessAndTasksService;
     }
 
     // Endpoints relacionados a reversion de operaciones
@@ -386,6 +394,26 @@ public class OperationController {
     public ResponseEntity<Void> revertDeactivateBoardAccess(
             @RequestHeader("X-Operation-Id") UUID operationId) {
         operationDeactivateBoardAccessService.revertDeactivateBoardAccess(operationId);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).body(null);
+    }
+
+    // TODO: AÑADIR LAS @ApiResponses
+    @Operation(summary = "Revierte una operación de tipo eliminar tablero junto con permisos de acceso y tareas", description = "Revierte los cambios realizados en la base de datos luego de cambiar el estado de un tablero y sus permisos de acceso")
+    @SecurityRequirement(name = "bearerAuth")
+    @PostMapping("/revert-delete-board-and-board-access-and-tasks")
+    public ResponseEntity<Void> revertDeleteBoardAndBoardAccessAndTasks(
+            @RequestHeader("X-Operation-Id") UUID operationId) {
+        operationDeleteBoardAndBoardAccessAndTasksService.revertDeleteBoardAndBoardAccessAndTasks(operationId);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).body(null);
+    }
+
+    // TODO: AÑADIR LAS @ApiResponses
+    @Operation(summary = "Revierte una operación de tipo eliminar varios tableros junto con sus respectivos permisos de acceso y tareas", description = "Revierte los cambios realizados en la base de datos luego de cambiar el estado de una lista de tableros y sus permisos de acceso")
+    @SecurityRequirement(name = "bearerAuth")
+    @PostMapping("/revert-delete-all-boards-and-board-access-and-tasks")
+    public ResponseEntity<Void> revertDeleteAllBoardsAndBoardAccessAndTasks(
+            @RequestHeader("X-Operation-Id") UUID operationId) {
+        operationDeleteAllBoardsAndBoardAccessAndTasksService.revertDeleteAllBoardsAndBoardAccessAndTasks(operationId);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).body(null);
     }
 }

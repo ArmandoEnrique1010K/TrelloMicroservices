@@ -5,6 +5,9 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import com.trello.workflow.entities.BoardAccess;
 import com.trello.workflow.enums.Role;
@@ -43,4 +46,24 @@ public interface BoardAccessRepository extends JpaRepository<BoardAccess, UUID> 
     // WHERE ba.boardId = :boardId
     // """)
     // int deleteByBoardId(@Param("boardId") UUID boardId);
+
+    // Consulta UPDATE masiva que recibe una lista de boardIds para seleccionar los
+    // tableros asociados y actualiza unicamente los accesos que estan activos
+    @Modifying
+    @Query("""
+            UPDATE BoardAccess ba
+            SET ba.status = false
+            WHERE ba.board.id IN :boardsIds
+              AND ba.status = true
+            """)
+    int disableAllByBoardIds(@Param("boardsIds") List<UUID> boardsIds);
+
+    @Modifying
+    @Query("""
+            UPDATE BoardAccess ba
+            SET ba.status = true
+            WHERE ba.board.id IN :boardsIds
+              AND ba.status = false
+            """)
+    int enableAllByBoardIds(@Param("boardsIds") List<UUID> boardsIds);
 }
