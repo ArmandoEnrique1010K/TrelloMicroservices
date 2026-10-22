@@ -9,5 +9,5 @@ public interface BoardService {
 
     void deleteBoardAndBoardAccessAndTasks(UUID boardId, UUID operationId);
 
-    void deleteAllBoardsByIdsAndBoardAccessAndTasks(List<UUID> boardsIds);
+    void deleteAllBoardsByIdsAndBoardAccessAndTasks(List<UUID> boardsIds, UUID operationId);
 }

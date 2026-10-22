@@ -8,19 +8,16 @@ import com.trello.workflow.board.exception.BoardAlreadyExistsException;
 import com.trello.workflow.entities.Operation;
 import com.trello.workflow.operation.service.processor.OperationProcessor;
 import com.trello.workflow.operation.service.register.OperationRegisterService;
-import com.trello.workflow.services.BoardWorkflowService;
 
 @Service
 public class BoardServiceImpl implements BoardService {
 
-    private final BoardWorkflowService boardWorkflowService;
     private final OperationProcessor operationProcessor;
     private final OperationRegisterService operationRegisterService;
 
     public BoardServiceImpl(
-            BoardWorkflowService boardWorkflowService,
-            OperationProcessor operationProcessor, OperationRegisterService operationRegisterService) {
-        this.boardWorkflowService = boardWorkflowService;
+            OperationProcessor operationProcessor,
+            OperationRegisterService operationRegisterService) {
         this.operationProcessor = operationProcessor;
         this.operationRegisterService = operationRegisterService;
     }
@@ -35,14 +32,14 @@ public class BoardServiceImpl implements BoardService {
 
     @Override
     public void deleteBoardAndBoardAccessAndTasks(UUID boardId, UUID operationId) {
-        // boardWorkflowService.deleteBoardById(boardId);
-
         Operation operation = operationRegisterService.registerDeleteBoardAndBoardAccessAndTasks(boardId, operationId);
         operationProcessor.processOperation(operation.getId());
     }
 
     @Override
-    public void deleteAllBoardsByIdsAndBoardAccessAndTasks(List<UUID> boardsIds) {
-        boardWorkflowService.deleteBoardsByIds(boardsIds);
+    public void deleteAllBoardsByIdsAndBoardAccessAndTasks(List<UUID> boardsIds, UUID operationId) {
+        Operation operation = operationRegisterService.registerDeleteAllBoardsAndBoardAccessAndTasks(boardsIds,
+                operationId);
+        operationProcessor.processOperation(operation.getId());
     }
 }

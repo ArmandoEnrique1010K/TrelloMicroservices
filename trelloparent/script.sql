@@ -44,8 +44,8 @@ insert into members (id, joined_at, role, user_id, board_id, active) values
 ('6931f2fb-56b8-4b05-91fa-7b913e3c3423', '2026-10-10 23:03:13.209771', 'ADMIN', '3e54e44f-8f87-445b-8817-8c13010f5da5', '0a2ecb80-3b35-4096-a551-644aecc54338', false);
 
 # Recordar que tambien debes introducir el board access en la base de datos del microservicio Workflow
-insert into board_accesses (id, role, user_active, user_id, board_id) values
-('88fc7aa7-4d97-417e-ab01-566a8491324e', 'ADMIN', false, '3e54e44f-8f87-445b-8817-8c13010f5da5', '0a2ecb80-3b35-4096-a551-644aecc54338')
+insert into board_accesses (id, role, user_active, user_id, board_id, status) values
+('88fc7aa7-4d97-417e-ab01-566a8491324e', 'ADMIN', false, '3e54e44f-8f87-445b-8817-8c13010f5da5', '0a2ecb80-3b35-4096-a551-644aecc54338', true)
 
 # Borrar todos los datos de las tablas de las bases de datos
 TRUNCATE TABLE invitations;
@@ -58,20 +58,22 @@ TRUNCATE TABLE operations;
 
 
 
+# TODO: HACER UNA PRUEBA QUE INCLUYA UN LLAMADO AL MICROSERVICIO IDENTITY PARA OBTENER LOS DATOS DEL USUARIO CUANDO SE TRATE POR EJEMPLO DE OBTENER EL AUTOR DE UNA TAREA
+
 
 # BASE DE DATOS: workflow-postgres-db
-insert into board (id) values ('6c4f289b-a915-49c6-b18a-9ba2d631834b');
-insert into board (id) values ('ef777773-49ef-4282-a6f0-c233653f274e');
+insert into board (id, status) values ('6c4f289b-a915-49c6-b18a-9ba2d631834b', true);
+insert into board (id, status) values ('ef777773-49ef-4282-a6f0-c233653f274e', true);
 
-insert into board_access (id, role, user_active, user_id, board_id) values ('a7dec456-b7b3-4066-a4aa-28fcf458adb7', 'OWNER', true, 'af6cf6ea-05c3-4233-a546-f942386f43ad', '6c4f289b-a915-49c6-b18a-9ba2d631834b');
-insert into board_access (id, role, user_active, user_id, board_id) values ('ef3bcebd-9df5-4f9a-a533-06a1128c0667', 'ADMIN', true, '3e54e44f-8f87-445b-8817-8c13010f5da5', '6c4f289b-a915-49c6-b18a-9ba2d631834b');
-insert into board_access (id, role, user_active, user_id, board_id) values ('c8afa273-ab71-4443-a400-4a1491cf0d04', 'MEMBER', true, '5d3498c0-43f1-4760-a4f0-dc0e97bcb641', '6c4f289b-a915-49c6-b18a-9ba2d631834b');
-insert into board_access (id, role, user_active, user_id, board_id) values ('26bc127d-869a-4917-976f-eb982b8af257', 'VIEWER', true, '858d7655-6178-458f-b880-3db6aa3beff3', '6c4f289b-a915-49c6-b18a-9ba2d631834b');
+insert into board_accesses (id, role, user_active, user_id, board_id, status) values ('a7dec456-b7b3-4066-a4aa-28fcf458adb7', 'OWNER', true, 'af6cf6ea-05c3-4233-a546-f942386f43ad', '6c4f289b-a915-49c6-b18a-9ba2d631834b', true);
+insert into board_accesses (id, role, user_active, user_id, board_id, status) values ('ef3bcebd-9df5-4f9a-a533-06a1128c0667', 'ADMIN', true, '3e54e44f-8f87-445b-8817-8c13010f5da5', '6c4f289b-a915-49c6-b18a-9ba2d631834b', true);
+insert into board_accesses (id, role, user_active, user_id, board_id, status) values ('c8afa273-ab71-4443-a400-4a1491cf0d04', 'MEMBER', true, '5d3498c0-43f1-4760-a4f0-dc0e97bcb641', '6c4f289b-a915-49c6-b18a-9ba2d631834b', true);
+insert into board_accesses (id, role, user_active, user_id, board_id, status) values ('26bc127d-869a-4917-976f-eb982b8af257', 'VIEWER', true, '858d7655-6178-458f-b880-3db6aa3beff3', '6c4f289b-a915-49c6-b18a-9ba2d631834b', true);
 
-insert into board_access (id, role, user_active, user_id, board_id) values ('e2da9c46-152e-4a84-89e3-23260109c112', 'OWNER', true, 'af6cf6ea-05c3-4233-a546-f942386f43ad', 'ef777773-49ef-4282-a6f0-c233653f274e');
-insert into board_access (id, role, user_active, user_id, board_id) values ('e755f9c1-bcde-40d3-a445-d79258b759e1', 'VIEWER', true, '3e54e44f-8f87-445b-8817-8c13010f5da5', 'ef777773-49ef-4282-a6f0-c233653f274e');
-insert into board_access (id, role, user_active, user_id, board_id) values ('50b0d625-0b6a-4c1b-a7d3-b48dc320dfa3', 'ADMIN', true, '5d3498c0-43f1-4760-a4f0-dc0e97bcb641', 'ef777773-49ef-4282-a6f0-c233653f274e');
-insert into board_access (id, role, user_active, user_id, board_id) values ('78610410-f80f-499a-9dcb-a59d062d4d6d', 'MEMBER', true, '858d7655-6178-458f-b880-3db6aa3beff3', 'ef777773-49ef-4282-a6f0-c233653f274e');
+insert into board_accesses (id, role, user_active, user_id, board_id, status) values ('e2da9c46-152e-4a84-89e3-23260109c112', 'OWNER', true, 'af6cf6ea-05c3-4233-a546-f942386f43ad', 'ef777773-49ef-4282-a6f0-c233653f274e', true);
+insert into board_accesses (id, role, user_active, user_id, board_id, status) values ('e755f9c1-bcde-40d3-a445-d79258b759e1', 'VIEWER', true, '3e54e44f-8f87-445b-8817-8c13010f5da5', 'ef777773-49ef-4282-a6f0-c233653f274e', true);
+insert into board_accesses (id, role, user_active, user_id, board_id, status) values ('50b0d625-0b6a-4c1b-a7d3-b48dc320dfa3', 'ADMIN', true, '5d3498c0-43f1-4760-a4f0-dc0e97bcb641', 'ef777773-49ef-4282-a6f0-c233653f274e', true);
+insert into board_accesses (id, role, user_active, user_id, board_id, status) values ('78610410-f80f-499a-9dcb-a59d062d4d6d', 'MEMBER', true, '858d7655-6178-458f-b880-3db6aa3beff3', 'ef777773-49ef-4282-a6f0-c233653f274e', true);
 
 
 # Herramienta de generación de datos: https://www.mockaroo.com/

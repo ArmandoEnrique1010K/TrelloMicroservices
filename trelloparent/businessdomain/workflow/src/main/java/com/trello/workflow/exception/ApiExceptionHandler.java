@@ -94,6 +94,26 @@ public class ApiExceptionHandler {
                 .body(response);
     }
 
+    // Excepción global de microservicio caido
+    @ExceptionHandler(ServiceUnavailableException.class)
+    public ResponseEntity<StandarizedApiExceptionResponse> handleServiceUnavailableException(
+            ServiceUnavailableException ex) {
+
+        // Estado 503 - El servicio no esta disponible
+        HttpStatus status = HttpStatus.SERVICE_UNAVAILABLE;
+
+        StandarizedApiExceptionResponse standarizedApiExceptionResponse = new StandarizedApiExceptionResponse(
+                "/errors/service-unavailable",
+                "Service unavailable",
+                status.value(),
+                "One o more services has fallen",
+                null,
+                // Este mensaje no se va a mostrar al usuario
+                "Ha ocurrido un error");
+
+        return ResponseEntity.status(status).body(standarizedApiExceptionResponse);
+    }
+
     // Excepción de operación no realizada porque el usuario no tiene el rol
     // permitido
     @ExceptionHandler(ForbiddenOperationException.class)

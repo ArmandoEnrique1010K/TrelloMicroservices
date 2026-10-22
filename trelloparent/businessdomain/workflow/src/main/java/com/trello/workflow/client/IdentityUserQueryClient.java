@@ -10,12 +10,15 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import com.trello.workflow.client.config.FeignClientConfig;
 import com.trello.workflow.client.dto.response.UserResponse;
+import com.trello.workflow.client.fallback.IdentityUserQueryClientFallbackFactory;
 
-@FeignClient(name = "businessdomain-identity", url = "${services.identity.url}", configuration = FeignClientConfig.class)
-public interface IdentityClient {
+@FeignClient(name = "businessdomain-identity-user-query", url = "${services.identity.url}", configuration = FeignClientConfig.class, fallbackFactory = IdentityUserQueryClientFallbackFactory.class)
+public interface IdentityUserQueryClient {
+
     @GetMapping("/users/batch")
     List<UserResponse> findUsersByIds(@RequestParam(required = false) List<UUID> usersIds);
 
     @GetMapping("/users/{userId}")
     UserResponse findUserById(@PathVariable("userId") UUID userId);
+
 }
