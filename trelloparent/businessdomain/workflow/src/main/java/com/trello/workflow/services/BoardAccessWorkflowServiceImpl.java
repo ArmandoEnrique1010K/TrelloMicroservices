@@ -86,18 +86,18 @@ public class BoardAccessWorkflowServiceImpl implements BoardAccessWorkflowServic
         boardAccessRepository.save(boardAccess);
     }
 
-    @Override
-    public void disableAllBoardAccessStatusByBoardId(UUID boardId) {
-        List<BoardAccess> boardAcceses = boardAccessRepository.findAllByBoardIdAndStatusTrue(boardId);
+    // @Override
+    // public void disableAllBoardAccessStatusByBoardId(UUID boardId) {
+    // List<BoardAccess> boardAcceses =
+    // boardAccessRepository.findAllByBoardIdAndStatusTrue(boardId);
 
-        if (boardAcceses.isEmpty()) {
-            return;
-        }
+    // if (boardAcceses.isEmpty()) {
+    // return;
+    // }
 
-        // Deshabilitar de todos boardAccess el estado sin excepciones
-        boardAcceses.forEach(boardAccess -> boardAccess.setStatus(false));
-        boardAccessRepository.saveAll(boardAcceses);
-    }
+    // boardAcceses.forEach(boardAccess -> boardAccess.setStatus(false));
+    // boardAccessRepository.saveAll(boardAcceses);
+    // }
 
     @Override
     public void enableAllBoardAccessStatusByBoardId(UUID boardId) {

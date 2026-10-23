@@ -15,22 +15,22 @@ public interface BoardWorkflowService {
     Board findBoardById(UUID boardId) throws BoardNotFoundException;
 
     // TODO: ELIMINAR ESTE METODO
-    void deleteBoardById(UUID boardId) throws BoardNotFoundException;
+    // void deleteBoardById(UUID boardId) throws BoardNotFoundException;
 
-    void deleteBoardsByIds(List<UUID> boardsIds);
+    // void deleteBoardsByIds(List<UUID> boardsIds);
 
     long countBoardsByIds(List<UUID> boardsIds);
 
     void deleteBoardByIdAndDeleteBoardAccessByBoardIdAndUserId(UUID boardId, UUID userId)
             throws BoardNotFoundException, BoardAccessNotFoundException;
 
-    void disableBoardStatusById(UUID boardId) throws BoardNotFoundException;
+    // void disableBoardStatusById(UUID boardId) throws BoardNotFoundException;
 
-    void disableBoardsStatusesByIds(List<UUID> boardsIds);
+    // void disableBoardsStatusesByIds(List<UUID> boardsIds);
 
     void enableBoardStatusById(UUID boardId) throws BoardNotFoundException;
 
-    void enableBoardsStatusesByIds(List<UUID> boardsIds);
+    // void enableBoardsStatusesByIds(List<UUID> boardsIds);
 
     void disableBoardStatusByIdAndDisableAllBoardAccessStatus(UUID boardId)
             throws BoardNotFoundException, BoardAccessNotFoundException;

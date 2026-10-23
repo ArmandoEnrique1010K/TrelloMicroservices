@@ -6,7 +6,6 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 
 import com.trello.workflow.entities.Operation;
-import com.trello.workflow.enums.OperationType;
 import com.trello.workflow.repositories.OperationRepository;
 
 @Service
@@ -24,12 +23,6 @@ public class OperationWorkflowServiceImpl implements OperationWorkflowService {
     @Override
     public Optional<Operation> findOperationById(UUID operationId) {
         return operationRepository.findById(operationId);
-    }
-
-    @Override
-    public Optional<Operation> findOperationByBoardIdAndUserIdAndOperationType(UUID boardId, UUID userId,
-            OperationType operationType) {
-        return operationRepository.findByBoardIdAndUserIdAndType(boardId, userId, operationType);
     }
 
     @Override

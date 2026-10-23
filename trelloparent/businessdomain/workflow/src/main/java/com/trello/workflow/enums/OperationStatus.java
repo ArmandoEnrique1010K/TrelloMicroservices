@@ -15,6 +15,7 @@ public enum OperationStatus {
 
     // La operación quedó en un estado que no puede resolverse automáticamente con
     // seguridad.
-    // TODO: ELIMINAR ESTE ESTADO
+    // TODO: ELIMINAR ESTE ESTADO Y TAMBIEN EN CADA UNO DE LOS HANDLERES DEL
+    // SERVICIO DE OPERACIONES
     MANUAL_REVIEW
 }

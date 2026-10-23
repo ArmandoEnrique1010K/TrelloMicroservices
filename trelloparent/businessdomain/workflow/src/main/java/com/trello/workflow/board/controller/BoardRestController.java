@@ -12,6 +12,7 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -57,17 +58,64 @@ public class BoardRestController {
                     }
                     """))),
 
-            @ApiResponse(responseCode = "409", description = "El tablero existe", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
+            @ApiResponse(responseCode = "404", description = "La operación no existe", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
                     {
-                        "detail": "A board with the provided ID already exists",
+                        "detail": "The operation was not found in the system",
                         "fields": null,
                         "instance": null,
-                        "message": "Ya existe el tablero",
-                        "status": 409,
-                        "title": "Board already exists",
-                        "type": "/errors/board/already-exists"
+                        "message": "Ha ocurrido un error",
+                        "status": 404,
+                        "title": "Operation not found",
+                        "type": "/errors/operation/not-found"
                     }
                     """))),
+
+            @ApiResponse(responseCode = "409", description = "Error de lógica de negocio", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = {
+                    @ExampleObject(name = "El tablero existe", summary = "El tablero existe", value = """
+                            {
+                                "detail": "A board with the provided ID already exists",
+                                "fields": null,
+                                "instance": null,
+                                "message": "Ya existe el tablero",
+                                "status": 409,
+                                "title": "Board already exists",
+                                "type": "/errors/board/already-exists"
+                            }
+                            """),
+                    @ExampleObject(name = "La operación no tiene un estado pendiente", summary = "La operación no tiene un estado pendiente", value = """
+                            {
+                                    "detail": "The operation does not have a 'PENDING' or relationated status",
+                                    "fields": null,
+                                    "instance": null,
+                                    "message": "Ha ocurrido un error",
+                                    "status": 409,
+                                    "title": "Operation not pending",
+                                    "type": "/errors/operation/not-pending"
+                            }
+                            """),
+                    @ExampleObject(name = "Los datos enviados no coinciden con los datos de la operación", summary = "Los datos enviados no coinciden con los datos de la operación", value = """
+                            {
+                                    "detail": "The data related to the operation do not match the requested data",
+                                    "fields": null,
+                                    "instance": null,
+                                    "message": "Ha ocurrido un error",
+                                    "status": 409,
+                                    "title": "Operation in conflict",
+                                    "type": "/errors/operation/conflict"
+                            }
+                            """),
+                    @ExampleObject(name = "Se intento ejecutar una operación desconocida", summary = "Se intento ejecutar una operación desconocida", value = """
+                            {
+                                    "detail": "The operation cannot be completed because it violates a business rule",
+                                    "fields": null,
+                                    "instance": null,
+                                    "message": "Ha ocurrido un error inesperado",
+                                    "status": 409,
+                                    "title": "Business rule violation",
+                                    "type": "/errors/business-rule-violation"
+                            }
+                            """),
+            })),
 
             @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
                     {
@@ -84,11 +132,12 @@ public class BoardRestController {
     @PostMapping("/{boardId}")
     public ResponseEntity<Void> addBoardAndBoardAccessUserOwner(
             @AuthenticationPrincipal Jwt jwt,
-            @Parameter(description = "ID del tablero", required = true, example = "550e8400-e29b-41d4-a716-446655440000") @PathVariable UUID boardId) {
+            @Parameter(description = "ID del tablero", required = true, example = "550e8400-e29b-41d4-a716-446655440000") @PathVariable UUID boardId,
+            @RequestHeader("X-Operation-Id") UUID operationId) {
 
         UUID userId = JwtUtils.getUserId(jwt);
 
-        boardService.addBoardAndBoardAccessUserOwner(boardId, userId);
+        boardService.addBoardAndBoardAccessUserOwner(boardId, userId, operationId);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).body(null);
     }
 
@@ -133,11 +182,14 @@ public class BoardRestController {
                     }
                     """))),
     })
-    @DeleteMapping("/{boardId}")
-    public ResponseEntity<Void> deleteBoardByIdAndBoardAccessAndTasks(
-            @Parameter(description = "ID del tablero", required = true, example = "550e8400-e29b-41d4-a716-446655440000") @PathVariable UUID boardId) {
 
-        boardService.deleteBoardByIdAndBoardAccessAndTasks(boardId);
+    // TODO: AÑADIR LOS @ApiResponses
+    @DeleteMapping("/{boardId}")
+    public ResponseEntity<Void> deleteBoardAndBoardAccessAndTasks(
+            @Parameter(description = "ID del tablero", required = true, example = "550e8400-e29b-41d4-a716-446655440000") @PathVariable UUID boardId,
+            @RequestHeader("X-Operation-Id") UUID operationId) {
+
+        boardService.deleteBoardAndBoardAccessAndTasks(boardId, operationId);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).body(null);
     }
 
@@ -159,7 +211,6 @@ public class BoardRestController {
                     }
                     """))),
 
-            // TODO: AÑADIR IDEMPOTENCIA
             // @ApiResponse(responseCode = "404", description = "El espacio de trabajo no
             // existe", content = @Content(mediaType = "application/json", schema =
             // @Schema(implementation = StandarizedApiExceptionResponse.class), examples =
@@ -189,8 +240,9 @@ public class BoardRestController {
     })
     @DeleteMapping("/batch")
     public ResponseEntity<Void> deleteManyBoardsByIdsAndBoardAccessAndTasks(
-            @Parameter(description = "Lista de IDs del tablero", required = true, example = "550e8400-e29b-41d4-a716-446655440000") @RequestParam(required = false) List<UUID> boardIds) {
-        boardService.deleteAllBoardsByIdsAndBoardAccessAndTasks(boardIds);
+            @Parameter(description = "Lista de IDs del tablero", required = true, example = "550e8400-e29b-41d4-a716-446655440000") @RequestParam(required = false) List<UUID> boardIds,
+            @RequestHeader("X-Operation-Id") UUID operationId) {
+        boardService.deleteAllBoardsByIdsAndBoardAccessAndTasks(boardIds, operationId);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).body(null);
     }
 }
