@@ -20,12 +20,17 @@ import com.trello.project.client.dto.response.UsersByIdResponse;
 import com.trello.project.client.enums.WorkflowRole;
 import com.trello.project.entities.Board;
 import com.trello.project.entities.Member;
+import com.trello.project.entities.Operation;
+import com.trello.project.enums.OperationStatus;
 import com.trello.project.enums.Role;
 import com.trello.project.exception.ServiceUnavailableException;
 import com.trello.project.member.dto.response.MemberResponse;
 import com.trello.project.member.dto.response.UserMemberResponse;
 import com.trello.project.member.mapper.MemberResponseMapper;
 import com.trello.project.member.mapper.UserMemberResponseMapper;
+import com.trello.project.operation.service.handler.OperationChangeRoleMemberService;
+import com.trello.project.operation.service.processor.OperationProcessor;
+import com.trello.project.operation.service.register.OperationRegisterService;
 import com.trello.project.service.BoardProjectService;
 import com.trello.project.service.InvitationProjectService;
 import com.trello.project.service.MemberProjectService;
@@ -40,11 +45,17 @@ public class MemberServiceImpl implements MemberService {
     private final MemberProjectService memberProjectService;
     private final InvitationProjectService invitationProjectService;
     private final WorkflowClientService workflowClientService;
+    private final OperationRegisterService operationRegisterService;
+    private final OperationProcessor operationProcessor;
+    private final OperationChangeRoleMemberService operationChangeRoleMemberService;
 
     public MemberServiceImpl(BoardProjectService boardProjectService, MemberProjectService memberProjectService,
             MemberResponseMapper memberResponseMapper, UserMemberResponseMapper userMemberResponseMapper,
             IdentityClientService identityClientService, InvitationProjectService invitationProjectService,
-            WorkflowClientService workflowClientService) {
+            WorkflowClientService workflowClientService,
+            OperationRegisterService operationRegisterService,
+            OperationProcessor operationProcessor,
+            OperationChangeRoleMemberService operationChangeRoleMemberService) {
         this.boardProjectService = boardProjectService;
         this.memberProjectService = memberProjectService;
         this.memberResponseMapper = memberResponseMapper;
@@ -52,6 +63,9 @@ public class MemberServiceImpl implements MemberService {
         this.identityClientService = identityClientService;
         this.invitationProjectService = invitationProjectService;
         this.workflowClientService = workflowClientService;
+        this.operationRegisterService = operationRegisterService;
+        this.operationProcessor = operationProcessor;
+        this.operationChangeRoleMemberService = operationChangeRoleMemberService;
     }
 
     @Override
@@ -81,35 +95,51 @@ public class MemberServiceImpl implements MemberService {
 
     }
 
-    @Transactional(rollbackFor = Exception.class)
+    // @Transactional(rollbackFor = Exception.class)
     @Override
-    public MemberResponse changeRoleMemberById(Role role, UUID memberId, UUID ownerUserId) {
+    public void changeRoleMemberById(Role role, UUID memberId, UUID ownerUserId) {
 
-        // Buscar miembro
-        Member findedMember = memberProjectService.findMemberByIdAndOwnerUserId(memberId, ownerUserId);
+        Operation operation = operationRegisterService.registerChangeRoleMember(role, memberId, ownerUserId);
 
-        findedMember.setRole(role);
+        if (operation.getStatus() == OperationStatus.REGISTERED
+                || operation.getStatus() == OperationStatus.LOCAL_COMPENSATION_COMPLETED
+                || operation.getStatus() == OperationStatus.COMPENSATION_COMPLETED) {
 
-        Board board = findedMember.getBoard();
+            operationChangeRoleMemberService
+                    .applyChangeRoleMember(operation.getId(), false);
+        }
 
-        // Borrar invitación si existe
-        invitationProjectService.deleteInvitationIfExistsByBoardIdAndRecipientUserId(
-                board.getId(),
-                findedMember.getUserId(),
-                ownerUserId);
+        // 4. Procesar según el estado persistido.
+        operationProcessor.processOperation(operation.getId());
 
-        Member saveMember = memberProjectService.saveMember(findedMember);
+        // // Buscar miembro
+        // Member findedMember =
+        // memberProjectService.findMemberByIdAndOwnerUserId(memberId, ownerUserId);
 
-        WorkflowRole workflowRole = WorkflowRoleUtils.parseRoleToWorkflowRole(role);
+        // findedMember.setRole(role);
 
-        // OBTENER EL ID DEL USUARIO DESDE EL MIEMBRO
-        UUID memberUserId = saveMember.getUserId();
+        // Board board = findedMember.getBoard();
 
-        // Cambiar el rol en el otro microservicio
-        workflowClientService.changeRoleBoardAccess(board.getId(), memberUserId, workflowRole);
+        // // Borrar invitación si existe
+        // invitationProjectService.deleteInvitationIfExistsByBoardIdAndRecipientUserId(
+        // board.getId(),
+        // findedMember.getUserId(),
+        // ownerUserId);
 
-        MemberResponse memberResponse = memberResponseMapper.memberToMemberResponse(saveMember);
-        return memberResponse;
+        // Member saveMember = memberProjectService.saveMember(findedMember);
+
+        // WorkflowRole workflowRole = WorkflowRoleUtils.parseRoleToWorkflowRole(role);
+
+        // // OBTENER EL ID DEL USUARIO DESDE EL MIEMBRO
+        // UUID memberUserId = saveMember.getUserId();
+
+        // // Cambiar el rol en el otro microservicio
+        // workflowClientService.changeRoleBoardAccess(board.getId(), memberUserId,
+        // workflowRole);
+
+        // MemberResponse memberResponse =
+        // memberResponseMapper.memberToMemberResponse(saveMember);
+        // return memberResponse;
     }
 
     @Transactional(rollbackFor = Exception.class)

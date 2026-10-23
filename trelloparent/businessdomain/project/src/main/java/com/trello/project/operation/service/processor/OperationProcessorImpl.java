@@ -11,16 +11,20 @@ import com.trello.project.client.exception.RemoteBoardAccessNotFoundException;
 import com.trello.project.client.services.WorkflowClientService;
 import com.trello.project.client.utils.WorkflowRoleUtils;
 import com.trello.project.entities.Invitation;
+import com.trello.project.entities.Member;
 import com.trello.project.entities.Operation;
 import com.trello.project.enums.OperationStatus;
 import com.trello.project.exception.BusinessRuleException;
 import com.trello.project.exception.ServiceUnavailableException;
+import com.trello.project.member.dto.response.MemberResponse;
+import com.trello.project.member.mapper.MemberResponseMapper;
 import com.trello.project.operation.exception.OperationCompensatedException;
 import com.trello.project.operation.exception.OperationManualReviewException;
 import com.trello.project.operation.exception.OperationNotFoundException;
 import com.trello.project.operation.exception.OperationNotPendingException;
 import com.trello.project.operation.service.handler.OperationAcceptInvitationService;
 import com.trello.project.service.InvitationProjectService;
+import com.trello.project.service.MemberProjectService;
 import com.trello.project.service.OperationProjectService;
 
 import lombok.extern.slf4j.Slf4j;
@@ -33,15 +37,21 @@ public class OperationProcessorImpl implements OperationProcessor {
     private final InvitationProjectService invitationProjectService;
 
     private final OperationAcceptInvitationService operationAcceptInvitationService;
+    private final MemberProjectService memberProjectService;
+    private final MemberResponseMapper memberResponseMapper;
 
     public OperationProcessorImpl(OperationProjectService operationProjectService,
             WorkflowClientService workflowClientService,
             InvitationProjectService invitationProjectService,
-            OperationAcceptInvitationService operationAcceptInvitationService) {
+            OperationAcceptInvitationService operationAcceptInvitationService,
+            MemberProjectService memberProjectService,
+            MemberResponseMapper memberResponseMapper) {
         this.operationProjectService = operationProjectService;
         this.workflowClientService = workflowClientService;
         this.invitationProjectService = invitationProjectService;
         this.operationAcceptInvitationService = operationAcceptInvitationService;
+        this.memberProjectService = memberProjectService;
+        this.memberResponseMapper = memberResponseMapper;
     }
 
     // No se coloca un @Transactional porque este método se encarga de hacer un
@@ -108,6 +118,9 @@ public class OperationProcessorImpl implements OperationProcessor {
                 case ACCEPT_INVITATION ->
                     processAcceptInvitation(operation);
 
+                case CHANGE_ROLE_MEMBER ->
+                    processChangeRoleMember(operation);
+
                 default -> throw new BusinessRuleException();
             }
 
@@ -165,20 +178,23 @@ public class OperationProcessorImpl implements OperationProcessor {
                 throw new OperationCompensatedException();
             }
 
-        } catch (RemoteBoardAccessNotFoundException
-                | RemoteBoardAccessAlreadyExistsException e) {
+            // TODO: SOLUCIÓN TEMPORAL
+            // Este bloque se comenta temporalmente para probar el metodo para cambiar el
+            // rol del miembro
+            // } catch (RemoteBoardAccessNotFoundException
+            // | RemoteBoardAccessAlreadyExistsException e) {
 
-            // AQUI <---
-            // Solamente si memberActive es false quiere decir que se trata de un miembro
-            // inactivo y se debe ignorar la excepción de
-            // RemoteBoardAccessAlreadyExistsException
-            // Boolean memberActive = operation.getMemberActive();
+            // // AQUI <---
+            // // Solamente si memberActive es false quiere decir que se trata de un miembro
+            // // inactivo y se debe ignorar la excepción de
+            // // RemoteBoardAccessAlreadyExistsException
+            // // Boolean memberActive = operation.getMemberActive();
 
-            // 5. Inconsistencia funcional remota.
-            // Requiere inspección antes de continuar.
-            markManualReview(operation, e);
+            // // 5. Inconsistencia funcional remota.
+            // // Requiere inspección antes de continuar.
+            // markManualReview(operation, e);
 
-            throw new OperationManualReviewException();
+            // throw new OperationManualReviewException();
 
         } catch (Exception e) {
 
@@ -344,6 +360,21 @@ public class OperationProcessorImpl implements OperationProcessor {
         }
     }
 
+    private MemberResponse processChangeRoleMember(Operation operation) {
+
+        Member member = memberProjectService.findMemberByIdAndOwnerUserId(operation.getMemberId(),
+                operation.getOwnerUserId());
+
+        WorkflowRole workflowRole = WorkflowRoleUtils.parseRoleToWorkflowRole(operation.getNewRole());
+        UUID memberUserId = member.getUserId();
+
+        workflowClientService.changeRoleBoardAccess(operation.getBoardId(), memberUserId,
+                workflowRole, operation.getId());
+
+        MemberResponse memberResponse = memberResponseMapper.memberToMemberResponse(member);
+        return memberResponse;
+    };
+
     // Método privado para marcar el estado de la operación como MANUAL_REVIEW
     private void markManualReview(
             Operation operation,
@@ -355,5 +386,8 @@ public class OperationProcessorImpl implements OperationProcessor {
 
         operationProjectService.saveOperation(operation);
     }
+
+    // Método para llamar a los respectivos clientes para ejecutar la operación de
+    // cambiar rol de miembro en el microservicio Workflow
 
 }

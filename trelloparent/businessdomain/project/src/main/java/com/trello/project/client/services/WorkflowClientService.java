@@ -21,7 +21,8 @@ public interface WorkflowClientService {
     void changeRoleBoardAccess(
             UUID boardId,
             UUID memberUserId,
-            WorkflowRole roleName);
+            WorkflowRole roleName,
+            UUID operationId);
 
     void deactivateBoardAccess(
             UUID boardId,

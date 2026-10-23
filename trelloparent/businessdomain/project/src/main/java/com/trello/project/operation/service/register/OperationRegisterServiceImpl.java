@@ -1,6 +1,7 @@
 package com.trello.project.operation.service.register;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -126,7 +127,101 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
         operation.setInvitationId(invitationId);
 
         operation.setMemberActive(memberActive);
-        operation.setRole(role);
+        operation.setNewRole(role);
+
+        // Fecha actual en la fecha de creación
+        LocalDateTime currentDateTime = LocalDateTime.now();
+        operation.setCreatedAt(currentDateTime);
+        operation.setNextAutomaticAttemptAt(null);
+
+        // 6. Guardar operación y devolver la entidad
+        operationProjectService.saveOperation(operation);
+        return operation;
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public Operation registerChangeRoleMember(Role role, UUID memberId, UUID ownerUserId) {
+
+        // En este caso la lógica para buscar la operación es distinta
+        // El problema es que para cambiar un rol se realiza una operación sin importar
+        // si se trata del mismo miembro por ID y/o administrador del espacio de trabajo
+
+        // TODO: VERIFICAR SI CUMPLE LA CONDICION CUANDO EL MICROSERVICIO SE CAE Y
+        // CUANDO EL MICROSERVICIO WORKFLOW TIENE UN RETRASO
+        // Lo unico que no cambia es el estado de la operación
+        // Si tiene el estado COMPLETED, debe crear una nueva operación
+        List<OperationStatus> blockingStatuses = List.of(
+                OperationStatus.REGISTERED,
+                OperationStatus.EXECUTION_PENDING,
+                OperationStatus.EXECUTING,
+                OperationStatus.COMPENSATION_PENDING,
+                OperationStatus.LOCAL_COMPENSATION_IN_PROGRESS,
+                OperationStatus.MANUAL_INTERVENTION_REQUIRED);
+
+        // Validar logica de negocio
+        Member findedMember = memberProjectService.findMemberByIdAndOwnerUserId(memberId, ownerUserId);
+
+        List<Operation> existingOperations = operationProjectService
+                .findByMemberIdAndTypeAndStatusInOrdenByCreatedAtDesc(
+                        memberId,
+                        OperationType.CHANGE_ROLE_MEMBER,
+                        blockingStatuses);
+
+        // Optional<Operation> existingOperation =
+        // operationProjectService.findOperationByMemberIdAndType(
+        // memberId,
+        // OperationType.CHANGE_ROLE_MEMBER);
+
+        if (!existingOperations.isEmpty()) {
+            Operation existing = existingOperations.get(0);
+
+            switch (existing.getStatus()) {
+                case REGISTERED, LOCAL_COMPENSATION_COMPLETED, COMPENSATION_COMPLETED -> {
+                    // Terminar aqui la ejecución del metodo y devolver la entidad
+                    return existing;
+                }
+
+                // Lanzar una excepción si la operación no esta en un estado pendiente
+                case EXECUTION_PENDING,
+                        EXECUTING,
+                        COMPENSATION_PENDING,
+                        LOCAL_COMPENSATION_IN_PROGRESS,
+                        MANUAL_INTERVENTION_REQUIRED ->
+                    throw new OperationNotPendingException();
+
+                case COMPLETED -> {
+                    // Se ignora el estado completado para continuar con la lógica posterior
+                }
+            }
+        }
+
+        // Busca el tablero
+        Board findedBoard = findedMember.getBoard();
+        UUID boardId = findedBoard.getId();
+        // Busca usuario
+        UUID userId = findedMember.getUserId();
+
+        // Genera un ID unico para la operación
+        UUID operationId = UUID.randomUUID();
+
+        Operation operation = new Operation();
+        operation.setId(operationId);
+        operation.setType(OperationType.CHANGE_ROLE_MEMBER);
+        operation.setStatus(OperationStatus.REGISTERED);
+        operation.setManualAttempts(0);
+        operation.setAutomaticAttempts(0);
+
+        // Solamente se rellenan los campos necesarios
+        operation.setBoardId(boardId);
+        operation.setUserId(userId);
+        operation.setMemberId(memberId);
+        operation.setOwnerUserId(ownerUserId);
+
+        // Se establece el antiguo rol
+        operation.setOldRole(findedMember.getRole());
+        // El nuevo rol aqui
+        operation.setNewRole(role);
 
         // Fecha actual en la fecha de creación
         LocalDateTime currentDateTime = LocalDateTime.now();

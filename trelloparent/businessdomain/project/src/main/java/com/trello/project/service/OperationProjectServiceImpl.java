@@ -1,11 +1,13 @@
 package com.trello.project.service;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 
 import com.trello.project.entities.Operation;
+import com.trello.project.enums.OperationStatus;
 import com.trello.project.enums.OperationType;
 import com.trello.project.repositories.OperationRepository;
 
@@ -31,7 +33,20 @@ public class OperationProjectServiceImpl implements OperationProjectService {
     }
 
     @Override
-    public Optional<Operation> findOperationByInvitationIdAndType(UUID operationId, OperationType operationType) {
-        return operationRepository.findByInvitationIdAndType(operationId, operationType);
+    public Optional<Operation> findOperationByInvitationIdAndType(UUID invitationId,
+            OperationType operationType) {
+        return operationRepository.findByInvitationIdAndType(invitationId, operationType);
+    }
+
+    @Override
+    public Optional<Operation> findOperationByMemberIdAndType(UUID memberId, OperationType operationType) {
+        return operationRepository.findByMemberIdAndType(memberId, operationType);
+    }
+
+    @Override
+    public List<Operation> findByMemberIdAndTypeAndStatusInOrdenByCreatedAtDesc(UUID memberId, OperationType type,
+            List<OperationStatus> statuses) {
+
+        return operationRepository.findByMemberIdAndTypeAndStatusInOrderByCreatedAtDesc(memberId, type, statuses);
     }
 }

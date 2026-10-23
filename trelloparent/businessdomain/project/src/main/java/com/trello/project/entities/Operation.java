@@ -45,15 +45,25 @@ public class Operation {
 
     private UUID invitationId;
 
+    // Miembro
+    private UUID memberId;
+
+    // Usuario autor del tablero
+    private UUID ownerUserId;
+
     // Boolean con B mayuscula para que admita los valores
     // null, true o false
 
     // El miembro esta previamente activo
     private Boolean memberActive;
 
-    // Rol previo del usuario
+    // Rol anterior del usuario
     @Enumerated(EnumType.STRING)
-    private Role role;
+    private Role oldRole;
+
+    // Rol nuevo del usuario
+    @Enumerated(EnumType.STRING)
+    private Role newRole;
 
     // Número de intentos realizados por el usuario
     private int manualAttempts;

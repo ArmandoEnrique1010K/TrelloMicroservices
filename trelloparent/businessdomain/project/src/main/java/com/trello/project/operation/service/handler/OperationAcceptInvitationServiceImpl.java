@@ -138,7 +138,7 @@ public class OperationAcceptInvitationServiceImpl implements OperationAcceptInvi
         UUID userId = operation.getUserId();
         UUID invitationId = operation.getInvitationId();
         Boolean activeMember = operation.getMemberActive();
-        Role role = operation.getRole();
+        Role role = operation.getNewRole();
 
         // 2. Buscar la invitación y modificar los campos
         Invitation invitation = invitationProjectService.findInvitationByIdAndRecipientUserId(invitationId, userId);

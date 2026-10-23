@@ -40,8 +40,8 @@ public class WorkflowBoardAccessCommandClientFallbackFactory
             }
 
             @Override
-            public ResponseEntity<Void> changeRoleBoardAccess(UUID boardId, UUID memberUserId,
-                    WorkflowRole roleName) {
+            public ResponseEntity<Void> changeRoleBoardAccess(UUID boardId, UUID memberUserId, WorkflowRole roleName,
+                    UUID operationId) {
                 log.error("Error relacionado con changeRoleBoardAccess");
                 throw new ServiceUnavailableException();
             }

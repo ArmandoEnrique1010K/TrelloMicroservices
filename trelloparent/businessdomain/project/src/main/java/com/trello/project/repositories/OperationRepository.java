@@ -1,11 +1,13 @@
 package com.trello.project.repositories;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.trello.project.entities.Operation;
+import com.trello.project.enums.OperationStatus;
 import com.trello.project.enums.OperationType;
 
 public interface OperationRepository extends JpaRepository<Operation, UUID> {
@@ -14,4 +16,14 @@ public interface OperationRepository extends JpaRepository<Operation, UUID> {
     // ACCEPT_INVITATION
     Optional<Operation> findByInvitationIdAndType(UUID invitationId, OperationType type);
 
+    Optional<Operation> findByInvitationIdAndTypeAndStatusNot(UUID invitationId,
+            OperationType operationType,
+            OperationStatus status);
+
+    Optional<Operation> findByMemberIdAndType(UUID memberId, OperationType type);
+
+    List<Operation> findByMemberIdAndTypeAndStatusInOrderByCreatedAtDesc(
+            UUID memberId,
+            OperationType type,
+            List<OperationStatus> statuses);
 }
