@@ -26,4 +26,9 @@ public interface OperationRepository extends JpaRepository<Operation, UUID> {
             UUID memberId,
             OperationType type,
             List<OperationStatus> statuses);
+
+    List<Operation> findByInvitationIdAndTypeAndStatusInOrderByCreatedAtDesc(
+            UUID invitationId,
+            OperationType type,
+            List<OperationStatus> statuses);
 }

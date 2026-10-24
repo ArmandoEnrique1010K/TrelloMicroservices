@@ -48,13 +48,6 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
     public Operation registerAcceptInvitation(UUID invitationId, UUID recipientUserId)
             throws InvitationConfirmedException, OperationNotPendingException {
 
-        // 1. Idempotencia
-        // Buscar una operación por tipo e ID de invitación
-        // Este metodo devuelve
-        Optional<Operation> existingOperation = operationProjectService.findOperationByInvitationIdAndType(
-                invitationId,
-                OperationType.ACCEPT_INVITATION);
-
         // Nota: Primero debe tomar en cuenta la logica de negocio antes de lanzar una
         // excepcion relacionada a operaciones
 
@@ -64,27 +57,72 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
                         invitationId,
                         recipientUserId);
 
+        // Rol del usuario invitado
+        Role invitationRole = invitation.getRole();
+
         if (invitation.getStatus() != Status.UNCONFIRMED) {
             throw new InvitationConfirmedException();
         }
 
-        // 3. No registrar nuevamente la operación si existe
-        if (existingOperation.isPresent()) {
-            Operation existing = existingOperation.get();
+        // Idempotencia
+        // Buscar una operación por tipo e ID de invitación
+        // Este metodo devuelve
+        // Optional<Operation> existingOperation =
+        // operationProjectService.findOperationByInvitationIdAndType(
+        // invitationId,
+        // OperationType.ACCEPT_INVITATION);
+
+        // PROBLEMA SI EL MICROSERVICIO WORKFLOW ESTA APAGADO, LA OPERACION QUEDA CON
+        // STATUS LOCAL_COMPENSATION_COMPLETED Y SE TIENE QUE SOBREESCRIBIR EN ESA MISMA
+        // OPERACION CUANDO SE REINTENTA ACEPTAR LA INVITACION
+        List<OperationStatus> blockingStatuses = List.of(
+                // SOLUCION AL PROBLEMA, SOLAMENTE ESTABLECER LOS ESTADOS PERMITIDOS EN LOS QUE
+                // SE VAN A SOBRESCRIBIR LA OPERACION
+                OperationStatus.REGISTERED,
+                OperationStatus.COMPENSATION_COMPLETED,
+                OperationStatus.LOCAL_COMPENSATION_COMPLETED);
+
+        // // Da una lista de las operaciones por Id de miembro, tipo y que tenga uno de
+        // // los estados bloqueantes, ordena de forma descendente por fecha de creación
+        List<Operation> existingOperations = operationProjectService
+                .findByInvitationIdAndTypeAndStatusInOrderByCreatedAtDesc(
+                        invitationId,
+                        OperationType.ACCEPT_INVITATION,
+                        blockingStatuses);
+
+        if (!existingOperations.isEmpty()) {
+            // Solamente toma el primero de las operaciones si existe al menos una
+            // operación
+            Operation existing = existingOperations.get(0);
 
             switch (existing.getStatus()) {
                 case REGISTERED, LOCAL_COMPENSATION_COMPLETED, COMPENSATION_COMPLETED -> {
                     // Terminar aqui la ejecución del metodo y devolver la entidad
+
+                    // POSIBLE PROBLEMA:
+
+                    // Si el usuario administrador del tablero cambia el rol de la invitación e hizo
+                    // un primer intento cuando el microservicio Workflow estaba apagado, entonces
+                    // se tendra que reescribir el nuevo rol
+
+                    // Debe actualizar los roles si se ha alterado la invitacion enviada
+                    // Por el nuevo rol
+                    existing.setNewRole(invitation.getRole());
+
                     return existing;
                 }
 
                 // Lanzar una excepción si la operación no esta en un estado pendiente
                 case EXECUTION_PENDING,
                         EXECUTING,
-                        COMPLETED, COMPENSATION_PENDING,
+                        COMPENSATION_PENDING,
                         LOCAL_COMPENSATION_IN_PROGRESS,
                         MANUAL_INTERVENTION_REQUIRED ->
                     throw new OperationNotPendingException();
+
+                case COMPLETED -> {
+                    // Se ignora el estado completado para continuar con la lógica posterior
+                }
             }
         }
 
@@ -127,7 +165,8 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
         operation.setInvitationId(invitationId);
 
         operation.setMemberActive(memberActive);
-        operation.setNewRole(role);
+        operation.setOldRole(role);
+        operation.setNewRole(invitationRole);
 
         // Fecha actual en la fecha de creación
         LocalDateTime currentDateTime = LocalDateTime.now();
@@ -162,8 +201,10 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
         // Validar logica de negocio
         Member findedMember = memberProjectService.findMemberByIdAndOwnerUserId(memberId, ownerUserId);
 
+        // Da una lista de las operaciones por Id de miembro, tipo y que tenga uno de
+        // los estados bloqueantes, ordena de forma descendente por fecha de creación
         List<Operation> existingOperations = operationProjectService
-                .findByMemberIdAndTypeAndStatusInOrdenByCreatedAtDesc(
+                .findByMemberIdAndTypeAndStatusInOrderByCreatedAtDesc(
                         memberId,
                         OperationType.CHANGE_ROLE_MEMBER,
                         blockingStatuses);
@@ -174,6 +215,7 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
         // OperationType.CHANGE_ROLE_MEMBER);
 
         if (!existingOperations.isEmpty()) {
+            // Solamente toma el primero de las operaciones si existe al menos una operación
             Operation existing = existingOperations.get(0);
 
             switch (existing.getStatus()) {

@@ -44,9 +44,17 @@ public class OperationProjectServiceImpl implements OperationProjectService {
     }
 
     @Override
-    public List<Operation> findByMemberIdAndTypeAndStatusInOrdenByCreatedAtDesc(UUID memberId, OperationType type,
+    public List<Operation> findByMemberIdAndTypeAndStatusInOrderByCreatedAtDesc(UUID memberId, OperationType type,
             List<OperationStatus> statuses) {
 
         return operationRepository.findByMemberIdAndTypeAndStatusInOrderByCreatedAtDesc(memberId, type, statuses);
+    }
+
+    @Override
+    public List<Operation> findByInvitationIdAndTypeAndStatusInOrderByCreatedAtDesc(UUID invitationId,
+            OperationType type, List<OperationStatus> statuses) {
+
+        return operationRepository.findByInvitationIdAndTypeAndStatusInOrderByCreatedAtDesc(invitationId, type,
+                statuses);
     }
 }

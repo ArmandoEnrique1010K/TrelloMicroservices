@@ -22,7 +22,11 @@ public interface OperationProjectService {
     // Guardar operación
     Operation saveOperation(Operation operation);
 
-    List<Operation> findByMemberIdAndTypeAndStatusInOrdenByCreatedAtDesc(UUID memberId,
+    List<Operation> findByMemberIdAndTypeAndStatusInOrderByCreatedAtDesc(UUID memberId,
+            OperationType type,
+            List<OperationStatus> statuses);
+
+    List<Operation> findByInvitationIdAndTypeAndStatusInOrderByCreatedAtDesc(UUID invitationId,
             OperationType type,
             List<OperationStatus> statuses);
 }

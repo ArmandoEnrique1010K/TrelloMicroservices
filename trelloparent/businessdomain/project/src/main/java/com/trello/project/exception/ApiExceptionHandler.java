@@ -14,6 +14,7 @@ import com.trello.project.common.StandarizedApiExceptionResponse;
 import com.trello.project.invitation.exception.InvitationAlreadyExistsException;
 import com.trello.project.invitation.exception.InvitationConfirmedException;
 import com.trello.project.operation.exception.OperationCompensatedException;
+import com.trello.project.operation.exception.OperationConflictException;
 import com.trello.project.operation.exception.OperationManualReviewException;
 import com.trello.project.operation.exception.OperationNotFoundException;
 import com.trello.project.operation.exception.OperationNotPendingException;
@@ -362,6 +363,23 @@ public class ApiExceptionHandler {
                 "The operation does not have a 'PENDING' or relationated status",
                 null,
                 // Este mensaje se va a mostrar al usuario
+                "Ha ocurrido un error");
+
+        return ResponseEntity.status(status).body(standarizedApiExceptionResponse);
+    }
+
+    // Excepcion de operacion en conflicto
+    @ExceptionHandler(OperationConflictException.class)
+    public ResponseEntity<StandarizedApiExceptionResponse> handleOperationConflictException(
+            OperationConflictException ex) {
+        HttpStatus status = HttpStatus.CONFLICT;
+
+        StandarizedApiExceptionResponse standarizedApiExceptionResponse = new StandarizedApiExceptionResponse(
+                "/errors/operation/conflict",
+                "Operation in conflict",
+                status.value(),
+                "The data related to the operation do not match the requested data",
+                null,
                 "Ha ocurrido un error");
 
         return ResponseEntity.status(status).body(standarizedApiExceptionResponse);

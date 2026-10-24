@@ -32,6 +32,7 @@ import com.trello.project.invitation.mapper.InvitationRequestMapper;
 import com.trello.project.invitation.mapper.InvitationResponseMapper;
 import com.trello.project.invitation.mapper.ReceivedInvitationResponseMapper;
 import com.trello.project.operation.service.handler.OperationAcceptInvitationService;
+import com.trello.project.operation.service.processor.OperationAcceptInvitationProcessor;
 import com.trello.project.operation.service.processor.OperationProcessor;
 import com.trello.project.operation.service.register.OperationRegisterService;
 import com.trello.project.service.BoardProjectService;
@@ -50,6 +51,7 @@ public class InvitationServiceImpl implements InvitationService {
     private final OperationProcessor operationProcessor;
     private final OperationRegisterService operationRegisterService;
     private final OperationAcceptInvitationService operationAcceptInvitationService;
+    private final OperationAcceptInvitationProcessor operationAcceptInvitationProcessor;
 
     public InvitationServiceImpl(
             BoardProjectService boardProjectService,
@@ -60,7 +62,8 @@ public class InvitationServiceImpl implements InvitationService {
             ReceivedInvitationResponseMapper receivedInvitationResponseMapper,
             OperationProcessor operationProcessor,
             OperationRegisterService operationRegisterService,
-            OperationAcceptInvitationService operationAcceptInvitationService) {
+            OperationAcceptInvitationService operationAcceptInvitationService,
+            OperationAcceptInvitationProcessor operationAcceptInvitationProcessor) {
         this.boardProjectService = boardProjectService;
         this.invitationRequestMapper = invitationRequestMapper;
         this.invitationProjectService = invitationProjectService;
@@ -71,6 +74,7 @@ public class InvitationServiceImpl implements InvitationService {
         this.operationProcessor = operationProcessor;
         this.operationRegisterService = operationRegisterService;
         this.operationAcceptInvitationService = operationAcceptInvitationService;
+        this.operationAcceptInvitationProcessor = operationAcceptInvitationProcessor;
     }
 
     @Override
@@ -243,6 +247,12 @@ public class InvitationServiceImpl implements InvitationService {
 
     // Los métodos que van a escribir una opaeración en la base de datos no deben
     // llevar @Transactional en esta clase
+
+    // NOTA: PARA EJECUTAR LAS TAREAS EN SEGUNDO PLANO DEBE EJECUTAR:
+    // REGISTER
+    // HANDLER EN MODO AUTOMATIC
+    // PROCESSOR
+
     @Override
     public void acceptInvitation(UUID invitationId, UUID recipientUserId) {
         // 1. Registrar o recuperar la operación.
@@ -269,7 +279,9 @@ public class InvitationServiceImpl implements InvitationService {
         }
 
         // 4. Procesar según el estado persistido.
-        operationProcessor.processOperation(operation.getId());
+        // operationProcessor.processOperation(operation.getId());
+        operationAcceptInvitationProcessor.processAcceptInvitationOperation(operation.getId());
+
     }
 
     // --------------------------------------
