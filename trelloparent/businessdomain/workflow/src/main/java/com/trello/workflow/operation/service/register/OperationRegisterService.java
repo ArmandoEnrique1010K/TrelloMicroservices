@@ -20,15 +20,15 @@ public interface OperationRegisterService {
             throws OperationConflictException, OperationNotPendingException, BoardAccessAlreadyExistsException;
 
     // Activar permiso de acceso
-    Operation registerActivateBoardAccess(UUID boardId, UUID userId, Role newRole, UUID operationId)
+    Operation registerActivateBoardAccess(UUID boardId, UUID userId, Role newRole, Role oldRole, UUID operationId)
             throws OperationConflictException, OperationNotPendingException, BoardAccessUserActiveNotAllowedException;
 
     // Cambiar rol de permiso de acceso
-    Operation registerChangeRoleBoardAccess(UUID boardId, UUID userId, Role newRole, UUID operationId)
+    Operation registerChangeRoleBoardAccess(UUID boardId, UUID userId, Role newRole, Role oldRole, UUID operationId)
             throws OperationConflictException, OperationNotPendingException, BoardAccessUserActiveNotAllowedException;
 
     // Desactivar permiso de acceso
-    Operation registerDeactivateBoardAccess(UUID boardId, UUID userId, UUID operationId)
+    Operation registerDeactivateBoardAccess(UUID boardId, UUID userId, Role newRole, Role oldRole, UUID operationId)
             throws OperationConflictException, OperationNotPendingException, BoardAccessUserActiveNotAllowedException;
 
     // Guardar tablero y permiso de acceso del usuario administrador

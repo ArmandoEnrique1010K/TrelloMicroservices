@@ -33,16 +33,14 @@ public class OperationDeactivateBoardAccessServiceImpl implements OperationDeact
     @Override
     public void applyDeactivateBoardAccess(UUID operationId)
             throws OperationNotFoundException, BoardAccessUserActiveNotAllowedException {
+
         Operation currentOperation = operationWorkflowService
                 .findOperationById(operationId)
                 .orElseThrow(OperationNotFoundException::new);
 
-        currentOperation.setStatus(OperationStatus.PROCESSING);
-        currentOperation.setAttempts(currentOperation.getAttempts() + 1);
-        operationWorkflowService.saveOperation(currentOperation);
-
         UUID boardId = currentOperation.getBoardId();
         UUID userId = currentOperation.getUserId();
+        Role newRole = currentOperation.getNewRole();
 
         BoardAccess findedBoardAccess = boardAccessWorkflowService.findBoardAccessByBoardIdAndUserIdAndUserActive(
                 boardId,
@@ -52,18 +50,16 @@ public class OperationDeactivateBoardAccessServiceImpl implements OperationDeact
             throw new BoardAccessUserActiveNotAllowedException();
         }
 
+        findedBoardAccess.setRole(newRole);
         findedBoardAccess.setUserActive(false);
         boardAccessWorkflowService.saveBoardAccess(findedBoardAccess);
-
-        currentOperation.setStatus(OperationStatus.COMPLETED);
-        currentOperation.setCompletedAt(LocalDateTime.now());
-        operationWorkflowService.saveOperation(currentOperation);
     }
 
     @Transactional(rollbackFor = Exception.class)
     @Override
     public void revertDeactivateBoardAccess(UUID operationId)
             throws OperationNotFoundException, OperationConflictException, OperationNotPendingException {
+
         Operation operation = operationWorkflowService
                 .findOperationById(operationId)
                 .orElseThrow(OperationNotFoundException::new);
@@ -73,8 +69,7 @@ public class OperationDeactivateBoardAccessServiceImpl implements OperationDeact
         }
 
         if (operation.getStatus() == OperationStatus.CREATED
-                && operation.getStatus() == OperationStatus.COMPLETED
-                && operation.getStatus() == OperationStatus.MANUAL_REVIEW) {
+                && operation.getStatus() == OperationStatus.COMPLETED) {
             throw new OperationNotPendingException();
         }
 
@@ -84,8 +79,10 @@ public class OperationDeactivateBoardAccessServiceImpl implements OperationDeact
 
         UUID boardId = operation.getBoardId();
         UUID userId = operation.getUserId();
+        Role oldRole = operation.getOldRole();
 
-        boardAccessWorkflowService.activateBoardAccessByBoardIdAndUserId(boardId, userId);
+        boardAccessWorkflowService.activateBoardAccessAndChangeRoleByBoardIdAndUserId(
+                boardId, userId, oldRole);
 
         operation.setStatus(OperationStatus.PENDING);
         operation.setCompletedAt(LocalDateTime.now());

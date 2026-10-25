@@ -122,6 +122,9 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
             case PENDING -> {
                 // Actualizar el rol por si ha cambiado desde el registro inicial.
                 existing.setNewRole(newRole);
+
+                // La lista de IDs de tableros tambien cambian
+                existing.setBoardIds(boardsIds);
                 return existing;
             }
 
@@ -139,11 +142,23 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
 
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public Operation registerActivateBoardAccess(UUID boardId, UUID userId, Role newRole, UUID operationId)
+    public Operation registerActivateBoardAccess(UUID boardId, UUID userId, Role newRole, Role oldRole,
+            UUID operationId)
             throws OperationConflictException, OperationNotPendingException, BoardAccessUserActiveNotAllowedException {
 
-        validateExistingOperationOrReturnPending(operationId, boardId, userId, newRole, null,
+        Operation existingOperation = validateExistingOperationOrReturnPending(
+                operationId,
+                boardId,
+                userId,
+                newRole,
+                null,
                 OperationType.ACTIVATE_BOARD_ACCESS);
+
+        if (existingOperation != null) {
+            existingOperation.setOldRole(oldRole);
+            existingOperation.setNewRole(newRole);
+            return operationWorkflowService.saveOperation(existingOperation);
+        }
 
         // Validar reglas de negocio
         BoardAccess findedBoardAccess = boardAccessWorkflowService.findBoardAccessByBoardIdAndUserIdAndUserInactive(
@@ -154,35 +169,40 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
             throw new BoardAccessUserActiveNotAllowedException();
         }
 
-        // Crear una nueva operación
         Operation operation = new Operation();
         operation.setId(operationId);
         operation.setType(OperationType.ACTIVATE_BOARD_ACCESS);
         operation.setStatus(OperationStatus.CREATED);
         operation.setBoardId(boardId);
         operation.setUserId(userId);
-
-        // Si o si va a tener un valor false
-        operation.setOldUserActive(findedBoardAccess.isUserActive());
-
-        // Toma el rol antiguo y el nuevo
-        operation.setOldRole(findedBoardAccess.getRole());
+        operation.setOldUserActive(false);
+        operation.setOldRole(oldRole);
         operation.setNewRole(newRole);
-
         operation.setAttempts(0);
 
         operationWorkflowService.saveOperation(operation);
 
-        // Retornar la entidad completa de la operación
         return operation;
     }
 
     @Override
-    public Operation registerChangeRoleBoardAccess(UUID boardId, UUID userId, Role newRole, UUID operationId)
+    public Operation registerChangeRoleBoardAccess(UUID boardId, UUID userId, Role newRole, Role oldRole,
+            UUID operationId)
             throws OperationConflictException, OperationNotPendingException, BoardAccessUserActiveNotAllowedException {
 
-        validateExistingOperationOrReturnPending(operationId, boardId, userId, newRole, null,
+        Operation existingOperation = validateExistingOperationOrReturnPending(
+                operationId,
+                boardId,
+                userId,
+                newRole,
+                null,
                 OperationType.CHANGE_ROLE_BOARD_ACCESS);
+
+        if (existingOperation != null) {
+            existingOperation.setOldRole(oldRole);
+            existingOperation.setNewRole(newRole);
+            return operationWorkflowService.saveOperation(existingOperation);
+        }
 
         BoardAccess findedBoardAccess = boardAccessWorkflowService.findBoardAccessByBoardIdAndUserIdAndUserActive(
                 boardId,
@@ -198,22 +218,35 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
         operation.setStatus(OperationStatus.CREATED);
         operation.setBoardId(boardId);
         operation.setUserId(userId);
-
-        operation.setOldUserActive(findedBoardAccess.isUserActive());
-        operation.setOldRole(findedBoardAccess.getRole());
+        operation.setOldUserActive(true);
+        operation.setOldRole(oldRole);
         operation.setNewRole(newRole);
-
         operation.setAttempts(0);
+
         operationWorkflowService.saveOperation(operation);
 
         return operation;
     }
 
     @Override
-    public Operation registerDeactivateBoardAccess(UUID boardId, UUID userId, UUID operationId)
+    public Operation registerDeactivateBoardAccess(UUID boardId, UUID userId, Role newRole, Role oldRole,
+            UUID operationId)
             throws OperationConflictException, OperationNotPendingException, BoardAccessUserActiveNotAllowedException {
-        validateExistingOperationOrReturnPending(operationId, boardId, userId, null, null,
+
+        Operation existingOperation = validateExistingOperationOrReturnPending(
+                operationId,
+                boardId,
+                userId,
+                newRole,
+                null,
                 OperationType.DEACTIVATE_BOARD_ACCESS);
+
+        if (existingOperation != null) {
+            // Si cambia el rol del usuario en el caso de que los datos del microservicio
+            // Project no coincidan con el rol establecido en la tabla BoardAccess
+            // existingOperation.setNewRole(newRole);
+            return operationWorkflowService.saveOperation(existingOperation);
+        }
 
         BoardAccess findedBoardAccess = boardAccessWorkflowService.findBoardAccessByBoardIdAndUserIdAndUserActive(
                 boardId,
@@ -229,24 +262,35 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
         operation.setStatus(OperationStatus.CREATED);
         operation.setBoardId(boardId);
         operation.setUserId(userId);
-
-        operation.setOldUserActive(findedBoardAccess.isUserActive());
-        operation.setOldRole(findedBoardAccess.getRole());
-
+        operation.setOldUserActive(true);
+        operation.setOldRole(oldRole);
+        operation.setNewRole(newRole);
         operation.setAttempts(0);
+
         operationWorkflowService.saveOperation(operation);
 
         return operation;
     }
 
+    // TODO: CONTINUAR CON LOS METODOS RELACIONADOS A BOARD
     @Transactional(rollbackFor = Exception.class)
     @Override
     public Operation registerAddBoardAndBoardAccessUserOwner(UUID boardId, UUID userId, UUID operationId)
             throws OperationConflictException, OperationNotPendingException, BoardAlreadyExistsException {
-        validateExistingOperationOrReturnPending(operationId, boardId, userId, null, null,
+
+        Operation existingOperation = validateExistingOperationOrReturnPending(
+                operationId,
+                boardId,
+                userId,
+                null,
+                null,
                 OperationType.ADD_BOARD_AND_BOARD_ACCESS_USER_OWNER);
 
-        // Logica de negocio, verificar si existe
+        if (existingOperation != null) {
+            return operationWorkflowService.saveOperation(existingOperation);
+        }
+
+        // Verificar si existe el tablero por ID
         if (boardWorkflowService.existsBoardById(boardId)) {
             throw new BoardAlreadyExistsException();
         }
@@ -258,8 +302,8 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
         operation.setBoardId(boardId);
         operation.setUserId(userId);
         operation.setNewRole(Role.OWNER);
-
         operation.setAttempts(0);
+
         operationWorkflowService.saveOperation(operation);
 
         return operation;
@@ -269,9 +313,20 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
     @Override
     public Operation registerDeleteBoardAndBoardAccessAndTasks(UUID boardId, UUID operationId)
             throws OperationConflictException, OperationNotPendingException, BoardNotFoundException {
-        validateExistingOperationOrReturnPending(operationId, boardId, null, null, null,
+
+        Operation existingOperation = validateExistingOperationOrReturnPending(
+                operationId,
+                boardId,
+                null,
+                null,
+                null,
                 OperationType.DELETE_BOARD_AND_BOARD_ACCESS_AND_TASKS);
 
+        if (existingOperation != null) {
+            return operationWorkflowService.saveOperation(existingOperation);
+        }
+
+        // Verificar si no existe el tablero
         if (!boardWorkflowService.existsBoardById(boardId)) {
             throw new BoardNotFoundException();
         }
@@ -281,8 +336,8 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
         operation.setType(OperationType.DELETE_BOARD_AND_BOARD_ACCESS_AND_TASKS);
         operation.setStatus(OperationStatus.CREATED);
         operation.setBoardId(boardId);
-
         operation.setAttempts(0);
+
         operationWorkflowService.saveOperation(operation);
 
         return operation;
@@ -293,8 +348,18 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
     public Operation registerDeleteAllBoardsAndBoardAccessAndTasks(List<UUID> boardsIds, UUID operationId)
             throws OperationConflictException, OperationNotPendingException, BoardNotFoundException {
 
-        validateExistingOperationOrReturnPending(operationId, null, null, null,
+        Operation existingOperation = validateExistingOperationOrReturnPending(
+                operationId,
+                null,
+                null,
+                null,
                 boardsIds, OperationType.DELETE_ALL_BOARDS_AND_BOARD_ACCESS_AND_TASKS);
+
+        if (existingOperation != null) {
+            // Aqui cambia la lista de IDs de tableros
+            existingOperation.setBoardIds(boardsIds);
+            return operationWorkflowService.saveOperation(existingOperation);
+        }
 
         // Aunque esto nunca va a pasar
         // Si la cantidad de tableros no coinciden con los tableros por IDs
@@ -307,14 +372,11 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
         operation.setId(operationId);
         operation.setType(OperationType.DELETE_BOARD_AND_BOARD_ACCESS_AND_TASKS);
         operation.setStatus(OperationStatus.CREATED);
-
-        // Lista de IDs de tableros
         operation.setBoardIds(boardsIds);
-
         operation.setAttempts(0);
+
         operationWorkflowService.saveOperation(operation);
 
         return operation;
     }
-
 }

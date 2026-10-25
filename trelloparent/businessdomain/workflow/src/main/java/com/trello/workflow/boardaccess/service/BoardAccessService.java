@@ -12,9 +12,9 @@ public interface BoardAccessService {
     // Tambien cuando un invitado acepta una invitación
     void addBoardAccess(UUID boardId, UUID userId, Role role, UUID operationId);
 
-    void activateBoardAccess(UUID boardId, UUID memberUserId, Role role, UUID operationId);
+    void activateBoardAccess(UUID boardId, UUID memberUserId, Role role, Role oldRole, UUID operationId);
 
-    void changeRoleBoardAccess(UUID boardId, UUID memberUserId, Role role, UUID operationId);
+    void changeRoleBoardAccess(UUID boardId, UUID memberUserId, Role role, Role oldRole, UUID operationId);
 
-    void deactivateBoardAccess(UUID boardId, UUID memberUserId, UUID operationId);
+    void deactivateBoardAccess(UUID boardId, UUID memberUserId, Role role, Role oldRole, UUID operationId);
 }

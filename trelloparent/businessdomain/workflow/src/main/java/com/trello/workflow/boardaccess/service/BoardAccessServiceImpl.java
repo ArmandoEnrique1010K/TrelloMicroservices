@@ -51,59 +51,55 @@ public class BoardAccessServiceImpl implements BoardAccessService {
         operationWorkflowService.saveOperation(operation);
     }
 
-    // Activar permiso de acceso
+    // Activar un permiso de acceso al tablero
     @Override
-    public void activateBoardAccess(UUID boardId, UUID memberUserId, Role newRole,
+    public void activateBoardAccess(UUID boardId, UUID memberUserId, Role role, Role oldRole,
             UUID operationId) {
         Operation operation = operationRegisterService.registerActivateBoardAccess(boardId, memberUserId,
-                newRole,
+                role,
+                oldRole,
                 operationId);
+
+        operation.setAttempts(operation.getAttempts() + 1);
+        operationWorkflowService.saveOperation(operation);
+
         operationProcessor.processOperation(operation.getId());
+
+        operation.setStatus(OperationStatus.COMPLETED);
+        operation.setCompletedAt(LocalDateTime.now());
+        operationWorkflowService.saveOperation(operation);
     }
 
     @Override
-    public void changeRoleBoardAccess(UUID boardId, UUID memberUserId, Role newRole, UUID operationId) {
+    public void changeRoleBoardAccess(UUID boardId, UUID memberUserId, Role newRole, Role oldRole, UUID operationId) {
         Operation operation = operationRegisterService.registerChangeRoleBoardAccess(boardId, memberUserId,
                 newRole,
+                oldRole,
                 operationId);
+
+        operation.setAttempts(operation.getAttempts() + 1);
+        operationWorkflowService.saveOperation(operation);
 
         operationProcessor.processOperation(operation.getId());
 
-        // Buscar el boardAccess por ID de tablero e ID de usuario
-        // El ID del usuario no es el mismo ID de miembro
-        // BoardAccess findedBoardAccess =
-        // boardAccessWorkflowService.findBoardAccessByBoardIdAndUserIdAndUserActive(
-        // boardId,
-        // memberUserId);
-
-        // Aunque esto es imposible porque el rol que se pasa desde el microservicio
-        // Project no existe el rol de OWNER en el enum que se encuentra en el
-        // microservicio Project
-        // if (findedBoardAccess.getRole().equals(Role.OWNER)) {
-        // throw new BusinessRuleException();
-        // }
-
-        // findedBoardAccess.setRole(newRole);
-        // boardAccessWorkflowService.saveBoardAccess(findedBoardAccess);
+        operation.setStatus(OperationStatus.COMPLETED);
+        operation.setCompletedAt(LocalDateTime.now());
+        operationWorkflowService.saveOperation(operation);
     }
 
     @Override
-    public void deactivateBoardAccess(UUID boardId, UUID memberUserId, UUID operationId) {
-        Operation operation = operationRegisterService.registerDeactivateBoardAccess(boardId, memberUserId,
+    public void deactivateBoardAccess(UUID boardId, UUID memberUserId, Role role, Role oldRole, UUID operationId) {
+        Operation operation = operationRegisterService.registerDeactivateBoardAccess(boardId, memberUserId, role,
+                oldRole,
                 operationId);
+
+        operation.setAttempts(operation.getAttempts() + 1);
+        operationWorkflowService.saveOperation(operation);
 
         operationProcessor.processOperation(operation.getId());
 
-        // BoardAccess findedBoardAccess =
-        // boardAccessWorkflowService.findBoardAccessByBoardIdAndUserIdAndUserActive(
-        // boardId,
-        // memberUserId);
-
-        // if (findedBoardAccess.getRole().equals(Role.OWNER)) {
-        // throw new BusinessRuleException();
-        // }
-
-        // findedBoardAccess.setUserActive(false);
-        // boardAccessWorkflowService.saveBoardAccess(findedBoardAccess);
+        operation.setStatus(OperationStatus.COMPLETED);
+        operation.setCompletedAt(LocalDateTime.now());
+        operationWorkflowService.saveOperation(operation);
     }
 }

@@ -33,13 +33,10 @@ public class OperationChangeRoleBoardAccessServiceImpl implements OperationChang
     @Override
     public void applyChangeRoleBoardAccess(UUID operationId)
             throws OperationNotFoundException, BoardAccessUserActiveNotAllowedException {
+
         Operation currentOperation = operationWorkflowService
                 .findOperationById(operationId)
                 .orElseThrow(OperationNotFoundException::new);
-
-        currentOperation.setStatus(OperationStatus.PROCESSING);
-        currentOperation.setAttempts(currentOperation.getAttempts() + 1);
-        operationWorkflowService.saveOperation(currentOperation);
 
         UUID boardId = currentOperation.getBoardId();
         UUID userId = currentOperation.getUserId();
@@ -55,16 +52,13 @@ public class OperationChangeRoleBoardAccessServiceImpl implements OperationChang
 
         findedBoardAccess.setRole(newRole);
         boardAccessWorkflowService.saveBoardAccess(findedBoardAccess);
-
-        currentOperation.setStatus(OperationStatus.COMPLETED);
-        currentOperation.setCompletedAt(LocalDateTime.now());
-        operationWorkflowService.saveOperation(currentOperation);
     }
 
     @Transactional(rollbackFor = Exception.class)
     @Override
     public void revertChangeRoleBoardAccess(UUID operationId)
             throws OperationNotFoundException, OperationConflictException, OperationNotPendingException {
+
         Operation operation = operationWorkflowService
                 .findOperationById(operationId)
                 .orElseThrow(OperationNotFoundException::new);
@@ -74,8 +68,7 @@ public class OperationChangeRoleBoardAccessServiceImpl implements OperationChang
         }
 
         if (operation.getStatus() == OperationStatus.CREATED
-                && operation.getStatus() == OperationStatus.COMPLETED
-                && operation.getStatus() == OperationStatus.MANUAL_REVIEW) {
+                && operation.getStatus() == OperationStatus.COMPLETED) {
             throw new OperationNotPendingException();
         }
 
@@ -87,11 +80,11 @@ public class OperationChangeRoleBoardAccessServiceImpl implements OperationChang
         UUID userId = operation.getUserId();
         Role oldRole = operation.getOldRole();
 
-        boardAccessWorkflowService.changeBoardAccessByBoardIdAndUserId(boardId, userId, oldRole);
+        boardAccessWorkflowService.changeBoardAccessByBoardIdAndUserId(
+                boardId, userId, oldRole);
 
         operation.setStatus(OperationStatus.PENDING);
         operation.setCompletedAt(LocalDateTime.now());
         operationWorkflowService.saveOperation(operation);
     }
-
 }

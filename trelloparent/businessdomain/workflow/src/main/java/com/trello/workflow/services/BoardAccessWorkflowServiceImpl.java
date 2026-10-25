@@ -78,10 +78,11 @@ public class BoardAccessWorkflowServiceImpl implements BoardAccessWorkflowServic
     }
 
     @Override
-    public void activateBoardAccessByBoardIdAndUserId(UUID boardId, UUID userId) throws BoardAccessNotFoundException {
+    public void activateBoardAccessAndChangeRoleByBoardIdAndUserId(UUID boardId, UUID userId, Role previousRole)
+            throws BoardAccessNotFoundException {
         BoardAccess boardAccess = boardAccessRepository.findByBoardIdAndUserIdAndStatusTrue(
                 boardId, userId).orElseThrow(BoardAccessNotFoundException::new);
-
+        boardAccess.setRole(previousRole);
         boardAccess.setUserActive(true);
         boardAccessRepository.save(boardAccess);
     }

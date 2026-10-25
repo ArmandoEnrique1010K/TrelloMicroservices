@@ -242,13 +242,14 @@ public class BoardAccessRestController {
                     """))),
     })
 
-    @PatchMapping("/board/{boardId}/user/{memberUserId}/role/{roleName}")
+    @PatchMapping("/activate/board/{boardId}/user/{memberUserId}/role/{roleName}/old-role/{oldRoleName}")
     public ResponseEntity<Void> activateBoardAccess(
             @Parameter(description = "ID del tablero", required = true, example = "550e8400-e29b-41d4-a716-446655440000") @PathVariable UUID boardId,
             @Parameter(description = "ID del usuario", required = true, example = "550e8400-e29b-41d4-a716-446655440000") @PathVariable UUID memberUserId,
-            @Parameter(description = "Rol del miembro", required = true, example = "OWNER") @PathVariable Role roleName,
+            @Parameter(description = "Rol nuevo del miembro", required = true, example = "ADMIN") @PathVariable Role roleName,
+            @Parameter(description = "Rol antiguo del miembro", required = true, example = "ADMIN") @PathVariable Role oldRoleName,
             @RequestHeader("X-Operation-Id") UUID operationId) {
-        boardAccessService.activateBoardAccess(boardId, memberUserId, roleName, operationId);
+        boardAccessService.activateBoardAccess(boardId, memberUserId, roleName, oldRoleName, operationId);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).body(null);
     }
 
@@ -342,15 +343,16 @@ public class BoardAccessRestController {
                     }
                     """))),
     })
-    @PutMapping("/board/{boardId}/user/{memberUserId}/role/{roleName}")
+    @PutMapping("/board/{boardId}/user/{memberUserId}/role/{roleName}/old-role/{oldRoleName}")
     // El ID del usuario que es el miembro, se obtiene desde un parametro
     public ResponseEntity<Void> changeRoleBoardAccess(
             @Parameter(description = "ID del tablero", required = true, example = "550e8400-e29b-41d4-a716-446655440000") @PathVariable UUID boardId,
             @Parameter(description = "ID del usuario", required = true, example = "550e8400-e29b-41d4-a716-446655440000") @PathVariable UUID memberUserId,
-            @Parameter(description = "Rol del miembro", required = true, example = "OWNER") @PathVariable Role roleName,
+            @Parameter(description = "Rol nuevo del miembro", required = true, example = "ADMIN") @PathVariable Role roleName,
+            @Parameter(description = "Rol antiguo del miembro", required = true, example = "MEMBER") @PathVariable Role oldRoleName,
             @RequestHeader("X-Operation-Id") UUID operationId) {
 
-        boardAccessService.changeRoleBoardAccess(boardId, memberUserId, roleName, operationId);
+        boardAccessService.changeRoleBoardAccess(boardId, memberUserId, roleName, oldRoleName, operationId);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).body(null);
     }
 
@@ -444,12 +446,14 @@ public class BoardAccessRestController {
                     }
                     """))),
     })
-    @PatchMapping("/board/{boardId}/user/{memberUserId}")
+    @PatchMapping("/deactivate/board/{boardId}/user/{memberUserId}/role/{roleName}/old-role/{oldRoleName}")
     public ResponseEntity<Void> deactivateBoardAccess(
             @Parameter(description = "ID del tablero", required = true, example = "550e8400-e29b-41d4-a716-446655440000") @PathVariable UUID boardId,
             @Parameter(description = "ID del usuario", required = true, example = "550e8400-e29b-41d4-a716-446655440000") @PathVariable UUID memberUserId,
+            @Parameter(description = "Rol nuevo del miembro", required = true, example = "ADMIN") @PathVariable Role roleName,
+            @Parameter(description = "Rol antiguo del miembro", required = true, example = "MEMBER") @PathVariable Role oldRoleName,
             @RequestHeader("X-Operation-Id") UUID operationId) {
-        boardAccessService.deactivateBoardAccess(boardId, memberUserId, operationId);
+        boardAccessService.deactivateBoardAccess(boardId, memberUserId, roleName, oldRoleName, operationId);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).body(null);
     }
 
