@@ -33,12 +33,11 @@ public class OperationAcceptInvitationProcessorImpl implements OperationAcceptIn
     private final OperationProjectService operationProjectService;
     private final WorkflowClientService workflowClientService;
     private final InvitationProjectService invitationProjectService;
-
     private final OperationAcceptInvitationService operationAcceptInvitationService;
-
     private final OperationUtils operationUtils;
 
-    public OperationAcceptInvitationProcessorImpl(OperationProjectService operationProjectService,
+    public OperationAcceptInvitationProcessorImpl(
+            OperationProjectService operationProjectService,
             WorkflowClientService workflowClientService,
             InvitationProjectService invitationProjectService,
             OperationAcceptInvitationService operationAcceptInvitationService,
@@ -50,73 +49,81 @@ public class OperationAcceptInvitationProcessorImpl implements OperationAcceptIn
         this.operationUtils = operationUtils;
     }
 
-    // Método para procesar la operación de aceptar invitación
+    // Procesa una operación de aceptación de invitación previamente registrada.
     @Override
     public void processAcceptInvitationOperation(UUID operationId) throws OperationNotFoundException,
             OperationConflictException {
-        // 1. Recuperar la operación persistida en este microservicio
+        // 1. Recuperar la operación persistida mediante su identificador.
         Operation operation = operationProjectService
                 .findOperationById(operationId)
                 .orElseThrow(OperationNotFoundException::new);
 
+        // Verificar que la operación corresponda al proceso de aceptación
+        // de invitaciones antes de iniciar su procesamiento.
         if (operation.getType() != OperationType.ACCEPT_INVITATION) {
             throw new OperationConflictException();
         }
 
-        // 2. El estado de la operación siempre sera EXECUTION_PENDING
+        // 2. Delegar la ejecución de la operación y la gestión de sus posibles
+        // fallos al método encargado de coordinar el flujo de la saga.
         processOriginalOperation(operation);
     }
 
-    // Procesar la operación original
+    // Coordina la ejecución de la operación original y, ante determinados
+    // fallos, inicia el proceso de compensación local y remota.
     private void processOriginalOperation(Operation operation)
-            throws BusinessRuleException, OperationNotFoundException, OperationCompensatedException,
-            OperationManualReviewException {
-        // 1. Marcar el inicio de la ejecución original.
+            throws BusinessRuleException, OperationNotFoundException,
+            OperationCompensatedException, OperationManualReviewException {
+
+        // 1. Marcar la operación como EXECUTING antes de ejecutar la lógica
+        // de negocio y comunicarse con el microservicio Workflow.
         operationUtils.markExecuting(operation);
 
         try {
-
-            // 2. Ejecutar la operación original
+            // 2. Ejecutar la operación original en el microservicio Workflow.
             processAcceptInvitation(operation);
 
-            // 3. La operación original terminó correctamente.
-            // En este caso todo salio bien y no se lanzara ninguna excepción
+            // 3. Registrar que la operación finalizó correctamente.
             operationUtils.markCompleted(operation);
 
         } catch (ServiceUnavailableException e) {
-            // En este caso como la operación original falló, se inicia el proceso de
-            // compensación (revertir los cambios realizados en la base de datos de este
-            // microservicio)
+            // La comunicación con Workflow no está disponible y el resultado
+            // de la operación remota puede ser desconocido.
 
-            // 4. El resultado remoto puede ser desconocido.
-            // Iniciar el proceso de compensación.
+            // Iniciar la compensación para revertir los cambios locales y,
+            // posteriormente, intentar compensar los cambios remotos.
             operationUtils.markCompensationPending(operation);
 
-            // Intentar compensar inmediatamente
-            // Si falla, el estado y la fecha permiten recuperarlo después.
-            // 2. Intentar compensar inmediatamente.
             try {
+                // 4. Intentar compensar inmediatamente los cambios locales.
+                // Si esta compensación termina, su estado permitirá continuar
+                // desde la compensación remota en futuros reintentos.
                 processLocalCompensation(operation);
 
-                // La compensación local ya terminó.
-                // Si falla el microservicio Workflow, el siguiente intento no repetirá el
-                // rollback.
+                // 5. Intentar revertir los cambios realizados en Workflow.
                 processRemoteCompensation(operation);
             } catch (ServiceUnavailableException compensationException) {
-                // 3. Comprobar si la compensación local terminó correctamente.
+                // Si falla la comunicación durante la compensación remota,
+                // consultar el estado persistido para determinar si la
+                // compensación distribuida llegó a completarse.
                 Operation updatedOperation = operationProjectService
                         .findOperationById(operation.getId())
                         .orElseThrow(OperationNotFoundException::new);
 
+                // Si la compensación ya terminó, informar que la operación
+                // original fue compensada, aunque se haya producido una
+                // excepción durante el proceso de compensación.
                 if (updatedOperation.getStatus() == OperationStatus.COMPENSATION_COMPLETED) {
                     throw new OperationCompensatedException();
                 }
 
-                // Si no se alcanzó COMPENSATION_COMPLETED, conservar el error original.
+                // Si la compensación no llegó a completarse, propagar el error
+                // de comunicación para que se gestione según el flujo previsto.
                 throw compensationException;
             }
 
-            // 4. Si no hubo excepción, comprobar el estado final.
+            // 6. Comprobar el estado persistido después de intentar ambas
+            // compensaciones, ya que la operación original no se completó.
             Operation updatedOperation = operationProjectService
                     .findOperationById(operation.getId())
                     .orElseThrow(OperationNotFoundException::new);
@@ -127,38 +134,29 @@ public class OperationAcceptInvitationProcessorImpl implements OperationAcceptIn
 
         } catch (RemoteBoardAccessNotFoundException
                 | RemoteBoardAccessAlreadyExistsException e) {
-
-            // AQUI <---
-            // Solamente si memberActive es false quiere decir que se trata de un miembro
-            // inactivo y se debe ignorar la excepción de
-            // RemoteBoardAccessAlreadyExistsException
-            // Boolean memberActive = operation.getMemberActive();
-
-            // 5. Inconsistencia funcional remota.
-            // Requiere inspección antes de continuar.
+            // La respuesta de Workflow indica una inconsistencia funcional
+            // relacionada con los permisos de acceso al tablero.
+            // Registrar la operación para revisión manual, ya que no se debe
+            // asumir que la inconsistencia puede resolverse automáticamente.
             operationUtils.markManualReview(operation, e);
 
             throw new OperationManualReviewException();
 
         } catch (Exception e) {
-
-            // 6. No asumir que cualquier error es un error de negocio.
-            // Registrar el error técnico y definir una política de recuperación.
-
-            // Por el momento se registra como un MANUAL_REVIEW, requiere de intervención en
-            // la base de datos
+            // Cualquier otro error se registra para revisión manual, dado que
+            // no se ha definido aquí una estrategia segura de recuperación
+            // automática para esta excepción.
             operationUtils.markManualReview(operation, e);
-            // markManualReview(operation, e);
 
             throw new BusinessRuleException();
         }
     }
 
-    // Método para llamar a los respectivos clientes para ejecutar la operación de
-    // aceptar invitacion en el microservicio Workflow
+    // Ejecuta la operación de aceptación de invitación mediante el cliente
+    // del microservicio Workflow, según el estado previo del miembro.
     private void processAcceptInvitation(Operation operation) throws BusinessRuleException {
-
-        // 1. Recuperar la invitación para obtener el tablero y el rol.
+        // 1. Recuperar la invitación para obtener el tablero asociado
+        // y el rol que debe asignarse al usuario.
         Invitation invitation = invitationProjectService
                 .findInvitationByIdAndRecipientUserId(
                         operation.getInvitationId(),
@@ -166,54 +164,60 @@ public class OperationAcceptInvitationProcessorImpl implements OperationAcceptIn
 
         UUID boardId = invitation.getBoard().getId();
 
-        // 2. Debe hacer una conversión entre los enums de WorkflowRole y Role
+        // 2. Convertir el rol del microservicio Project al enum que utiliza
+        // Workflow para gestionar los permisos de acceso al tablero.
         WorkflowRole workflowRole = WorkflowRoleUtils.parseRoleToWorkflowRole(
                 invitation.getRole());
 
+        // Recuperar el estado de actividad del miembro antes de la operación.
+        // Este valor determina qué acción debe ejecutarse en Workflow.
         Boolean memberWasActive = operation.getMemberActive();
 
         if (memberWasActive == null) {
-            // Si no existia un miembro, crear el permiso de acceso en Workflow
+            // No existía un miembro previo en Project.
+            // Crear el permiso de acceso correspondiente en Workflow.
             workflowClientService.addBoardAccess(
                     boardId,
                     workflowRole,
                     operation.getId());
-
         } else if (!memberWasActive) {
-            // Si existia un miembro inactivo, entonces activar el permiso de acceso en
-            // Workflow.
+            // Existía un miembro, pero estaba inactivo.
+            // Reactivar su permiso de acceso en Workflow.
             workflowClientService.activateBoardAccess(
                     boardId,
                     operation.getUserId(),
                     workflowRole,
                     operation.getId());
         } else {
-            // Si existia un miembro activo, entonces devolver una excepción
+            // El miembro ya estaba activo antes de aceptar la invitación.
+            // La operación no puede continuar bajo esta condición de negocio.
             throw new BusinessRuleException();
         }
     }
 
-    // Ejecutar la compensación Local
+    // Revierte los cambios locales realizados en Project como primera
+    // etapa de la compensación de la operación.
     private void processLocalCompensation(Operation operation) throws OperationNotPendingException,
             OperationNotFoundException, OperationManualReviewException {
 
-        // Posible estado de operacion: COMPENSATION_PENDING
-
-        // 1. Confirmar que corresponde compensar.
+        // La compensación local solo puede iniciarse cuando la operación
+        // se encuentra en COMPENSATION_PENDING.
         if (operation.getStatus() != OperationStatus.COMPENSATION_PENDING) {
             throw new OperationNotPendingException();
         }
 
         try {
-
-            // 3. Revertir los cambios locales de Project.
-            // La compensación local debe ejecutarse en una transacción
-            // independiente y terminar antes de llamar a Workflow.
+            // 1. Registrar el inicio de la compensación local.
             operationUtils.markLocalCompensationInProgress(operation);
 
+            // 2. Revertir los cambios de negocio locales asociados a la
+            // aceptación de la invitación.
             operationAcceptInvitationService
                     .revertAcceptInvitation(operation.getId());
 
+            // 3. Comprobar el estado persistido después de la compensación.
+            // La operación puede haber sido marcada para revisión manual
+            // durante la reversión de los cambios locales.
             Operation updatedOperation = operationProjectService
                     .findOperationById(operation.getId())
                     .orElseThrow(OperationNotFoundException::new);
@@ -222,67 +226,71 @@ public class OperationAcceptInvitationProcessorImpl implements OperationAcceptIn
                 throw new OperationManualReviewException();
             }
 
-            // 4. La compensación local terminó.
-            // A partir de ahora, los reintentos deben continuar en Workflow.
+            // 4. Registrar que la compensación local terminó correctamente.
+            // El siguiente paso del proceso será compensar los cambios
+            // remotos en Workflow, sin repetir esta reversión local.
             operationUtils.markLocalCompensationCompleted(operation);
+        } catch (OperationManualReviewException e) {
+            throw e;
         } catch (Exception e) {
-
-            // Una excepción inesperada durante el rollback local
-            // no debe considerarse automáticamente recuperable.
+            // Si se produce un error durante la compensación local, marcar
+            // la operación para revisión manual, ya que no se debe asumir
+            // que los datos locales quedaron en un estado consistente.
             operationUtils.markManualReview(operation, e);
+
             throw new OperationManualReviewException();
         }
-
     }
 
+    // Revierte en Workflow los cambios remotos después de confirmar
+    // que la compensación local ya se completó.
     private void processRemoteCompensation(Operation operation) throws OperationNotPendingException,
             OperationManualReviewException, OperationCompensatedException {
-        // POSIBLE ESTADO DE OPERACIÓN: LOCAL_COMPENSATION_COMPLETED
 
+        // La compensación remota solo puede ejecutarse cuando los cambios
+        // locales ya se han revertido correctamente.
         if (operation.getStatus() != OperationStatus.LOCAL_COMPENSATION_COMPLETED) {
             throw new OperationNotPendingException();
         }
 
         try {
-
             if (operation.getMemberActive() == null) {
-
                 // El miembro no existía antes de la aceptación.
+                // Revertir la creación del permiso de acceso en Workflow.
                 workflowClientService.revertAddBoardAccess(
                         operation.getId());
-
             } else if (Boolean.FALSE.equals(
                     operation.getMemberActive())) {
-
                 // El miembro existía, pero estaba inactivo.
+                // Revertir la reactivación del permiso de acceso en Workflow.
                 workflowClientService.revertActivateBoardAccess(
                         operation.getId());
-
             } else {
-
-                operationUtils
-                        .markManualReview(
-                                operation,
-                                new IllegalStateException(
-                                        "Estado previo incompatible con la compensación"));
+                // El estado previo del miembro no es compatible con las
+                // compensaciones definidas para esta operación.
+                // Solicitar revisión manual en lugar de ejecutar una reversión
+                // que podría alterar incorrectamente los permisos de acceso.
+                operationUtils.markManualReview(
+                        operation,
+                        new IllegalStateException(
+                                "Estado previo incompatible con la compensación"));
 
                 throw new OperationManualReviewException();
             }
 
-            // La compensación distribuida terminó.
+            // La compensación local y la remota han finalizado.
+            // Registrar el estado final de la operación compensada.
             operationUtils.markCompensationCompleted(operation);
 
         } catch (ServiceUnavailableException e) {
 
-            // Los cambios locales ya fueron revertidos.
-            // No regresar a COMPENSATION_PENDING: eso repetiría el rollback.
-            // operation.setStatus(OperationStatus.LOCAL_COMPENSATION_COMPLETED);
-            // // operation.setNextAutomaticAttemptAt(
-            // // LocalDateTime.now().plusSeconds(30));
-
-            // operationProjectService.saveOperation(operation);
+            // Workflow no está disponible para completar la compensación remota.
+            // Los cambios locales ya se revirtieron, por lo que debe conservarse
+            // LOCAL_COMPENSATION_COMPLETED para reintentar desde la etapa remota.
             operationUtils.markLocalCompensationCompleted(operation);
 
+            // Informar que la operación original ha sido compensada localmente,
+            // pero que la compensación remota todavía requiere ser completada.
             throw new OperationCompensatedException();
         }
     }

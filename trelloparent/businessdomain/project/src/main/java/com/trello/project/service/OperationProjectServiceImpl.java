@@ -33,9 +33,11 @@ public class OperationProjectServiceImpl implements OperationProjectService {
     }
 
     @Override
-    public Optional<Operation> findOperationByInvitationIdAndType(UUID invitationId,
+    public List<Operation> findAllOperationsByInvitationIdAndTypeAndOrderByCreatedAtDesc(UUID invitationId,
             OperationType operationType) {
-        return operationRepository.findByInvitationIdAndType(invitationId, operationType);
+        // return operationRepository.findByInvitationIdAndType(invitationId,
+        // operationType);
+        return operationRepository.findByInvitationIdAndTypeOrderByCreatedAtDesc(invitationId, operationType);
     }
 
     @Override
@@ -56,5 +58,18 @@ public class OperationProjectServiceImpl implements OperationProjectService {
 
         return operationRepository.findByInvitationIdAndTypeAndStatusInOrderByCreatedAtDesc(invitationId, type,
                 statuses);
+    }
+
+    @Override
+    public Optional<Operation> findOperationByInvitationIdAndTypeAndStatus(UUID invitationId, OperationType type,
+            List<OperationStatus> statuses) {
+        return operationRepository.findByInvitationIdAndTypeAndStatusIn(invitationId, type,
+                statuses);
+
+    }
+
+    @Override
+    public Optional<Operation> findLatestOperationByInvitationIdAndType(UUID invitationId, OperationType type) {
+        return operationRepository.findFirstByInvitationIdAndTypeOrderByCreatedAtDesc(invitationId, type);
     }
 }

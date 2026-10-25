@@ -15,7 +15,8 @@ public interface OperationProjectService {
     // por su ID
     Optional<Operation> findOperationById(UUID operationId);
 
-    Optional<Operation> findOperationByInvitationIdAndType(UUID invitationId, OperationType operationType);
+    List<Operation> findAllOperationsByInvitationIdAndTypeAndOrderByCreatedAtDesc(UUID invitationId,
+            OperationType operationType);
 
     Optional<Operation> findOperationByMemberIdAndType(UUID operationId, OperationType operationType);
 
@@ -29,4 +30,11 @@ public interface OperationProjectService {
     List<Operation> findByInvitationIdAndTypeAndStatusInOrderByCreatedAtDesc(UUID invitationId,
             OperationType type,
             List<OperationStatus> statuses);
+
+    Optional<Operation> findOperationByInvitationIdAndTypeAndStatus(UUID invitationId,
+            OperationType type,
+            List<OperationStatus> statuses);
+
+    Optional<Operation> findLatestOperationByInvitationIdAndType(UUID invitationId,
+            OperationType type);
 }

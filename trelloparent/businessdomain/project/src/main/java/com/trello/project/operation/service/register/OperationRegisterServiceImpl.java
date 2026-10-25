@@ -41,78 +41,70 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
         this.memberProjectService = memberProjectService;
     }
 
-    // Recordar que si cae en una excepción, revertira los cambios realizados en la
-    // base de datos
+    /**
+     * Registra una operación para aceptar una invitación.
+     *
+     * Valida las condiciones de negocio, comprueba si existe una operación
+     * previa que pueda reutilizarse y registra el estado inicial junto con
+     * la información necesaria para ejecutar o compensar la operación.
+     *
+     * La operación se registra antes de que otro servicio aplique los cambios
+     * de negocio sobre Invitation y Member.
+     *
+     * Si se produce una excepción que provoque el rollback, los cambios
+     * realizados dentro de esta transacción se revierten.
+     */
     @Transactional(rollbackFor = Exception.class)
     @Override
     public Operation registerAcceptInvitation(UUID invitationId, UUID recipientUserId)
             throws InvitationConfirmedException, OperationNotPendingException {
 
-        // Nota: Primero debe tomar en cuenta la logica de negocio antes de lanzar una
-        // excepcion relacionada a operaciones
-
-        // 2. Buscar y validar la invitación
+        // 1. Validar las condiciones de negocio antes de comprobar
+        // si existe una operación previa que pueda reutilizarse.
         Invitation invitation = invitationProjectService
                 .findInvitationByIdAndRecipientUserId(
                         invitationId,
                         recipientUserId);
 
-        // Rol del usuario invitado
-        Role invitationRole = invitation.getRole();
-
+        // La invitación solo puede aceptarse si todavía no ha sido confirmada.
         if (invitation.getStatus() != Status.UNCONFIRMED) {
             throw new InvitationConfirmedException();
         }
 
-        // Idempotencia
-        // Buscar una operación por tipo e ID de invitación
-        // Este metodo devuelve
-        // Optional<Operation> existingOperation =
-        // operationProjectService.findOperationByInvitationIdAndType(
-        // invitationId,
-        // OperationType.ACCEPT_INVITATION);
+        // Capturar el rol actual de la invitación para registrar el rol
+        // que se asignará al usuario al aceptar la invitación.
+        Role invitationRole = invitation.getRole();
 
-        // PROBLEMA SI EL MICROSERVICIO WORKFLOW ESTA APAGADO, LA OPERACION QUEDA CON
-        // STATUS LOCAL_COMPENSATION_COMPLETED Y SE TIENE QUE SOBREESCRIBIR EN ESA MISMA
-        // OPERACION CUANDO SE REINTENTA ACEPTAR LA INVITACION
-        List<OperationStatus> blockingStatuses = List.of(
-                // SOLUCION AL PROBLEMA, SOLAMENTE ESTABLECER LOS ESTADOS PERMITIDOS EN LOS QUE
-                // SE VAN A SOBRESCRIBIR LA OPERACION
-                OperationStatus.REGISTERED,
-                OperationStatus.COMPENSATION_COMPLETED,
-                OperationStatus.LOCAL_COMPENSATION_COMPLETED);
-
-        // // Da una lista de las operaciones por Id de miembro, tipo y que tenga uno de
-        // // los estados bloqueantes, ordena de forma descendente por fecha de creación
-        List<Operation> existingOperations = operationProjectService
-                .findByInvitationIdAndTypeAndStatusInOrderByCreatedAtDesc(
+        // 2. Buscar una operación previa de aceptación de la invitación que
+        // pueda reutilizarse para continuar un intento anterior.
+        Optional<Operation> existingOperation = operationProjectService
+                .findLatestOperationByInvitationIdAndType(
                         invitationId,
-                        OperationType.ACCEPT_INVITATION,
-                        blockingStatuses);
+                        OperationType.ACCEPT_INVITATION);
 
-        if (!existingOperations.isEmpty()) {
-            // Solamente toma el primero de las operaciones si existe al menos una
-            // operación
-            Operation existing = existingOperations.get(0);
+        // Si existe una operación previa, evaluar su estado para determinar
+        // si se puede reutilizar, si el proceso debe rechazarse o si corresponde
+        // registrar una nueva operación.
+        if (existingOperation.isPresent()) {
+            Operation existing = existingOperation.get();
 
             switch (existing.getStatus()) {
                 case REGISTERED, LOCAL_COMPENSATION_COMPLETED, COMPENSATION_COMPLETED -> {
-                    // Terminar aqui la ejecución del metodo y devolver la entidad
-
-                    // POSIBLE PROBLEMA:
-
-                    // Si el usuario administrador del tablero cambia el rol de la invitación e hizo
-                    // un primer intento cuando el microservicio Workflow estaba apagado, entonces
-                    // se tendra que reescribir el nuevo rol
-
-                    // Debe actualizar los roles si se ha alterado la invitacion enviada
-                    // Por el nuevo rol
+                    // Reutilizar la operación existente para reintentar el proceso
+                    // conservando su identificador.
+                    //
+                    // Actualizar el nuevo rol con el valor actual de la invitación,
+                    // ya que este puede haber cambiado desde el intento anterior.
                     existing.setNewRole(invitation.getRole());
 
+                    // Devolver la operación existente para continuar el flujo
+                    // utilizando el mismo identificador.
                     return existing;
                 }
 
-                // Lanzar una excepción si la operación no esta en un estado pendiente
+                // La operación se encuentra en ejecución, pendiente de ejecución
+                // o compensación, o requiere intervención manual. No se permite
+                // iniciar otro intento mientras esta operación no se resuelva.
                 case EXECUTION_PENDING,
                         EXECUTING,
                         COMPENSATION_PENDING,
@@ -121,35 +113,48 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
                     throw new OperationNotPendingException();
 
                 case COMPLETED -> {
-                    // Se ignora el estado completado para continuar con la lógica posterior
+                    // La operación anterior finalizó correctamente. No se reutiliza;
+                    // se continúa con el flujo para registrar una nueva operación
+                    // de aceptación de la invitación.
                 }
             }
         }
 
-        // Busca el tablero correspondiente a la invitación
+        // 3. Obtener el tablero asociado a la invitación.
         Board findedBoard = invitation.getBoard();
         UUID boardId = findedBoard.getId();
 
-        // 4. Buscar si existe un miembro
-        // Si el miembro existe quiere decir que se trata de un miembro que ha sido
-        // eliminado del equipo de un tablero
+        // 4. Consultar si ya existe un registro de miembro para el usuario
+        // en este tablero.
+        //
+        // La existencia de un miembro puede indicar que el usuario fue
+        // retirado previamente del tablero. En ese caso, su registro puede
+        // necesitar reactivación en lugar de una creación desde cero.
         Optional<Member> optionalMember = memberProjectService
                 .findOptionalMemberByBoardIdAndUserId(boardId, recipientUserId);
 
-        // Puede ser un null, false o true
+        // Capturar el estado de actividad anterior del miembro.
+        // null indica que no existe un registro previo.
         Boolean memberActive = optionalMember
                 .map(m -> m.isActive())
                 .orElse(null);
 
-        // Puede ser un null o un Role (que es el rol antiguo)
+        // Capturar el rol anterior del miembro para disponer de la
+        // información necesaria durante una eventual compensación.
+        // null indica que no existe un registro previo.
         Role role = optionalMember
                 .map(m -> m.getRole())
                 .orElse(null);
 
-        // 5. Registrar la operación antes de alterar los datos relacionados a
-        // Invitation y Member
+        // 5. Construir la operación antes de aplicar modificaciones sobre
+        // Invitation y Member.
+        //
+        // Se registran los valores previos y el nuevo rol previsto para
+        // disponer de información suficiente para gestionar la ejecución
+        // y, si fuera necesario, la compensación de los cambios locales.
 
-        // Genera un ID unico para la operación
+        // Generar el identificador que permitirá relacionar los pasos
+        // posteriores de la operación.
         UUID operationId = UUID.randomUUID();
 
         Operation operation = new Operation();
@@ -159,21 +164,27 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
         operation.setManualAttempts(0);
         operation.setAutomaticAttempts(0);
 
-        // Solamente se rellenan los campos necesarios
+        // Guardar las referencias del tablero, el usuario y la invitación
+        // involucrados en la operación.
         operation.setBoardId(boardId);
         operation.setUserId(recipientUserId);
         operation.setInvitationId(invitationId);
 
+        // Guardar el estado previo del miembro y los roles anterior y
+        // previsto. Estos datos permiten conocer la situación inicial
+        // y respaldar la lógica de compensación.
         operation.setMemberActive(memberActive);
         operation.setOldRole(role);
         operation.setNewRole(invitationRole);
 
-        // Fecha actual en la fecha de creación
+        // Registrar la fecha de creación y dejar sin programar el siguiente
+        // intento automático hasta que corresponda según el flujo.
         LocalDateTime currentDateTime = LocalDateTime.now();
         operation.setCreatedAt(currentDateTime);
         operation.setNextAutomaticAttemptAt(null);
 
-        // 6. Guardar operación y devolver la entidad
+        // 6. Persistir la operación en estado REGISTERED y devolverla
+        // para que el flujo de aplicación de negocio pueda continuar.
         operationProjectService.saveOperation(operation);
         return operation;
     }

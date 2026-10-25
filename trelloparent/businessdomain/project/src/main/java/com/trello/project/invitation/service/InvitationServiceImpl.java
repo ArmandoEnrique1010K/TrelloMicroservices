@@ -17,7 +17,6 @@ import com.trello.project.client.services.IdentityClientService;
 import com.trello.project.entities.Board;
 import com.trello.project.entities.Invitation;
 import com.trello.project.entities.Operation;
-import com.trello.project.enums.OperationStatus;
 import com.trello.project.enums.Role;
 import com.trello.project.enums.Status;
 import com.trello.project.exception.ServiceUnavailableException;
@@ -241,47 +240,45 @@ public class InvitationServiceImpl implements InvitationService {
         return response;
     }
 
-    // ----------------------------------------
-    // A partir de aqui los metodos estan orientado a operaciones
-    // ----------------------------------------
+    // --------------------------------------------------
+    // Métodos orientados a la gestión de operaciones
+    // --------------------------------------------------
 
-    // Los métodos que van a escribir una opaeración en la base de datos no deben
-    // llevar @Transactional en esta clase
+    // Los métodos de registro de operaciones deben ejecutarse sin una
+    // transacción externa iniciada por esta clase, para permitir que el
+    // registro de la operación se confirme independientemente de las
+    // modificaciones de negocio que se realicen posteriormente; dicho de otro modo,
+    // no va a llevar la anotación @Transactional en este método
 
-    // NOTA: PARA EJECUTAR LAS TAREAS EN SEGUNDO PLANO DEBE EJECUTAR:
-    // REGISTER
-    // HANDLER EN MODO AUTOMATIC
-    // PROCESSOR
+    // TODO: IMPLEMENTAR
+    // Flujo de ejecución para el procesamiento en segundo plano:
+    // 1. REGISTER: registrar la operación en la base de datos.
+    // 2. HANDLER (modo AUTOMATIC): ejecutar el procesamiento automático.
+    // 3. PROCESSOR: procesar la operación según su estado y gestionar
+    // la continuación del flujo de la saga.
 
     @Override
     public void acceptInvitation(UUID invitationId, UUID recipientUserId) {
-        // 1. Registrar o recuperar la operación.
+        // 1. Registra la operación de aceptación de invitación o recupera
+        // una operación existente, según las reglas de registro.
+
+        // Esto permite disponer de una operación persistida que identifique
+        // el proceso y permita gestionar su resultado.
         Operation operation = operationRegisterService
                 .registerAcceptInvitation(invitationId, recipientUserId);
 
-        // 2. Si la compensación local ya terminó, permitir que el usuario
-        // intente completar la compensación remota.
-        // if (operation.getStatus() == OperationStatus.COMPENSATED) {
-        // operationProcessor.processOperation(operation.getId());
-        // return;
-        // }
+        // 2. Aplica manualmente los cambios de negocio asociados a la aceptación.
+        // El segundo argumento en false indica que la ejecución no se realiza
+        // en modo automático.
 
-        // 3. Aplicar cambios locales únicamente si corresponde
-        // iniciar una operación nueva o repetir una ya compensada.
-        if (operation.getStatus() == OperationStatus.REGISTERED
-                || operation.getStatus() == OperationStatus.LOCAL_COMPENSATION_COMPLETED
-                || operation.getStatus() == OperationStatus.COMPENSATION_COMPLETED) {
+        // Separar este paso del registro permite conservar la operación
+        // aunque falle la aplicación de los cambios de negocio.
+        operationAcceptInvitationService.applyAcceptInvitation(operation.getId(), false);
 
-            // Ejecuta la operación de forma manual
-            // Recordar que el método de acceptInvitation se llama desde un endpoint
-            operationAcceptInvitationService
-                    .applyAcceptInvitation(operation.getId(), false);
-        }
-
-        // 4. Procesar según el estado persistido.
-        // operationProcessor.processOperation(operation.getId());
+        // 3. Procesa la operación según su estado en el microservicio Workflow.
+        // Este paso permite continuar con la coordinación de la saga y
+        // determinar las acciones posteriores que correspondan.
         operationAcceptInvitationProcessor.processAcceptInvitationOperation(operation.getId());
-
     }
 
     // --------------------------------------

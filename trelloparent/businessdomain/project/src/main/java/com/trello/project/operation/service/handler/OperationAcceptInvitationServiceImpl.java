@@ -44,12 +44,14 @@ public class OperationAcceptInvitationServiceImpl implements OperationAcceptInvi
     @Override
     public void applyAcceptInvitation(UUID operationId, boolean automatic)
             throws OperationNotFoundException, OperationNotPendingException, InvitationConfirmedException {
-        // 1. Recuperar la operación persistida.
+        // 1. Recuperar la operación registrada previamente para identificar
+        // el proceso de aceptación que se va a ejecutar.
         Operation persistedOperation = operationProjectService
                 .findOperationById(operationId)
                 .orElseThrow(OperationNotFoundException::new);
 
-        // 2. Validar si puede ejecutarse la aceptación.
+        // 2. Validar que la operación se encuentre en un estado que permita
+        // iniciar un nuevo intento de ejecución.
         OperationStatus currentStatus = persistedOperation.getStatus();
 
         if (currentStatus != OperationStatus.REGISTERED
@@ -61,7 +63,8 @@ public class OperationAcceptInvitationServiceImpl implements OperationAcceptInvi
             throw new OperationNotPendingException();
         }
 
-        // 3. Incrementar el contador correspondiente.
+        // 3. Incrementar el contador de intentos según el origen
+        // de la ejecución: manual o automática.
         if (automatic) {
             persistedOperation.setAutomaticAttempts(
                     persistedOperation.getAutomaticAttempts() + 1);
@@ -70,20 +73,21 @@ public class OperationAcceptInvitationServiceImpl implements OperationAcceptInvi
                     persistedOperation.getManualAttempts() + 1);
         }
 
-        // 4. Preparar la nueva ejecución.
+        // 4. Registrar la operación como pendiente de ejecución y actualizar
+        // los datos utilizados para controlar su procesamiento y reintentos.
         persistedOperation.setStatus(OperationStatus.EXECUTION_PENDING);
         persistedOperation.setCompletedAt(null);
         persistedOperation.setNextAutomaticAttemptAt(
                 LocalDateTime.now().plusSeconds(30));
 
-        // 5. Tomar los datos de la operación
+        // 5. Obtener los identificadores necesarios para localizar
+        // la invitación y el miembro asociado a la aceptación.
         UUID boardId = persistedOperation.getBoardId();
         UUID recipientUserId = persistedOperation.getUserId();
         UUID invitationId = persistedOperation.getInvitationId();
 
-        // Boolean memberActive = operation.getMemberActive();
-        // Role role = operation.getRole();
-
+        // 6. Recuperar la invitación y comprobar que todavía pueda aceptarse.
+        // Si ya fue confirmada, no se deben aplicar nuevamente los cambios.
         Invitation invitation = invitationProjectService.findInvitationByIdAndRecipientUserId(
                 invitationId,
                 recipientUserId);
@@ -92,18 +96,21 @@ public class OperationAcceptInvitationServiceImpl implements OperationAcceptInvi
             throw new InvitationConfirmedException();
         }
 
-        // 6. Actualizar la invitación
+        // 7. Confirmar la invitación y registrar la fecha de aceptación.
         invitation.setStatus(Status.ACCEPTED);
         invitation.setAcceptedAt(LocalDateTime.now());
         invitationProjectService.saveInvitation(invitation);
 
+        // 8. Comprobar si el usuario ya tiene un registro de miembro
+        // en el tablero para determinar si debe actualizarse o crearse.
         Optional<Member> optionalMember = memberProjectService
                 .findOptionalMemberByBoardIdAndUserId(boardId, recipientUserId);
 
         Board board = invitation.getBoard();
 
-        // 7. Operacion relacionada a miembro
-        // Si el miembro esta inactivo, debe activarlo
+        // 9. Aplicar los cambios correspondientes al miembro:
+        // activar el registro existente y actualizar su rol, o crear
+        // un nuevo miembro si todavía no existe.
         if (optionalMember.isPresent()) {
             Member member = optionalMember.get();
             member.setActive(true);
@@ -119,7 +126,8 @@ public class OperationAcceptInvitationServiceImpl implements OperationAcceptInvi
             memberProjectService.saveMember(member);
         }
 
-        // Guardar la operación
+        // 10. Persistir los cambios de estado de la operación junto
+        // con los datos de ejecución actualizados.
         operationProjectService.saveOperation(persistedOperation);
     }
 
@@ -127,34 +135,44 @@ public class OperationAcceptInvitationServiceImpl implements OperationAcceptInvi
     @Override
     public void revertAcceptInvitation(UUID operationId)
             throws OperationNotFoundException {
-        // 1. Validar que la operación exista y cambiar de estado
+        // 1. Recuperar la operación y registrar el inicio de la compensación
+        // local para indicar que se están revirtiendo los cambios en Project.
         Operation operation = operationProjectService.findOperationById(operationId)
                 .orElseThrow(OperationNotFoundException::new);
 
         operation.setStatus(OperationStatus.LOCAL_COMPENSATION_IN_PROGRESS);
         operationProjectService.saveOperation(operation);
 
+        // 2. Recuperar los datos originales registrados para la operación.
+        // Se utilizan para restaurar el estado previo a la aceptación.
         UUID boardId = operation.getBoardId();
         UUID userId = operation.getUserId();
         UUID invitationId = operation.getInvitationId();
         Boolean activeMember = operation.getMemberActive();
-        Role role = operation.getNewRole();
 
-        // 2. Buscar la invitación y modificar los campos
+        // Tomar el rol anterior
+        Role role = operation.getOldRole();
+
+        // 3. Revertir la aceptación de la invitación, restaurando
+        // su estado y eliminando la fecha de aceptación.
         Invitation invitation = invitationProjectService.findInvitationByIdAndRecipientUserId(invitationId, userId);
+
         invitation.setStatus(Status.UNCONFIRMED);
         invitation.setAcceptedAt(null);
         invitationProjectService.saveInvitation(invitation);
 
-        // 3. Buscar el miembro (podria no existir)
+        // 4. Buscar el registro de miembro para determinar cómo revertir
+        // los cambios realizados durante la aceptación.
         Optional<Member> optionalMember = memberProjectService
                 .findOptionalMemberByBoardIdAndUserId(boardId, userId);
 
-        // Si el estado del miembro es null quiere decir que se trataba de un nuevo
-        // miembro
+        // 5. Restaurar el estado previo del miembro según el valor
+        // registrado antes de ejecutar la aceptación.
         if (activeMember == null) {
 
-            // Si el miembro existe, eliminarlo permanentemente
+            // No existía un miembro antes de la operación.
+            // Si se encuentra uno, eliminarlo porque fue creado durante
+            // la aceptación de la invitación.
             if (optionalMember.isPresent()) {
                 Member member = optionalMember.get();
 
@@ -162,43 +180,38 @@ public class OperationAcceptInvitationServiceImpl implements OperationAcceptInvi
                         member.getId(),
                         userId);
             } else {
-                // En el caso de que el miembro no exista, pero indica que se trato de una
-                // operación en la que se trata de eliminar un miembro existente
+                // No se encuentra el miembro que debía eliminarse.
+                // Finalizar sin continuar con la actualización del estado
+                // de compensación, según la lógica actual.
+
+                // SE CONSIDERA QUE EL MIEMBRO YA FUE ELIMINADO
                 return;
 
             }
         } else if (Boolean.FALSE.equals(activeMember)) {
-            // En el caso que el campo activeMember sea false, indica que se trata de un
-            // miembro inactivo
-
-            // Si el miembro no existe, establecer estado de MANUAL_REVIEW
+            // El miembro existía antes de la operación, pero estaba inactivo.
+            // Por tanto, debe conservarse y restaurarse su estado original.
             if (optionalMember.isEmpty()) {
+                // El miembro que debía restaurarse no existe.
+                // Registrar la inconsistencia para que requiera revisión manual.
                 operation.setStatus(OperationStatus.MANUAL_INTERVENTION_REQUIRED);
                 operationProjectService.saveOperation(operation);
-
-                // Se colocar un return para terminar la ejecución del código y no se lanza una
-                // excepción porque ahí si no haria los cambios en la base de datos por
-                // @Transactional
                 return;
             }
 
-            // Revertir los cambios realizados en miembro
+            // Restaurar el estado inactivo y el rol que tenía el miembro
+            // antes de aceptar la invitación.
             Member member = optionalMember.get();
             member.setActive(false);
             member.setRole(role);
             memberProjectService.saveMember(member);
         } else {
-            // En el caso de que activeMember sea true, se tendria una inconsistencia,
-            // porque indica que se trata de un miembro activo
+            // El miembro estaba activo antes de la operación, lo que no
+            // coincide con los escenarios admitidos para esta compensación.
+            // Registrar la inconsistencia para que requiera revisión manual.
             operation.setStatus(OperationStatus.MANUAL_INTERVENTION_REQUIRED);
             operationProjectService.saveOperation(operation);
             return;
         }
-
-        // 4. Dejar operación con el estado de COMPENSATED
-        operation.setStatus(OperationStatus.LOCAL_COMPENSATION_COMPLETED);
-        operation.setCompletedAt(null);
-        operationProjectService.saveOperation(operation);
     }
-
 }
