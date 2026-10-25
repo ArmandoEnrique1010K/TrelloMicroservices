@@ -18,10 +18,7 @@ import com.trello.workflow.operation.service.handler.OperationDeleteAllBoardsAnd
 import com.trello.workflow.operation.service.handler.OperationDeleteBoardAndBoardAccessAndTasksService;
 import com.trello.workflow.services.OperationWorkflowService;
 
-import lombok.extern.slf4j.Slf4j;
-
 // Servicio para procesar la operación
-@Slf4j
 @Service
 public class OperationProcessorImpl implements OperationProcessor {
 
@@ -53,19 +50,20 @@ public class OperationProcessorImpl implements OperationProcessor {
         this.operationDeleteAllBoardsAndBoardAccessAndTasksService = operationDeleteAllBoardsAndBoardAccessAndTasksService;
     }
 
+    // Procesa una operación registrada según su tipo y estado actual.
     @Override
     public void processOperation(UUID operationId) throws OperationNotPendingException, BusinessRuleException {
-        // 1° Busca la operación y valida su estado
+        // Recuperar la operación que se va a procesar.
         Operation operation = operationWorkflowService
                 .findOperationById(operationId)
                 .orElseThrow(OperationNotFoundException::new);
 
-        // Solamente ejecutar operaciones con estado CREATED O PENDING
+        // Permitir el procesamiento únicamente de operaciones nuevas o pendientes.
         if (operation.getStatus() != OperationStatus.CREATED && operation.getStatus() != OperationStatus.PENDING) {
             throw new OperationNotPendingException();
         }
 
-        // 2° Evaluar por cada tipo de operación
+        // Delegar la ejecución al servicio correspondiente al tipo de operación.
         switch (operation.getType()) {
             case ADD_BOARD_ACCESS ->
                 operationAddBoardAccessService.applyAddBoardAccess(operation.getId());
@@ -90,8 +88,7 @@ public class OperationProcessorImpl implements OperationProcessor {
                 operationDeleteAllBoardsAndBoardAccessAndTasksService
                         .applyDeleteAllBoardsAndBoardAccessAndTasks(operation.getId());
 
-            // Esto nunca pasara, si el caso no coincide con uno de los valores del enum
-            // OperationType
+            // Rechazar los tipos de operación que no tienen un procesador definido.
             default -> throw new BusinessRuleException();
         }
     }

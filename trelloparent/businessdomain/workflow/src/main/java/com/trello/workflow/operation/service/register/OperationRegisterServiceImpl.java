@@ -37,22 +37,37 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
         this.boardWorkflowService = boardWorkflowService;
     }
 
-    // Registra la operación antes de ejecutar el efecto
+    // Registra la operación de añadir un permiso de acceso antes de ejecutar el
+    // efecto.
+    // Si existe una operación pendiente, devuelve la operación registrada para
+    // permitir su reintento.
     @Transactional(rollbackFor = Exception.class)
     @Override
     public Operation registerAddBoardAccess(UUID boardId, UUID userId, Role newRole, UUID operationId)
             throws OperationConflictException, OperationNotPendingException, BoardAccessAlreadyExistsException {
 
-        // En el caso de que no exista la operación se procede a crearla
-        validateExistingOperationOrReturnPending(operationId, boardId, userId, newRole, null,
+        // Comprobar si existe una operación con el identificador proporcionado.
+        Operation existingOperation = validateExistingOperationOrReturnPending(
+                operationId,
+                boardId,
+                userId,
+                newRole,
+                null,
                 OperationType.ADD_BOARD_ACCESS);
 
-        // Validar reglas de negocio
+        // Si existe una operación pendiente, devolverla para continuar su
+        // procesamiento.
+        if (existingOperation != null) {
+            existingOperation.setNewRole(newRole);
+            return operationWorkflowService.saveOperation(existingOperation);
+        }
+
+        // Comprobar que el usuario todavía no tenga permiso de acceso al tablero.
         if (boardAccessWorkflowService.existsBoardAccessByBoardIdAndUserId(boardId, userId)) {
             throw new BoardAccessAlreadyExistsException();
         }
 
-        // Crear una nueva operación
+        // Crear el registro de la nueva operación.
         Operation operation = new Operation();
         operation.setId(operationId);
         operation.setType(OperationType.ADD_BOARD_ACCESS);
@@ -64,10 +79,62 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
         operation.setNewRole(newRole);
         operation.setAttempts(0);
 
+        // Persistir la operación antes de ejecutar el cambio de negocio.
         operationWorkflowService.saveOperation(operation);
 
-        // Retornar la entidad completa de la operación
         return operation;
+    }
+
+    // Valida una operación existente y devuelve la operación si está pendiente.
+    // Si no existe, devuelve null para permitir el registro de una nueva operación.
+    private Operation validateExistingOperationOrReturnPending(
+            UUID operationId,
+            UUID boardId,
+            UUID userId,
+            Role newRole,
+            List<UUID> boardsIds,
+            OperationType expectedType) throws OperationConflictException, OperationNotPendingException {
+
+        // Buscar la operación mediante su identificador.
+        Optional<Operation> existingOperation = operationWorkflowService.findOperationById(operationId);
+
+        // Si no existe una operación con ese identificador, permitir su registro.
+        if (existingOperation.isEmpty()) {
+            return null;
+        }
+
+        Operation existing = existingOperation.get();
+
+        // Comprobar que los datos de la solicitud coincidan con la operación
+        // registrada.
+        if (existing.getType() != expectedType
+                || !existing.getBoardId().equals(boardId)
+                // El id del usuario es opcional
+                || (userId != null && !existing.getUserId().equals(userId))
+                // La lista de boardsIds es opcional, se utiliza en un solo metodo
+                || (boardsIds != null && existing.getBoardIds() != boardsIds)) {
+            // Excepción de una operación conflictiva
+            throw new OperationConflictException();
+        }
+
+        // Determinar si la operación puede volver a procesarse según su estado actual.
+        switch (existing.getStatus()) {
+            case PENDING -> {
+                // Actualizar el rol por si ha cambiado desde el registro inicial.
+                existing.setNewRole(newRole);
+                return existing;
+            }
+
+            // Impedir el reintento de operaciones que no están pendientes.
+            case CREATED, PROCESSING, COMPLETED, MANUAL_REVIEW -> {
+                throw new OperationNotPendingException();
+            }
+
+            // Rechazar cualquier estado que no esté contemplado en el flujo.
+            // Este ultimo caso nunca llegara a pasar
+            default -> throw new BusinessRuleException();
+        }
+
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -170,58 +237,6 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
         operationWorkflowService.saveOperation(operation);
 
         return operation;
-    }
-
-    // Método privado para validar la operación existente y devolver aquella
-    // operación o devolver un null
-    private Operation validateExistingOperationOrReturnPending(
-            UUID operationId,
-            UUID boardId,
-            UUID userId,
-            Role newRole,
-            List<UUID> boardsIds,
-            OperationType expectedType) throws OperationConflictException, OperationNotPendingException {
-
-        // Busca una operación existente en la base de datos
-        Optional<Operation> existingOperation = operationWorkflowService.findOperationById(operationId);
-
-        // Si no existe la operación
-        if (existingOperation.isEmpty()) {
-            return null;
-        }
-
-        Operation existing = existingOperation.get();
-
-        // Impide reutilizar el mismo identificador para una operación diferente
-        if (existing.getType() != expectedType
-                || !existing.getBoardId().equals(boardId)
-                // El id del usuario es opcional
-                || (userId != null && !existing.getUserId().equals(userId))
-                // El nuevo rol es opcional, si no se pasa un rol, se ignora esta ultima
-                // condición
-                || (newRole != null && existing.getNewRole() != newRole)
-                // La lista de boardsIds es opcional, se utiliza en un solo metodo
-                || (boardsIds != null && existing.getBoardIds() != boardsIds)) {
-            // Excepción de una operación conflictiva
-            throw new OperationConflictException();
-        }
-
-        // Un reintento de una operación ya completada no debe volver a ejecutar el
-        // alta
-        switch (existing.getStatus()) {
-            case PENDING -> {
-                return existing;
-            }
-
-            // Estos casos representan que la operacion no esta pendiente
-            case CREATED, PROCESSING, COMPLETED, MANUAL_REVIEW -> {
-                throw new OperationNotPendingException();
-            }
-
-            // Este ultimo caso nunca llegara a pasar
-            default -> throw new BusinessRuleException();
-        }
-
     }
 
     @Transactional(rollbackFor = Exception.class)

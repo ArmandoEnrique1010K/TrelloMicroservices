@@ -20,9 +20,6 @@ import com.trello.workflow.services.BoardAccessWorkflowService;
 import com.trello.workflow.services.BoardWorkflowService;
 import com.trello.workflow.services.OperationWorkflowService;
 
-import lombok.extern.slf4j.Slf4j;
-
-@Slf4j
 @Service
 public class OperationAddBoardAccessServiceImpl implements OperationAddBoardAccessService {
 
@@ -42,32 +39,27 @@ public class OperationAddBoardAccessServiceImpl implements OperationAddBoardAcce
     @Override
     public void applyAddBoardAccess(UUID operationId)
             throws OperationNotFoundException, BoardAccessAlreadyExistsException {
-        // 1° Buscar operación
+        // Recuperar la operación que se va a ejecutar
         Operation currentOperation = operationWorkflowService
                 .findOperationById(operationId)
                 .orElseThrow(OperationNotFoundException::new);
 
-        // 2° Aumentar el numero de intentos en 1
-        currentOperation.setStatus(OperationStatus.PROCESSING);
-        currentOperation.setAttempts(currentOperation.getAttempts() + 1);
-        operationWorkflowService.saveOperation(currentOperation);
-
-        // Toma los datos de la operación
+        // Obtener los identificadores necesarios para localizar el permiso de acceso.
         UUID boardId = currentOperation.getBoardId();
         UUID userId = currentOperation.getUserId();
 
         // Rol nuevo
         Role newRole = currentOperation.getNewRole();
 
-        // Buscar por tablero
+        // Obtiene tablero por ID
         Board board = boardWorkflowService.findBoardById(boardId);
 
-        // 3° Volver a preguntar si existe permiso de acceso
+        // Comprobar que el usuario todavía no tenga permiso de acceso al tablero.
         if (boardAccessWorkflowService.existsBoardAccessByBoardIdAndUserId(boardId, userId)) {
             throw new BoardAccessAlreadyExistsException();
         }
 
-        // 4° Añadir el nuevo permiso de acceso
+        // Crear el registro del nuevo permiso de acceso.
         BoardAccess savedBoardAccess = new BoardAccess();
         savedBoardAccess.setUserId(userId);
         savedBoardAccess.setRole(newRole);
@@ -75,61 +67,45 @@ public class OperationAddBoardAccessServiceImpl implements OperationAddBoardAcce
         savedBoardAccess.setBoard(board);
         savedBoardAccess.setStatus(true);
 
+        // Persistir el permiso de acceso
         boardAccessWorkflowService.saveBoardAccess(savedBoardAccess);
-
-        // 5° Marcar la operación como completada
-        currentOperation.setStatus(OperationStatus.COMPLETED);
-        currentOperation.setCompletedAt(LocalDateTime.now());
-        operationWorkflowService.saveOperation(currentOperation);
     }
 
+    // Revierte la operación de añadir un permiso de acceso al tablero.
     @Transactional(rollbackFor = Exception.class)
     @Override
     public void revertAddBoardAccess(UUID operationId)
             throws OperationNotFoundException, OperationConflictException, OperationNotPendingException {
-        // 1° Buscar operación
+        // Recuperar la operación que se va a compensar.
         Operation operation = operationWorkflowService
                 .findOperationById(operationId)
                 .orElseThrow(OperationNotFoundException::new);
 
-        // 2° Verificar el tipo de operación
+        // Comprobar que la operación corresponda al alta de un permiso de acceso.
         if (operation.getType() != OperationType.ADD_BOARD_ACCESS) {
             throw new OperationConflictException();
         }
 
-        // Solo se puede compensar una operación cuyo estado sea:
-        // Permitido: PROCESSING, PENDING
-        if (operation.getStatus() == OperationStatus.CREATED
-                && operation.getStatus() == OperationStatus.COMPLETED
-                && operation.getStatus() == OperationStatus.MANUAL_REVIEW) {
+        // Permitir la compensación únicamente de operaciones completadas o pendientes.
+        if (operation.getStatus() != OperationStatus.COMPLETED
+                && operation.getStatus() != OperationStatus.PENDING) {
             throw new OperationNotPendingException();
         }
 
-        // 3° Actualizar estado de la operación
+        // Registrar que la operación se encuentra en proceso de compensación.
         operation.setStatus(OperationStatus.PROCESSING);
         operation.setCompletedAt(null);
         operationWorkflowService.saveOperation(operation);
 
-        // 4° Intentar ejecutar el metodo para borrar permiso de acceso por ID de
-        // tablero e ID de usuario
+        // Obtener los identificadores necesarios para localizar el permiso de acceso.
         UUID boardId = operation.getBoardId();
         UUID userId = operation.getUserId();
 
+        // Eliminar el permiso de acceso creado por la operación original.
         boardAccessWorkflowService.deleteBoardAccessByBoardIdAndUserId(
                 boardId, userId);
 
-        // try {
-        // boardAccessWorkflowService.deleteBoardAccessByBoardIdAndUserId(operation.getBoardId(),
-        // operation.getUserId());
-        // } catch (RuntimeException exception) {
-        // operation.setStatus(OperationStatus.MANUAL_REVIEW);
-        // operation.setCompletedAt(null);
-        // operationWorkflowService.saveOperation(operation);
-        // } catch (Exception ex) {
-        // throw ex;
-        // }
-
-        // 5° La compensación ha finalizado correctamente.
+        // Registrar la finalización de la compensación.
         operation.setStatus(OperationStatus.PENDING);
         operation.setCompletedAt(LocalDateTime.now());
         operationWorkflowService.saveOperation(operation);

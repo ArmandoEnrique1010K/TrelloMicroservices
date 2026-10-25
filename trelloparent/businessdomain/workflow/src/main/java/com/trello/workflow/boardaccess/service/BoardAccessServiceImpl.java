@@ -1,37 +1,54 @@
 package com.trello.workflow.boardaccess.service;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 
 import com.trello.workflow.entities.Operation;
+import com.trello.workflow.enums.OperationStatus;
 import com.trello.workflow.enums.Role;
 import com.trello.workflow.operation.service.processor.OperationProcessor;
 import com.trello.workflow.operation.service.register.OperationRegisterService;
+import com.trello.workflow.services.OperationWorkflowService;
 
 @Service
 public class BoardAccessServiceImpl implements BoardAccessService {
 
     private final OperationProcessor operationProcessor;
     private final OperationRegisterService operationRegisterService;
+    private final OperationWorkflowService operationWorkflowService;
 
     public BoardAccessServiceImpl(
             OperationProcessor operationProcessor,
-            OperationRegisterService operationRegisterService) {
+            OperationRegisterService operationRegisterService,
+            OperationWorkflowService operationWorkflowService) {
         this.operationProcessor = operationProcessor;
         this.operationRegisterService = operationRegisterService;
+        this.operationWorkflowService = operationWorkflowService;
     }
 
-    // Añadir permiso de acceso
-    // Se utiliza SAGA Pattern para procesar la operación
+    // Este método se llama desde un endpoint, donde el endpoint se llama desde el
+    // microservicio Project.
+
+    // Registra y procesa la operación de añadir un permiso de acceso al tablero.
     @Override
     public void addBoardAccess(UUID boardId, UUID userId, Role role,
             UUID operationId) {
-        // 1° Registrar la operación
+        // Registrar la operación o recuperar una operación pendiente.
         Operation operation = operationRegisterService.registerAddBoardAccess(boardId, userId, role, operationId);
 
-        // 2° Procesar la operación registrada
+        // Incrementar el número de intentos de procesamiento.
+        operation.setAttempts(operation.getAttempts() + 1);
+        operationWorkflowService.saveOperation(operation);
+
+        // Ejecutar la operación registrada.
         operationProcessor.processOperation(operation.getId());
+
+        // Registrar la finalización de la operación.
+        operation.setStatus(OperationStatus.COMPLETED);
+        operation.setCompletedAt(LocalDateTime.now());
+        operationWorkflowService.saveOperation(operation);
     }
 
     // Activar permiso de acceso
