@@ -34,20 +34,23 @@ public class WorkflowBoardAccessCommandClientFallbackFactory
 
             @Override
             public ResponseEntity<Void> activateBoardAccess(UUID boardId, UUID memberUserId,
-                    WorkflowRole roleName, UUID operationId) {
+                    WorkflowRole roleName, WorkflowRole oldRoleName, UUID operationId) {
                 log.error("Error relacionado con activateBoardAccess");
                 throw new ServiceUnavailableException();
             }
 
             @Override
             public ResponseEntity<Void> changeRoleBoardAccess(UUID boardId, UUID memberUserId, WorkflowRole roleName,
+                    WorkflowRole oldRoleName,
                     UUID operationId) {
                 log.error("Error relacionado con changeRoleBoardAccess");
                 throw new ServiceUnavailableException();
             }
 
             @Override
-            public ResponseEntity<Void> deactivateBoardAccess(UUID boardId, UUID memberUserId) {
+            public ResponseEntity<Void> deactivateBoardAccess(UUID boardId, UUID memberUserId, WorkflowRole roleName,
+                    WorkflowRole oldRoleName,
+                    UUID operationId) {
                 log.error("Error relacionado con deactivateBoardAccess");
                 throw new ServiceUnavailableException();
             }

@@ -25,23 +25,27 @@ public interface WorkflowBoardAccessCommandClient {
             // Identifica la operación que se esta ejecutando
             @RequestHeader("X-Operation-Id") UUID operationId);
 
-    @PatchMapping("/board-accesses/board/{boardId}/user/{memberUserId}/role/{roleName}")
+    @PatchMapping("/board-accesses/activate/board/{boardId}/user/{memberUserId}/role/{roleName}/old-role/{oldRoleName}")
     ResponseEntity<Void> activateBoardAccess(
             @PathVariable("boardId") UUID boardId,
             @PathVariable("memberUserId") UUID memberUserId,
             @PathVariable("roleName") WorkflowRole roleName,
+            @PathVariable("oldRoleName") WorkflowRole oldRoleName,
             @RequestHeader("X-Operation-Id") UUID operationId);
 
-    @PutMapping("/board-accesses/board/{boardId}/user/{memberUserId}/role/{roleName}")
+    @PutMapping("/board-accesses/board/{boardId}/user/{memberUserId}/role/{roleName}/old-role/{oldRoleName}")
     ResponseEntity<Void> changeRoleBoardAccess(
             @PathVariable("boardId") UUID boardId,
             @PathVariable("memberUserId") UUID memberUserId,
-            @PathVariable("roleName") WorkflowRole roleName, @RequestHeader("X-Operation-Id") UUID operationId);
+            @PathVariable("roleName") WorkflowRole roleName,
+            @PathVariable("oldRoleName") WorkflowRole oldRoleName,
+            @RequestHeader("X-Operation-Id") UUID operationId);
 
-    @PatchMapping("/board-accesses/board/{boardId}/user/{memberUserId}")
+    @PatchMapping("/board-accesses/deactivate/board/{boardId}/user/{memberUserId}/role/{roleName}/old-role/{oldRoleName}")
     ResponseEntity<Void> deactivateBoardAccess(
             @PathVariable("boardId") UUID boardId,
-            @PathVariable("memberUserId") UUID memberUserId
-    // , @RequestHeader("X-Operation-Id") UUID operationId
-    );
+            @PathVariable("memberUserId") UUID memberUserId,
+            @PathVariable("roleName") WorkflowRole roleName,
+            @PathVariable("oldRoleName") WorkflowRole oldRoleName,
+            @RequestHeader("X-Operation-Id") UUID operationId);
 }

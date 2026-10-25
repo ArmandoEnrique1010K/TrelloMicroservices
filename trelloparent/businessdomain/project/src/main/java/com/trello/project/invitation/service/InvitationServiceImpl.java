@@ -32,7 +32,6 @@ import com.trello.project.invitation.mapper.InvitationResponseMapper;
 import com.trello.project.invitation.mapper.ReceivedInvitationResponseMapper;
 import com.trello.project.operation.service.handler.OperationAcceptInvitationService;
 import com.trello.project.operation.service.processor.OperationAcceptInvitationProcessor;
-import com.trello.project.operation.service.processor.OperationProcessor;
 import com.trello.project.operation.service.register.OperationRegisterService;
 import com.trello.project.service.BoardProjectService;
 import com.trello.project.service.InvitationProjectService;
@@ -47,7 +46,6 @@ public class InvitationServiceImpl implements InvitationService {
     private final IdentityClientService identityClientService;
     private final BoardInvitationResponseMapper boardInvitationResponseMapper;
     private final ReceivedInvitationResponseMapper receivedInvitationResponseMapper;
-    private final OperationProcessor operationProcessor;
     private final OperationRegisterService operationRegisterService;
     private final OperationAcceptInvitationService operationAcceptInvitationService;
     private final OperationAcceptInvitationProcessor operationAcceptInvitationProcessor;
@@ -59,7 +57,6 @@ public class InvitationServiceImpl implements InvitationService {
             IdentityClientService identityClientService,
             BoardInvitationResponseMapper boardInvitationResponseMapper,
             ReceivedInvitationResponseMapper receivedInvitationResponseMapper,
-            OperationProcessor operationProcessor,
             OperationRegisterService operationRegisterService,
             OperationAcceptInvitationService operationAcceptInvitationService,
             OperationAcceptInvitationProcessor operationAcceptInvitationProcessor) {
@@ -70,7 +67,6 @@ public class InvitationServiceImpl implements InvitationService {
         this.identityClientService = identityClientService;
         this.boardInvitationResponseMapper = boardInvitationResponseMapper;
         this.receivedInvitationResponseMapper = receivedInvitationResponseMapper;
-        this.operationProcessor = operationProcessor;
         this.operationRegisterService = operationRegisterService;
         this.operationAcceptInvitationService = operationAcceptInvitationService;
         this.operationAcceptInvitationProcessor = operationAcceptInvitationProcessor;

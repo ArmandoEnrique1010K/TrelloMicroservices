@@ -169,6 +169,10 @@ public class OperationAcceptInvitationProcessorImpl implements OperationAcceptIn
         WorkflowRole workflowRole = WorkflowRoleUtils.parseRoleToWorkflowRole(
                 invitation.getRole());
 
+        // Cambiar el rol antiguo
+        WorkflowRole oldRole = WorkflowRoleUtils.parseRoleToWorkflowRole(
+                operation.getOldRole());
+
         // Recuperar el estado de actividad del miembro antes de la operación.
         // Este valor determina qué acción debe ejecutarse en Workflow.
         Boolean memberWasActive = operation.getMemberActive();
@@ -187,6 +191,8 @@ public class OperationAcceptInvitationProcessorImpl implements OperationAcceptIn
                     boardId,
                     operation.getUserId(),
                     workflowRole,
+                    // Debe enviar el rol antiguo para guardarlo
+                    oldRole,
                     operation.getId());
         } else {
             // El miembro ya estaba activo antes de aceptar la invitación.
@@ -229,7 +235,7 @@ public class OperationAcceptInvitationProcessorImpl implements OperationAcceptIn
             // 4. Registrar que la compensación local terminó correctamente.
             // El siguiente paso del proceso será compensar los cambios
             // remotos en Workflow, sin repetir esta reversión local.
-            operationUtils.markLocalCompensationCompleted(operation);
+            operationUtils.markLocalCompensationCompleted(updatedOperation);
         } catch (OperationManualReviewException e) {
             throw e;
         } catch (Exception e) {
@@ -296,3 +302,5 @@ public class OperationAcceptInvitationProcessorImpl implements OperationAcceptIn
     }
 
 }
+
+// TODO: 2. Corregir el uso del estado en processAcceptInvitationOperation()

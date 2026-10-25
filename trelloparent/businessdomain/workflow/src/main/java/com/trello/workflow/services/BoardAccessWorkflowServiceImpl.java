@@ -2,6 +2,8 @@ package com.trello.workflow.services;
 
 import com.trello.workflow.repositories.BoardAccessRepository;
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.util.List;
 import java.util.UUID;
 
@@ -11,6 +13,7 @@ import com.trello.workflow.entities.BoardAccess;
 import com.trello.workflow.enums.Role;
 import com.trello.workflow.exception.BoardAccessNotFoundException;
 
+@Slf4j
 @Service
 public class BoardAccessWorkflowServiceImpl implements BoardAccessWorkflowService {
 

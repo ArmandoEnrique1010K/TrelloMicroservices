@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.trello.project.client.enums.WorkflowRole;
 import com.trello.project.client.utils.WorkflowRoleUtils;
@@ -33,6 +34,7 @@ public class OperationChangeRoleMemberServiceImpl implements OperationChangeRole
         this.memberProjectService = memberProjectService;
     }
 
+    @Transactional(rollbackFor = Exception.class)
     @Override
     public void applyChangeRoleMember(UUID operationId, boolean automatic) {
         Operation persistedOperation = operationProjectService
@@ -72,20 +74,22 @@ public class OperationChangeRoleMemberServiceImpl implements OperationChangeRole
         // Actualiza el rol
         findedMember.setRole(newRole);
 
-        Board board = findedMember.getBoard();
-
         // Borrar invitación si existe
         invitationProjectService.deleteInvitationIfExistsByBoardIdAndRecipientUserId(
-                board.getId(),
-                findedMember.getUserId(),
+                boardId,
+                userId,
                 ownerUserId);
 
-        Member saveMember = memberProjectService.saveMember(findedMember);
+        memberProjectService.saveMember(findedMember);
 
-        WorkflowRole workflowRole = WorkflowRoleUtils.parseRoleToWorkflowRole(newRole);
+        // TODO: DEBE DEVOLVER UN MEMBER RESPONSE
+        // Member saveMember = memberProjectService.saveMember(findedMember);
+
+        // WorkflowRole workflowRole =
+        // WorkflowRoleUtils.parseRoleToWorkflowRole(newRole);
 
         // OBTENER EL ID DEL USUARIO DESDE EL MIEMBRO
-        UUID memberUserId = saveMember.getUserId();
+        // UUID memberUserId = saveMember.getUserId();
 
         // // Cambiar el rol en el otro microservicio
         // workflowClientService.changeRoleBoardAccess(board.getId(), memberUserId,
@@ -99,8 +103,23 @@ public class OperationChangeRoleMemberServiceImpl implements OperationChangeRole
         operationProjectService.saveOperation(persistedOperation);
     }
 
+    // Solamente revierte los cambios en el rol del miembro
+    @Transactional(rollbackFor = Exception.class)
     @Override
     public void revertChangeRoleMember(UUID operationId) {
-    }
+        Operation operation = operationProjectService.findOperationById(operationId)
+                .orElseThrow(OperationNotFoundException::new);
+        operation.setStatus(OperationStatus.LOCAL_COMPENSATION_IN_PROGRESS);
+        operationProjectService.saveOperation(operation);
 
+        // UUID boardId = operation.getId();
+        // UUID userId = operation.getUserId();
+        UUID memberId = operation.getMemberId();
+        UUID ownerUserId = operation.getOwnerUserId();
+        Role oldRole = operation.getOldRole();
+
+        Member findedMember = memberProjectService.findMemberByIdAndOwnerUserId(memberId, ownerUserId);
+        findedMember.setRole(oldRole);
+        memberProjectService.saveMember(findedMember);
+    }
 }

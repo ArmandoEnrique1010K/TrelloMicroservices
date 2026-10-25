@@ -12,8 +12,7 @@ import com.trello.project.enums.OperationType;
 
 public interface OperationRepository extends JpaRepository<Operation, UUID> {
 
-    // Buscar operación por ID de invitación y Operation Type igual a
-    // ACCEPT_INVITATION
+    // Buscar operación por ID de invitación y Tipo de operación
     Optional<Operation> findByInvitationIdAndType(UUID invitationId, OperationType type);
 
     Optional<Operation> findByInvitationIdAndTypeAndStatusNot(UUID invitationId,
@@ -42,4 +41,6 @@ public interface OperationRepository extends JpaRepository<Operation, UUID> {
             OperationType type);
 
     Optional<Operation> findFirstByInvitationIdAndTypeOrderByCreatedAtDesc(UUID invitationId, OperationType type);
+
+    Optional<Operation> findFirstByMemberIdAndTypeOrderByCreatedAtDesc(UUID memberId, OperationType type);
 }

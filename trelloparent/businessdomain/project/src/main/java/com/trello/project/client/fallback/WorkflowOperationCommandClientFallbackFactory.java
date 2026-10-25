@@ -33,6 +33,12 @@ public class WorkflowOperationCommandClientFallbackFactory implements FallbackFa
                 log.error("Error relacionado con revertActivateBoardAccess");
                 throw new ServiceUnavailableException();
             }
+
+            @Override
+            public ResponseEntity<Void> revertChangeRoleBoardAccess(UUID operationId) {
+                log.error("Error relacionado con revertChangeRoleBoardAccess");
+                throw new ServiceUnavailableException();
+            }
         };
     }
 

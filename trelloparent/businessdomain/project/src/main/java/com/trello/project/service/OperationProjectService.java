@@ -37,4 +37,6 @@ public interface OperationProjectService {
 
     Optional<Operation> findLatestOperationByInvitationIdAndType(UUID invitationId,
             OperationType type);
+
+    Optional<Operation> findLatestOperationByMemberIdAndType(UUID memberId, OperationType type);
 }

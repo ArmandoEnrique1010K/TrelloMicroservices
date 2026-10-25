@@ -19,4 +19,9 @@ public interface WorkflowOperationCommandClient {
     @PostMapping("/operations/revert-activate-board-access")
     ResponseEntity<Void> revertActivateBoardAccess(
             @RequestHeader("X-Operation-Id") UUID operationId);
+
+    @PostMapping("/operations/revert-change-role-board-access")
+    ResponseEntity<Void> revertChangeRoleBoardAccess(
+            @RequestHeader("X-Operation-Id") UUID operationId);
+
 }

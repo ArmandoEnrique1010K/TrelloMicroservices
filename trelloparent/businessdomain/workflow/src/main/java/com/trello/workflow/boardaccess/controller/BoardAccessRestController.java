@@ -28,7 +28,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Tag(name = "Board Access API", description = "API para la gestión de permisos de acceso al tablero por usuarios")
 @RestController
 @RequestMapping("/board-accesses")
@@ -347,7 +349,7 @@ public class BoardAccessRestController {
     // El ID del usuario que es el miembro, se obtiene desde un parametro
     public ResponseEntity<Void> changeRoleBoardAccess(
             @Parameter(description = "ID del tablero", required = true, example = "550e8400-e29b-41d4-a716-446655440000") @PathVariable UUID boardId,
-            @Parameter(description = "ID del usuario", required = true, example = "550e8400-e29b-41d4-a716-446655440000") @PathVariable UUID memberUserId,
+            @Parameter(description = "ID del usuario miembro", required = true, example = "550e8400-e29b-41d4-a716-446655440000") @PathVariable UUID memberUserId,
             @Parameter(description = "Rol nuevo del miembro", required = true, example = "ADMIN") @PathVariable Role roleName,
             @Parameter(description = "Rol antiguo del miembro", required = true, example = "MEMBER") @PathVariable Role oldRoleName,
             @RequestHeader("X-Operation-Id") UUID operationId) {

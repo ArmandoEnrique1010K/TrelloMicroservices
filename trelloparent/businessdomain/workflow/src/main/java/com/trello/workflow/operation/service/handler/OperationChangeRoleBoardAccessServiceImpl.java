@@ -18,6 +18,9 @@ import com.trello.workflow.operation.exception.OperationNotPendingException;
 import com.trello.workflow.services.BoardAccessWorkflowService;
 import com.trello.workflow.services.OperationWorkflowService;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Service
 public class OperationChangeRoleBoardAccessServiceImpl implements OperationChangeRoleBoardAccessService {
     private final OperationWorkflowService operationWorkflowService;

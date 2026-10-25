@@ -304,8 +304,8 @@ public class OperationController {
                     }
                     """))),
     })
-    @PostMapping("/revert-change-board-access")
-    public ResponseEntity<Void> revertChangeBoardAccess(
+    @PostMapping("/revert-change-role-board-access")
+    public ResponseEntity<Void> revertChangeRoleBoardAccess(
             @RequestHeader("X-Operation-Id") UUID operationId) {
         operationChangeRoleBoardAccessService.revertChangeRoleBoardAccess(operationId);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).body(null);

@@ -31,18 +31,25 @@ public class WorkflowClientServiceImpl implements WorkflowClientService {
     }
 
     @Override
-    public void activateBoardAccess(UUID boardId, UUID userId, WorkflowRole roleName, UUID operationId) {
-        workflowBoardAccessCommandClient.activateBoardAccess(boardId, userId, roleName, operationId);
+    public void activateBoardAccess(UUID boardId, UUID userId, WorkflowRole roleName,
+            WorkflowRole oldRoleName,
+            UUID operationId) {
+        workflowBoardAccessCommandClient.activateBoardAccess(boardId, userId,
+                roleName, oldRoleName, operationId);
     }
 
     @Override
-    public void changeRoleBoardAccess(UUID boardId, UUID memberUserId, WorkflowRole roleName, UUID operationId) {
-        workflowBoardAccessCommandClient.changeRoleBoardAccess(boardId, memberUserId, roleName, operationId);
+    public void changeRoleBoardAccess(UUID boardId, UUID memberUserId, WorkflowRole roleName, WorkflowRole oldRoleName,
+            UUID operationId) {
+        workflowBoardAccessCommandClient.changeRoleBoardAccess(boardId, memberUserId, roleName, oldRoleName,
+                operationId);
     }
 
     @Override
-    public void deactivateBoardAccess(UUID boardId, UUID memberUserId) {
-        workflowBoardAccessCommandClient.deactivateBoardAccess(boardId, memberUserId);
+    public void deactivateBoardAccess(UUID boardId, UUID memberUserId, WorkflowRole roleName,
+            WorkflowRole oldRoleName, UUID operationId) {
+        workflowBoardAccessCommandClient.deactivateBoardAccess(boardId, memberUserId, roleName, oldRoleName,
+                operationId);
     }
 
     @Override
@@ -70,4 +77,10 @@ public class WorkflowClientServiceImpl implements WorkflowClientService {
     public void revertActivateBoardAccess(UUID operationId) {
         workflowOperationCommandClient.revertActivateBoardAccess(operationId);
     }
+
+    @Override
+    public void revertChangeRoleBoardAccess(UUID operationId) {
+        workflowOperationCommandClient.revertChangeRoleBoardAccess(operationId);
+    }
+
 }

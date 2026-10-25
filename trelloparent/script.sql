@@ -47,6 +47,10 @@ insert into members (id, joined_at, role, user_id, board_id, active) values
 insert into board_accesses (id, role, user_active, user_id, board_id, status) values
 ('88fc7aa7-4d97-417e-ab01-566a8491324e', 'ADMIN', false, '3e54e44f-8f87-445b-8817-8c13010f5da5', '0a2ecb80-3b35-4096-a551-644aecc54338', true)
 
+# Obtener las operaciones ordenadas por fecha de creación de forma descendente
+# Funciona tanto en la base de datos 'project_db' como en la base de datos 'workflow_db'
+SELECT * FROM public.operations ORDER BY created_at DESC 
+
 # Borrar todos los datos de las tablas de las bases de datos
 TRUNCATE TABLE invitations;
 TRUNCATE TABLE members;
@@ -78,3 +82,5 @@ insert into board_accesses (id, role, user_active, user_id, board_id, status) va
 
 # Herramienta de generación de datos: https://www.mockaroo.com/
 # Generador de Bcrypt Hash: https://bcrypt-generator.com/
+
+

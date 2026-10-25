@@ -12,6 +12,9 @@ import com.trello.workflow.operation.service.processor.OperationProcessor;
 import com.trello.workflow.operation.service.register.OperationRegisterService;
 import com.trello.workflow.services.OperationWorkflowService;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Service
 public class BoardAccessServiceImpl implements BoardAccessService {
 
@@ -55,6 +58,7 @@ public class BoardAccessServiceImpl implements BoardAccessService {
     @Override
     public void activateBoardAccess(UUID boardId, UUID memberUserId, Role role, Role oldRole,
             UUID operationId) {
+
         Operation operation = operationRegisterService.registerActivateBoardAccess(boardId, memberUserId,
                 role,
                 oldRole,
