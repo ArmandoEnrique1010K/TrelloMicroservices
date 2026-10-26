@@ -90,7 +90,7 @@ public class MemberServiceImpl implements MemberService {
     }
 
     @Override
-    public void changeRoleMemberById(Role role, UUID memberId, UUID ownerUserId) {
+    public MemberResponse changeRoleMemberById(Role role, UUID memberId, UUID ownerUserId) {
 
         Operation operation = operationRegisterService.registerChangeRoleMember(role, memberId, ownerUserId);
 
@@ -103,7 +103,10 @@ public class MemberServiceImpl implements MemberService {
         }
 
         // 4. Procesar según el estado persistido.
-        operationChangeRoleMemberProcessor.processChangeRoleMemberOperation(operation.getId());
+        MemberResponse response = operationChangeRoleMemberProcessor
+                .processChangeRoleMemberOperation(operation.getId());
+
+        return response;
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -124,10 +127,6 @@ public class MemberServiceImpl implements MemberService {
                 ownerUserId);
 
         Member saveMember = memberProjectService.saveMember(findedMember);
-
-        // Ejecucion del endpoint del microservicio Workflow
-        // workflowClientService.deactivateBoardAccess(board.getId(),
-        // findedMember.getUserId());
 
         MemberResponse memberResponse = memberResponseMapper.memberToMemberResponse(saveMember);
         return memberResponse;

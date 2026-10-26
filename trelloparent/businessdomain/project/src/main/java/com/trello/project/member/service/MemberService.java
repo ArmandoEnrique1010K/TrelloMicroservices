@@ -15,7 +15,7 @@ public interface MemberService {
     List<UserMemberResponse> listAllMembersByBoardId(UUID boardId, UUID userId);
 
     // Cambiar rol de miembro (solamente permitido por el administrador del tablero)
-    void changeRoleMemberById(Role role, UUID memberId, UUID ownerUserId);
+    MemberResponse changeRoleMemberById(Role role, UUID memberId, UUID ownerUserId);
 
     // Desactivar miembro (solamente permitido por el administrador)
     // Borrado logico (desactiva al usuario)

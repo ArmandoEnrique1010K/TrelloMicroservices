@@ -19,9 +19,9 @@ import com.trello.project.common.SuccessfulResponse;
 import com.trello.project.common.SuccessfulVoidResponse;
 import com.trello.project.enums.Role;
 import com.trello.project.invitation.dto.response.ReceivedInvitationResponse;
-import com.trello.project.invitation.dto.response.common.SuccessfulInvitationResponse;
 import com.trello.project.member.dto.response.MemberResponse;
 import com.trello.project.member.dto.response.UserMemberResponse;
+import com.trello.project.member.dto.response.common.SucessfulMemberResponse;
 import com.trello.project.member.service.MemberService;
 import com.trello.project.security.JwtUtils;
 
@@ -102,50 +102,61 @@ public class MemberRestController {
     @Operation(summary = "Cambia el rol de un miembro", description = "Modifica el rol de un miembro de un tablero")
     @SecurityRequirement(name = "bearerAuth")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Se ha cambiado el rol del miembro", content = @Content(mediaType = "application/json", schema = @Schema(implementation = SuccessfulInvitationResponse.class), examples = @ExampleObject(value = """
+            @ApiResponse(responseCode = "200", description = "Se ha cambiado el rol del miembro", content = @Content(mediaType = "application/json", schema = @Schema(implementation = SucessfulMemberResponse.class), examples = @ExampleObject(value = """
                     {
-                      "body": {
-                        "active": true,
-                        "id": "95c91a33-967b-46b8-bf8e-14dd29fa87cc",
-                        "role": "MEMBER"
-                      },
-                      "message": "Se ha cambiado el rol del miembro"
+                        "body": {
+                            "active": true,
+                            "id": "95c91a33-967b-46b8-bf8e-14dd29fa87cc",
+                            "role": "MEMBER"
+                        },
+                        "message": "Se ha cambiado el rol del miembro"
                     }
-                    """))),
-            @ApiResponse(responseCode = "401", description = "El usuario no esta autenticado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
-                    {
-                        "detail": "Authentication is required to access this resource",
-                        "fields": null,
-                        "instance": null,
-                        "message": "Ha ocurrido un error inesperado",
-                        "status": 401,
-                        "title": "Unauthorized",
-                        "type": "/errors/authentication/not-authenticated"
-                    }
-                    """))),
-            @ApiResponse(responseCode = "404", description = "No se ha encontrado la invitación", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
-                    {
-                        "detail": "The member was not found in the system",
-                        "fields": null,
-                        "instance": null,
-                        "message": "No se ha encontrado el miembro",
-                        "status": 404,
-                        "title": "Member not found",
-                        "type": "/errors/member-not-found"
-                    }
-                    """))),
-            @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
-                    {
-                      "detail": "An unexpected error occurred while processing the request",
-                      "fields": null,
-                      "instance": null,
-                      "message": "Ha ocurrido un error inesperado",
-                      "status": 500,
-                      "title": "Internal server error",
-                      "type": "/errors/internal-server-error"
-                    }
-                    """))),
+                    """)))
+
+    // @ApiResponse(responseCode = "401", description = "El usuario no esta
+    // autenticado", content = @Content(mediaType = "application/json", schema =
+    // @Schema(implementation = StandarizedApiExceptionResponse.class), examples =
+    // @ExampleObject(value = """
+    // {
+    // "detail": "Authentication is required to access this resource",
+    // "fields": null,
+    // "instance": null,
+    // "message": "Ha ocurrido un error inesperado",
+    // "status": 401,
+    // "title": "Unauthorized",
+    // "type": "/errors/authentication/not-authenticated"
+    // }
+    // """))),
+    // @ApiResponse(responseCode = "404", description = "No se ha encontrado la
+    // invitación", content = @Content(mediaType = "application/json", schema =
+    // @Schema(implementation = StandarizedApiExceptionResponse.class), examples =
+    // @ExampleObject(value = """
+    // {
+    // "detail": "The member was not found in the system",
+    // "fields": null,
+    // "instance": null,
+    // "message": "No se ha encontrado el miembro",
+    // "status": 404,
+    // "title": "Member not found",
+    // "type": "/errors/member-not-found"
+    // }
+    // """))),
+    // @ApiResponse(responseCode = "500", description = "Error interno del
+    // servidor", content = @Content(mediaType = "application/json", schema =
+    // @Schema(implementation = StandarizedApiExceptionResponse.class), examples =
+    // @ExampleObject(value = """
+    // {
+    // "detail": "An unexpected error occurred while processing the request",
+    // "fields": null,
+    // "instance": null,
+    // "message": "Ha ocurrido un error inesperado",
+    // "status": 500,
+    // "title": "Internal server error",
+    // "type": "/errors/internal-server-error"
+    // }
+    // """))),
     })
+
     @PutMapping("/{memberId}/role/{roleName}")
     public ResponseEntity<SuccessfulResponse<MemberResponse>> changeRoleMemberById(
             @AuthenticationPrincipal Jwt jwt,

@@ -7,12 +7,15 @@ import org.springframework.stereotype.Service;
 import com.trello.project.client.enums.WorkflowRole;
 import com.trello.project.client.services.WorkflowClientService;
 import com.trello.project.client.utils.WorkflowRoleUtils;
+import com.trello.project.entities.Member;
 import com.trello.project.entities.Operation;
 import com.trello.project.enums.OperationStatus;
 import com.trello.project.enums.OperationType;
 import com.trello.project.enums.Role;
 import com.trello.project.exception.BusinessRuleException;
 import com.trello.project.exception.ServiceUnavailableException;
+import com.trello.project.member.dto.response.MemberResponse;
+import com.trello.project.member.mapper.MemberResponseMapper;
 import com.trello.project.operation.exception.OperationCompensatedException;
 import com.trello.project.operation.exception.OperationConflictException;
 import com.trello.project.operation.exception.OperationManualReviewException;
@@ -33,22 +36,25 @@ public class OperationChangeRoleMemberProcessorImpl implements OperationChangeRo
     private final OperationUtils operationUtils;
     private final MemberProjectService memberProjectService;
     private final OperationChangeRoleMemberService operationChangeRoleMemberService;
+    private final MemberResponseMapper memberResponseMapper;
 
     public OperationChangeRoleMemberProcessorImpl(
             OperationProjectService operationProjectService,
             WorkflowClientService workflowClientService,
             OperationUtils operationUtils,
             MemberProjectService memberProjectService,
-            OperationChangeRoleMemberService operationChangeRoleMemberService) {
+            OperationChangeRoleMemberService operationChangeRoleMemberService,
+            MemberResponseMapper memberResponseMapper) {
         this.operationProjectService = operationProjectService;
         this.workflowClientService = workflowClientService;
         this.operationUtils = operationUtils;
         this.memberProjectService = memberProjectService;
         this.operationChangeRoleMemberService = operationChangeRoleMemberService;
+        this.memberResponseMapper = memberResponseMapper;
     }
 
     @Override
-    public void processChangeRoleMemberOperation(UUID operationId)
+    public MemberResponse processChangeRoleMemberOperation(UUID operationId)
             throws OperationNotFoundException, OperationConflictException {
         Operation operation = operationProjectService
                 .findOperationById(operationId)
@@ -58,11 +64,27 @@ public class OperationChangeRoleMemberProcessorImpl implements OperationChangeRo
             throw new OperationConflictException();
         }
 
-        processOriginalOperation(operation);
-
+        return processOriginalOperation(operation);
     }
+    // TODO: DEBE DEVOLVER UN MEMBER RESPONSE
+    // Member saveMember = memberProjectService.saveMember(findedMember);
 
-    private void processOriginalOperation(Operation operation) {
+    // WorkflowRole workflowRole =
+    // WorkflowRoleUtils.parseRoleToWorkflowRole(newRole);
+
+    // OBTENER EL ID DEL USUARIO DESDE EL MIEMBRO
+    // UUID memberUserId = saveMember.getUserId();
+
+    // // Cambiar el rol en el otro microservicio
+    // workflowClientService.changeRoleBoardAccess(board.getId(), memberUserId,
+    // workflowRole);
+
+    // MemberResponse memberResponse =
+    // memberResponseMapper.memberToMemberResponse(saveMember);
+    // return memberResponse;
+
+    // En lugar de un void se devuelve un MemberResponse
+    private MemberResponse processOriginalOperation(Operation operation) {
         operationUtils.markExecuting(operation);
 
         try {
@@ -102,6 +124,13 @@ public class OperationChangeRoleMemberProcessorImpl implements OperationChangeRo
             operationUtils.markManualReview(operation, e);
             throw new BusinessRuleException();
         }
+
+        UUID memberId = operation.getMemberId();
+        UUID userId = operation.getUserId();
+
+        Member member = memberProjectService.findMemberByIdAndUserId(memberId, userId);
+        MemberResponse memberResponse = memberResponseMapper.memberToMemberResponse(member);
+        return memberResponse;
     }
 
     private void processChangeRoleMember(Operation operation) {
