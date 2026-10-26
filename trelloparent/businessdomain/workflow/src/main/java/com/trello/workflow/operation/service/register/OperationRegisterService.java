@@ -28,7 +28,7 @@ public interface OperationRegisterService {
             throws OperationConflictException, OperationNotPendingException, BoardAccessUserActiveNotAllowedException;
 
     // Desactivar permiso de acceso
-    Operation registerDeactivateBoardAccess(UUID boardId, UUID userId, Role newRole, Role oldRole, UUID operationId)
+    Operation registerDeactivateBoardAccess(UUID boardId, UUID userId, Role oldRole, UUID operationId)
             throws OperationConflictException, OperationNotPendingException, BoardAccessUserActiveNotAllowedException;
 
     // Guardar tablero y permiso de acceso del usuario administrador

@@ -17,7 +17,7 @@ public class MemberProjectServiceImpl implements MemberProjectService {
 
     private final MemberRepository memberRepository;
 
-    MemberProjectServiceImpl(MemberRepository memberRepository) {
+    public MemberProjectServiceImpl(MemberRepository memberRepository) {
         this.memberRepository = memberRepository;
     }
 
@@ -42,7 +42,7 @@ public class MemberProjectServiceImpl implements MemberProjectService {
     }
 
     @Override
-    public Member findMemberByIdAndOwnerUserId(UUID memberId, UUID ownerUserId)
+    public Member findMemberActiveByIdAndOwnerUserId(UUID memberId, UUID ownerUserId)
             throws MemberNotFoundException {
 
         Member member = memberRepository.findByIdAndBoardWorkspaceOwnerUserId(memberId,
@@ -75,6 +75,15 @@ public class MemberProjectServiceImpl implements MemberProjectService {
         Member optionalMember = memberRepository.findByIdAndUserId(memberId, userId)
                 .orElseThrow(MemberNotFoundException::new);
         memberRepository.delete(optionalMember);
+    }
+
+    @Override
+    public Member findMemberByIdAndOwnerUserId(UUID memberId, UUID ownerUserId) throws MemberNotFoundException {
+        Member member = memberRepository.findByIdAndBoardWorkspaceOwnerUserId(memberId,
+                ownerUserId).orElseThrow(
+                        MemberNotFoundException::new);
+
+        return member;
     }
 
 }

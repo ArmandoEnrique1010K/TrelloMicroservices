@@ -66,22 +66,6 @@ public class OperationChangeRoleMemberProcessorImpl implements OperationChangeRo
 
         return processOriginalOperation(operation);
     }
-    // TODO: DEBE DEVOLVER UN MEMBER RESPONSE
-    // Member saveMember = memberProjectService.saveMember(findedMember);
-
-    // WorkflowRole workflowRole =
-    // WorkflowRoleUtils.parseRoleToWorkflowRole(newRole);
-
-    // OBTENER EL ID DEL USUARIO DESDE EL MIEMBRO
-    // UUID memberUserId = saveMember.getUserId();
-
-    // // Cambiar el rol en el otro microservicio
-    // workflowClientService.changeRoleBoardAccess(board.getId(), memberUserId,
-    // workflowRole);
-
-    // MemberResponse memberResponse =
-    // memberResponseMapper.memberToMemberResponse(saveMember);
-    // return memberResponse;
 
     // En lugar de un void se devuelve un MemberResponse
     private MemberResponse processOriginalOperation(Operation operation) {

@@ -29,7 +29,6 @@ public interface WorkflowClientService {
     void deactivateBoardAccess(
             UUID boardId,
             UUID memberUserId,
-            WorkflowRole roleName,
             WorkflowRole oldRoleName,
             UUID operationId);
 
@@ -44,4 +43,6 @@ public interface WorkflowClientService {
     void revertActivateBoardAccess(UUID operationId);
 
     void revertChangeRoleBoardAccess(UUID operationId);
+
+    void revertDeactivateBoardAccess(UUID operationId);
 }

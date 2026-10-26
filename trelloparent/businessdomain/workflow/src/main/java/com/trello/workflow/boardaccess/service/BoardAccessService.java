@@ -16,5 +16,5 @@ public interface BoardAccessService {
 
     void changeRoleBoardAccess(UUID boardId, UUID memberUserId, Role role, Role oldRole, UUID operationId);
 
-    void deactivateBoardAccess(UUID boardId, UUID memberUserId, Role role, Role oldRole, UUID operationId);
+    void deactivateBoardAccess(UUID boardId, UUID memberUserId, Role oldRole, UUID operationId);
 }

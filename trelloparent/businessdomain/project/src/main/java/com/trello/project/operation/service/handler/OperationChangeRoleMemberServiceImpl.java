@@ -6,9 +6,6 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.trello.project.client.enums.WorkflowRole;
-import com.trello.project.client.utils.WorkflowRoleUtils;
-import com.trello.project.entities.Board;
 import com.trello.project.entities.Member;
 import com.trello.project.entities.Operation;
 import com.trello.project.enums.OperationStatus;
@@ -69,7 +66,7 @@ public class OperationChangeRoleMemberServiceImpl implements OperationChangeRole
         Role newRole = persistedOperation.getNewRole();
 
         // Buscar miembro
-        Member findedMember = memberProjectService.findMemberByIdAndOwnerUserId(memberId, ownerUserId);
+        Member findedMember = memberProjectService.findMemberActiveByIdAndOwnerUserId(memberId, ownerUserId);
 
         // Actualiza el rol
         findedMember.setRole(newRole);
@@ -81,23 +78,6 @@ public class OperationChangeRoleMemberServiceImpl implements OperationChangeRole
                 ownerUserId);
 
         memberProjectService.saveMember(findedMember);
-
-        // TODO: DEBE DEVOLVER UN MEMBER RESPONSE
-        // Member saveMember = memberProjectService.saveMember(findedMember);
-
-        // WorkflowRole workflowRole =
-        // WorkflowRoleUtils.parseRoleToWorkflowRole(newRole);
-
-        // OBTENER EL ID DEL USUARIO DESDE EL MIEMBRO
-        // UUID memberUserId = saveMember.getUserId();
-
-        // // Cambiar el rol en el otro microservicio
-        // workflowClientService.changeRoleBoardAccess(board.getId(), memberUserId,
-        // workflowRole);
-
-        // MemberResponse memberResponse =
-        // memberResponseMapper.memberToMemberResponse(saveMember);
-        // return memberResponse;
 
         // Guardar la operación
         operationProjectService.saveOperation(persistedOperation);
@@ -118,7 +98,7 @@ public class OperationChangeRoleMemberServiceImpl implements OperationChangeRole
         UUID ownerUserId = operation.getOwnerUserId();
         Role oldRole = operation.getOldRole();
 
-        Member findedMember = memberProjectService.findMemberByIdAndOwnerUserId(memberId, ownerUserId);
+        Member findedMember = memberProjectService.findMemberActiveByIdAndOwnerUserId(memberId, ownerUserId);
         findedMember.setRole(oldRole);
         memberProjectService.saveMember(findedMember);
     }

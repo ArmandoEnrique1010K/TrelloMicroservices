@@ -41,11 +41,10 @@ public interface WorkflowBoardAccessCommandClient {
             @PathVariable("oldRoleName") WorkflowRole oldRoleName,
             @RequestHeader("X-Operation-Id") UUID operationId);
 
-    @PatchMapping("/board-accesses/deactivate/board/{boardId}/user/{memberUserId}/role/{roleName}/old-role/{oldRoleName}")
+    @PatchMapping("/board-accesses/deactivate/board/{boardId}/user/{memberUserId}/old-role/{oldRoleName}")
     ResponseEntity<Void> deactivateBoardAccess(
             @PathVariable("boardId") UUID boardId,
             @PathVariable("memberUserId") UUID memberUserId,
-            @PathVariable("roleName") WorkflowRole roleName,
             @PathVariable("oldRoleName") WorkflowRole oldRoleName,
             @RequestHeader("X-Operation-Id") UUID operationId);
 }

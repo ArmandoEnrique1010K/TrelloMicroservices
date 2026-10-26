@@ -92,8 +92,8 @@ public class BoardAccessServiceImpl implements BoardAccessService {
     }
 
     @Override
-    public void deactivateBoardAccess(UUID boardId, UUID memberUserId, Role role, Role oldRole, UUID operationId) {
-        Operation operation = operationRegisterService.registerDeactivateBoardAccess(boardId, memberUserId, role,
+    public void deactivateBoardAccess(UUID boardId, UUID memberUserId, Role oldRole, UUID operationId) {
+        Operation operation = operationRegisterService.registerDeactivateBoardAccess(boardId, memberUserId,
                 oldRole,
                 operationId);
 

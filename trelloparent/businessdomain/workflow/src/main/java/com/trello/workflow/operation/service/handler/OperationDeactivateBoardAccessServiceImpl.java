@@ -40,7 +40,6 @@ public class OperationDeactivateBoardAccessServiceImpl implements OperationDeact
 
         UUID boardId = currentOperation.getBoardId();
         UUID userId = currentOperation.getUserId();
-        Role newRole = currentOperation.getNewRole();
 
         BoardAccess findedBoardAccess = boardAccessWorkflowService.findBoardAccessByBoardIdAndUserIdAndUserActive(
                 boardId,
@@ -50,7 +49,6 @@ public class OperationDeactivateBoardAccessServiceImpl implements OperationDeact
             throw new BoardAccessUserActiveNotAllowedException();
         }
 
-        findedBoardAccess.setRole(newRole);
         findedBoardAccess.setUserActive(false);
         boardAccessWorkflowService.saveBoardAccess(findedBoardAccess);
     }

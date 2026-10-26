@@ -48,7 +48,7 @@ public class WorkflowBoardAccessCommandClientFallbackFactory
             }
 
             @Override
-            public ResponseEntity<Void> deactivateBoardAccess(UUID boardId, UUID memberUserId, WorkflowRole roleName,
+            public ResponseEntity<Void> deactivateBoardAccess(UUID boardId, UUID memberUserId,
                     WorkflowRole oldRoleName,
                     UUID operationId) {
                 log.error("Error relacionado con deactivateBoardAccess");

@@ -11,7 +11,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.trello.project.client.dto.response.UserResponse;
 import com.trello.project.client.dto.response.UsersByIdResponse;
@@ -26,7 +25,9 @@ import com.trello.project.member.dto.response.UserMemberResponse;
 import com.trello.project.member.mapper.MemberResponseMapper;
 import com.trello.project.member.mapper.UserMemberResponseMapper;
 import com.trello.project.operation.service.handler.OperationChangeRoleMemberService;
+import com.trello.project.operation.service.handler.OperationDeactivateMemberService;
 import com.trello.project.operation.service.processor.OperationChangeRoleMemberProcessor;
+import com.trello.project.operation.service.processor.OperationDeactivateMemberProcessor;
 import com.trello.project.operation.service.register.OperationRegisterService;
 import com.trello.project.service.BoardProjectService;
 import com.trello.project.service.InvitationProjectService;
@@ -44,13 +45,17 @@ public class MemberServiceImpl implements MemberService {
     private final OperationRegisterService operationRegisterService;
     private final OperationChangeRoleMemberService operationChangeRoleMemberService;
     private final OperationChangeRoleMemberProcessor operationChangeRoleMemberProcessor;
+    private final OperationDeactivateMemberService operationDeactivateMemberService;
+    private final OperationDeactivateMemberProcessor operationDeactivateMemberProcessor;
 
     public MemberServiceImpl(BoardProjectService boardProjectService, MemberProjectService memberProjectService,
             MemberResponseMapper memberResponseMapper, UserMemberResponseMapper userMemberResponseMapper,
             IdentityClientService identityClientService, InvitationProjectService invitationProjectService,
             OperationRegisterService operationRegisterService,
             OperationChangeRoleMemberService operationChangeRoleMemberService,
-            OperationChangeRoleMemberProcessor operationChangeRoleMemberProcessor) {
+            OperationChangeRoleMemberProcessor operationChangeRoleMemberProcessor,
+            OperationDeactivateMemberService operationDeactivateMemberService,
+            OperationDeactivateMemberProcessor operationDeactivateMemberProcessor) {
         this.boardProjectService = boardProjectService;
         this.memberProjectService = memberProjectService;
         this.memberResponseMapper = memberResponseMapper;
@@ -60,6 +65,8 @@ public class MemberServiceImpl implements MemberService {
         this.operationRegisterService = operationRegisterService;
         this.operationChangeRoleMemberService = operationChangeRoleMemberService;
         this.operationChangeRoleMemberProcessor = operationChangeRoleMemberProcessor;
+        this.operationDeactivateMemberService = operationDeactivateMemberService;
+        this.operationDeactivateMemberProcessor = operationDeactivateMemberProcessor;
     }
 
     @Override
@@ -102,34 +109,49 @@ public class MemberServiceImpl implements MemberService {
                     .applyChangeRoleMember(operation.getId(), false);
         }
 
-        // 4. Procesar según el estado persistido.
+        // Este método devuelve un MemberResponse si todo sale bien
         MemberResponse response = operationChangeRoleMemberProcessor
                 .processChangeRoleMemberOperation(operation.getId());
 
         return response;
     }
 
-    @Transactional(rollbackFor = Exception.class)
     @Override
-    public MemberResponse deactivateMember(UUID memberId, UUID ownerUserId) {
-        Member findedMember = memberProjectService.findMemberByIdAndOwnerUserId(memberId, ownerUserId);
+    public void deactivateMember(UUID memberId, UUID ownerUserId) {
+        Operation operation = operationRegisterService.registerDeactivateMember(memberId, ownerUserId);
 
-        // Debe desactivar el campo active
-        findedMember.setActive(false);
+        if (operation.getStatus() == OperationStatus.REGISTERED
+                || operation.getStatus() == OperationStatus.LOCAL_COMPENSATION_COMPLETED
+                || operation.getStatus() == OperationStatus.COMPENSATION_COMPLETED) {
 
-        // En el caso de que exista alguna invitación relacionada al usuario que se va a
-        // eliminar se tiene que eliminar la invitación
-        Board board = findedMember.getBoard();
+            operationDeactivateMemberService
+                    .applyDeactivateMember(operation.getId(), false);
+        }
 
-        invitationProjectService.deleteInvitationIfExistsByBoardIdAndRecipientUserId(
-                board.getId(),
-                findedMember.getUserId(),
-                ownerUserId);
+        operationDeactivateMemberProcessor
+                .processDeactivateMemberOperation(operation.getId());
 
-        Member saveMember = memberProjectService.saveMember(findedMember);
+        // Member findedMember =
+        // memberProjectService.findMemberByIdAndOwnerUserId(memberId, ownerUserId);
 
-        MemberResponse memberResponse = memberResponseMapper.memberToMemberResponse(saveMember);
-        return memberResponse;
+        // // Debe desactivar el campo active
+        // findedMember.setActive(false);
+
+        // // En el caso de que exista alguna invitación relacionada al usuario que se
+        // va a
+        // // eliminar se tiene que eliminar la invitación
+        // Board board = findedMember.getBoard();
+
+        // invitationProjectService.deleteInvitationIfExistsByBoardIdAndRecipientUserId(
+        // board.getId(),
+        // findedMember.getUserId(),
+        // ownerUserId);
+
+        // Member saveMember = memberProjectService.saveMember(findedMember);
+
+        // MemberResponse memberResponse =
+        // memberResponseMapper.memberToMemberResponse(saveMember);
+        // return memberResponse;
     }
 
     private UsersByIdResponse getUsersById(

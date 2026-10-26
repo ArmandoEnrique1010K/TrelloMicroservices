@@ -15,4 +15,6 @@ public interface OperationRegisterService {
             throws InvitationConfirmedException, OperationNotPendingException;
 
     Operation registerChangeRoleMember(Role role, UUID memberId, UUID ownerUserId);
+
+    Operation registerDeactivateMember(UUID memberId, UUID ownerUserId);
 }

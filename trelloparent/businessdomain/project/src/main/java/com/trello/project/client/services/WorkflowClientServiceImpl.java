@@ -46,10 +46,9 @@ public class WorkflowClientServiceImpl implements WorkflowClientService {
     }
 
     @Override
-    public void deactivateBoardAccess(UUID boardId, UUID memberUserId, WorkflowRole roleName,
+    public void deactivateBoardAccess(UUID boardId, UUID memberUserId,
             WorkflowRole oldRoleName, UUID operationId) {
-        workflowBoardAccessCommandClient.deactivateBoardAccess(boardId, memberUserId, roleName, oldRoleName,
-                operationId);
+        workflowBoardAccessCommandClient.deactivateBoardAccess(boardId, memberUserId, oldRoleName, operationId);
     }
 
     @Override
@@ -83,4 +82,8 @@ public class WorkflowClientServiceImpl implements WorkflowClientService {
         workflowOperationCommandClient.revertChangeRoleBoardAccess(operationId);
     }
 
+    @Override
+    public void revertDeactivateBoardAccess(UUID operationId) {
+        workflowOperationCommandClient.revertDeactivateBoardAccess(operationId);
+    }
 }

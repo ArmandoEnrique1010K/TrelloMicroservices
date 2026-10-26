@@ -133,6 +133,7 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
         return operation;
     }
 
+    @Transactional(rollbackFor = Exception.class)
     @Override
     public Operation registerChangeRoleBoardAccess(UUID boardId, UUID userId, Role newRole, Role oldRole,
             UUID operationId)
@@ -169,6 +170,48 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
         operation.setOldUserActive(true);
         operation.setOldRole(oldRole);
         operation.setNewRole(newRole);
+        operation.setAttempts(0);
+
+        operationWorkflowService.saveOperation(operation);
+
+        return operation;
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public Operation registerDeactivateBoardAccess(UUID boardId, UUID userId, Role oldRole,
+            UUID operationId)
+            throws OperationConflictException, OperationNotPendingException, BoardAccessUserActiveNotAllowedException {
+
+        Operation existingOperation = validateExistingOperationOrReturnPending(
+                operationId,
+                boardId,
+                userId,
+                null,
+                null,
+                OperationType.DEACTIVATE_BOARD_ACCESS);
+
+        if (existingOperation != null) {
+            existingOperation.setOldRole(oldRole);
+            return operationWorkflowService.saveOperation(existingOperation);
+        }
+
+        BoardAccess findedBoardAccess = boardAccessWorkflowService.findBoardAccessByBoardIdAndUserIdAndUserActive(
+                boardId,
+                userId);
+
+        if (findedBoardAccess.getRole().equals(Role.OWNER)) {
+            throw new BoardAccessUserActiveNotAllowedException();
+        }
+
+        Operation operation = new Operation();
+        operation.setId(operationId);
+        operation.setType(OperationType.DEACTIVATE_BOARD_ACCESS);
+        operation.setStatus(OperationStatus.CREATED);
+        operation.setBoardId(boardId);
+        operation.setUserId(userId);
+        operation.setOldUserActive(true);
+        operation.setOldRole(oldRole);
         operation.setAttempts(0);
 
         operationWorkflowService.saveOperation(operation);
@@ -213,7 +256,6 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
             case PENDING -> {
                 // Actualizar el rol por si ha cambiado desde el registro inicial.
                 existing.setNewRole(newRole);
-
                 // La lista de IDs de tableros tambien cambian
                 existing.setBoardIds(boardsIds);
                 return existing;
@@ -229,50 +271,6 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
             default -> throw new BusinessRuleException();
         }
 
-    }
-
-    @Override
-    public Operation registerDeactivateBoardAccess(UUID boardId, UUID userId, Role newRole, Role oldRole,
-            UUID operationId)
-            throws OperationConflictException, OperationNotPendingException, BoardAccessUserActiveNotAllowedException {
-
-        Operation existingOperation = validateExistingOperationOrReturnPending(
-                operationId,
-                boardId,
-                userId,
-                newRole,
-                null,
-                OperationType.DEACTIVATE_BOARD_ACCESS);
-
-        if (existingOperation != null) {
-            // Si cambia el rol del usuario en el caso de que los datos del microservicio
-            // Project no coincidan con el rol establecido en la tabla BoardAccess
-            // existingOperation.setNewRole(newRole);
-            return operationWorkflowService.saveOperation(existingOperation);
-        }
-
-        BoardAccess findedBoardAccess = boardAccessWorkflowService.findBoardAccessByBoardIdAndUserIdAndUserActive(
-                boardId,
-                userId);
-
-        if (findedBoardAccess.getRole().equals(Role.OWNER)) {
-            throw new BoardAccessUserActiveNotAllowedException();
-        }
-
-        Operation operation = new Operation();
-        operation.setId(operationId);
-        operation.setType(OperationType.DEACTIVATE_BOARD_ACCESS);
-        operation.setStatus(OperationStatus.CREATED);
-        operation.setBoardId(boardId);
-        operation.setUserId(userId);
-        operation.setOldUserActive(true);
-        operation.setOldRole(oldRole);
-        operation.setNewRole(newRole);
-        operation.setAttempts(0);
-
-        operationWorkflowService.saveOperation(operation);
-
-        return operation;
     }
 
     // TODO: CONTINUAR CON LOS METODOS RELACIONADOS A BOARD

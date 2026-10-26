@@ -258,4 +258,64 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
         operationProjectService.saveOperation(operation);
         return operation;
     }
+
+    // TODO: SI DE FORMA AUTOMATICA SE DESACTIVA EL MIEMBRO, ENTONCES SE DEBEN
+    // ELIMINAR LAS OPERACIONES PENDIENTES RELACIONADAS AL MIEMBRO POR ID Y
+    // OWNERUSERID
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public Operation registerDeactivateMember(UUID memberId, UUID ownerUserId) {
+        Member findedMember = memberProjectService.findMemberByIdAndOwnerUserId(memberId, ownerUserId);
+
+        Optional<Operation> existingOperation = operationProjectService.findLatestOperationByMemberIdAndType(memberId,
+                OperationType.DEACTIVATE_MEMBER);
+
+        if (existingOperation.isPresent()) {
+            Operation existing = existingOperation.get();
+
+            switch (existing.getStatus()) {
+                case REGISTERED, LOCAL_COMPENSATION_COMPLETED, COMPENSATION_COMPLETED -> {
+                    return existing;
+                }
+
+                case EXECUTION_PENDING,
+                        EXECUTING,
+                        COMPENSATION_PENDING,
+                        LOCAL_COMPENSATION_IN_PROGRESS,
+                        MANUAL_INTERVENTION_REQUIRED ->
+                    throw new OperationNotPendingException();
+
+                case COMPLETED -> {
+                }
+            }
+        }
+
+        Board findedBoard = findedMember.getBoard();
+        UUID boardId = findedBoard.getId();
+        UUID userId = findedMember.getUserId();
+
+        UUID operationId = UUID.randomUUID();
+
+        Operation operation = new Operation();
+        operation.setId(operationId);
+        operation.setType(OperationType.DEACTIVATE_MEMBER);
+        operation.setStatus(OperationStatus.REGISTERED);
+        operation.setManualAttempts(0);
+        operation.setAutomaticAttempts(0);
+
+        operation.setBoardId(boardId);
+        operation.setMemberId(memberId);
+        operation.setUserId(userId);
+        operation.setOwnerUserId(ownerUserId);
+        operation.setMemberActive(true);
+
+        operation.setOldRole(findedMember.getRole());
+
+        LocalDateTime currentDateTime = LocalDateTime.now();
+        operation.setCreatedAt(currentDateTime);
+        operation.setNextAutomaticAttemptAt(null);
+
+        operationProjectService.saveOperation(operation);
+        return operation;
+    }
 }

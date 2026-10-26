@@ -18,7 +18,7 @@ public interface MemberProjectService {
 
     List<Member> findAllMembersByBoardIdAndIsOwnerUser(UUID boardId, boolean isOwnerUser);
 
-    Member findMemberByIdAndOwnerUserId(UUID memberId, UUID ownerUserId)
+    Member findMemberActiveByIdAndOwnerUserId(UUID memberId, UUID ownerUserId)
             throws MemberNotFoundException;
 
     // void deleteMemberById(UUID memberId, UUID ownerUserId) throws
@@ -31,4 +31,8 @@ public interface MemberProjectService {
             throws MemberNotFoundException;
 
     void deletePermanentlyMember(UUID memberId, UUID userId);
+
+    Member findMemberByIdAndOwnerUserId(UUID memberId, UUID ownerUserId)
+            throws MemberNotFoundException;
+
 }

@@ -448,14 +448,13 @@ public class BoardAccessRestController {
                     }
                     """))),
     })
-    @PatchMapping("/deactivate/board/{boardId}/user/{memberUserId}/role/{roleName}/old-role/{oldRoleName}")
+    @PatchMapping("/deactivate/board/{boardId}/user/{memberUserId}/old-role/{oldRoleName}")
     public ResponseEntity<Void> deactivateBoardAccess(
             @Parameter(description = "ID del tablero", required = true, example = "550e8400-e29b-41d4-a716-446655440000") @PathVariable UUID boardId,
             @Parameter(description = "ID del usuario", required = true, example = "550e8400-e29b-41d4-a716-446655440000") @PathVariable UUID memberUserId,
-            @Parameter(description = "Rol nuevo del miembro", required = true, example = "ADMIN") @PathVariable Role roleName,
             @Parameter(description = "Rol antiguo del miembro", required = true, example = "MEMBER") @PathVariable Role oldRoleName,
             @RequestHeader("X-Operation-Id") UUID operationId) {
-        boardAccessService.deactivateBoardAccess(boardId, memberUserId, roleName, oldRoleName, operationId);
+        boardAccessService.deactivateBoardAccess(boardId, memberUserId, oldRoleName, operationId);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).body(null);
     }
 
