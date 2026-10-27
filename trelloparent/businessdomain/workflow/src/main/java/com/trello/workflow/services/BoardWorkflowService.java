@@ -37,5 +37,7 @@ public interface BoardWorkflowService {
 
     void disableAllBoardsStatusByIdAndDisableAllBoardAccessesStatus(List<UUID> boardsIds);
 
+    void enableBoardStatusByIdAndEnableAllBoardAccessStatus(UUID boardId);
+
     void enableAllBoardsStatusByIdAndEnableAllBoardAccessesStatus(List<UUID> boardsIds);
 }

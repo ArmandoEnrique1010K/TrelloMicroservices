@@ -61,15 +61,13 @@ public class OperationAddBoardAndBoardAccessUserOwnerServiceImpl
                 .findOperationById(operationId)
                 .orElseThrow(OperationNotFoundException::new);
 
-        currentOperation.setStatus(OperationStatus.PROCESSING);
-        currentOperation.setAttempts(currentOperation.getAttempts() + 1);
-        operationWorkflowService.saveOperation(currentOperation);
-
         UUID boardId = currentOperation.getBoardId();
         UUID userId = currentOperation.getUserId();
         // OWNER
         Role newRole = currentOperation.getNewRole();
 
+        // En este caso para verificar si existe el tablero por ID no se realiza
+        // mediante un query porque el ID no es generado de forma automatica
         // if (boardWorkflowService.existsBoardById(boardId)) {
         // throw new BoardAlreadyExistsException();
         // }
@@ -100,10 +98,6 @@ public class OperationAddBoardAndBoardAccessUserOwnerServiceImpl
         boardAccess.setStatus(true);
 
         boardAccessWorkflowService.saveBoardAccess(boardAccess);
-
-        currentOperation.setStatus(OperationStatus.COMPLETED);
-        currentOperation.setCompletedAt(LocalDateTime.now());
-        operationWorkflowService.saveOperation(currentOperation);
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -118,8 +112,7 @@ public class OperationAddBoardAndBoardAccessUserOwnerServiceImpl
         }
 
         if (operation.getStatus() == OperationStatus.CREATED
-                && operation.getStatus() == OperationStatus.COMPLETED
-                && operation.getStatus() == OperationStatus.MANUAL_REVIEW) {
+                && operation.getStatus() == OperationStatus.COMPLETED) {
             throw new OperationNotPendingException();
         }
 

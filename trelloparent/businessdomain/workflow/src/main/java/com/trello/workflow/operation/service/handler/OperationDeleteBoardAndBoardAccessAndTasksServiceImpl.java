@@ -12,7 +12,6 @@ import com.trello.workflow.enums.OperationType;
 import com.trello.workflow.operation.exception.OperationConflictException;
 import com.trello.workflow.operation.exception.OperationNotFoundException;
 import com.trello.workflow.operation.exception.OperationNotPendingException;
-import com.trello.workflow.services.BoardAccessWorkflowService;
 import com.trello.workflow.services.BoardWorkflowService;
 import com.trello.workflow.services.OperationWorkflowService;
 
@@ -20,26 +19,22 @@ import com.trello.workflow.services.OperationWorkflowService;
 public class OperationDeleteBoardAndBoardAccessAndTasksServiceImpl
         implements OperationDeleteBoardAndBoardAccessAndTasksService {
     private final OperationWorkflowService operationWorkflowService;
-    private final BoardAccessWorkflowService boardAccessWorkflowService;
     private final BoardWorkflowService boardWorkflowService;
 
     public OperationDeleteBoardAndBoardAccessAndTasksServiceImpl(OperationWorkflowService operationWorkflowService,
-            BoardAccessWorkflowService boardAccessWorkflowService, BoardWorkflowService boardWorkflowService) {
+            BoardWorkflowService boardWorkflowService) {
         this.operationWorkflowService = operationWorkflowService;
-        this.boardAccessWorkflowService = boardAccessWorkflowService;
         this.boardWorkflowService = boardWorkflowService;
     }
 
+    // TODO: PROGRAMAR UN SCHEDULER PARA BORRAR TABLEROS FISICAMENTE QUE TENGAN EL
+    // ESTADO FALSE
     @Transactional(rollbackFor = Exception.class)
     @Override
     public void applyDeleteBoardAndBoardAccessAndTasks(UUID operationId) throws OperationNotFoundException {
         Operation currentOperation = operationWorkflowService
                 .findOperationById(operationId)
                 .orElseThrow(OperationNotFoundException::new);
-
-        currentOperation.setStatus(OperationStatus.PROCESSING);
-        currentOperation.setAttempts(currentOperation.getAttempts() + 1);
-        operationWorkflowService.saveOperation(currentOperation);
 
         UUID boardId = currentOperation.getBoardId();
 
@@ -49,8 +44,7 @@ public class OperationDeleteBoardAndBoardAccessAndTasksServiceImpl
         // que se pueda recuperar en caso de que se quiera revertir la operación
         // boardWorkflowService.deleteBoardById(boardId);
 
-        // IDEA: LOS TABLEROS DEBEN TENER UN ESTADO BOOLEANO PARA RESTRINGIR EL ACCESO
-        // AL TABLERO (SE CONSIDERA QUE FUE ELIMINADO LOGICAMENTE)
+        // Para aquello se opta por cmabiar el estado del tablero
 
         // Deshabilitar estado del tablero
         // boardWorkflowService.disableBoardStatusById(boardId);
@@ -61,12 +55,6 @@ public class OperationDeleteBoardAndBoardAccessAndTasksServiceImpl
         // Realizar ambas operaciones en un solo metodo del servicio, conlleva a que se
         // realice 2 queries de eliminación
         boardWorkflowService.disableBoardStatusByIdAndDisableAllBoardAccessStatus(boardId);
-        // TODO: PROGRAMAR UN SCHEDULER PARA BORRAR TABLEROS FISICAMENTE QUE TENGAN EL
-        // ESTADO FALSE
-
-        currentOperation.setStatus(OperationStatus.COMPLETED);
-        currentOperation.setCompletedAt(LocalDateTime.now());
-        operationWorkflowService.saveOperation(currentOperation);
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -76,13 +64,13 @@ public class OperationDeleteBoardAndBoardAccessAndTasksServiceImpl
         Operation operation = operationWorkflowService
                 .findOperationById(operationId)
                 .orElseThrow(OperationNotFoundException::new);
+
         if (operation.getType() != OperationType.DELETE_BOARD_AND_BOARD_ACCESS_AND_TASKS) {
             throw new OperationConflictException();
         }
 
         if (operation.getStatus() == OperationStatus.CREATED
-                && operation.getStatus() == OperationStatus.COMPLETED
-                && operation.getStatus() == OperationStatus.MANUAL_REVIEW) {
+                && operation.getStatus() == OperationStatus.COMPLETED) {
             throw new OperationNotPendingException();
         }
 
@@ -93,14 +81,16 @@ public class OperationDeleteBoardAndBoardAccessAndTasksServiceImpl
         UUID boardId = operation.getBoardId();
 
         // Habilitar estado del tablero
-        boardWorkflowService.enableBoardStatusById(boardId);
+        // boardWorkflowService.enableBoardStatusById(boardId);
 
         // Habilitar cada uno de los estados de los permiso de acceso
-        boardAccessWorkflowService.enableAllBoardAccessStatusByBoardId(boardId);
+        // boardAccessWorkflowService.enableAllBoardAccessStatusByBoardId(boardId);
+
+        // Realizar ambas operaciones en 1 solo query
+        boardWorkflowService.enableBoardStatusByIdAndEnableAllBoardAccessStatus(boardId);
 
         operation.setStatus(OperationStatus.PENDING);
         operation.setCompletedAt(LocalDateTime.now());
         operationWorkflowService.saveOperation(operation);
     }
-
 }

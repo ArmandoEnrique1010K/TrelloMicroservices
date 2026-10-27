@@ -219,6 +219,44 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
         return operation;
     }
 
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public Operation registerAddBoardAndBoardAccessUserOwner(UUID boardId, UUID userId, UUID operationId)
+            throws OperationConflictException, OperationNotPendingException, BoardAlreadyExistsException {
+
+        Operation existingOperation = validateExistingOperationOrReturnPending(
+                operationId,
+                boardId,
+                userId,
+                null,
+                null,
+                OperationType.ADD_BOARD_AND_BOARD_ACCESS_USER_OWNER);
+
+        if (existingOperation != null) {
+            return operationWorkflowService.saveOperation(existingOperation);
+        }
+
+        // Verificar si existe el tablero por ID
+        if (boardWorkflowService.existsBoardById(boardId)) {
+            throw new BoardAlreadyExistsException();
+        }
+
+        Operation operation = new Operation();
+        operation.setId(operationId);
+        operation.setType(OperationType.ADD_BOARD_AND_BOARD_ACCESS_USER_OWNER);
+        operation.setStatus(OperationStatus.CREATED);
+        operation.setBoardId(boardId);
+        operation.setUserId(userId);
+        operation.setOldUserActive(null);
+        operation.setOldRole(null);
+        operation.setNewRole(Role.OWNER);
+        operation.setAttempts(0);
+
+        operationWorkflowService.saveOperation(operation);
+
+        return operation;
+    }
+
     // Valida una operación existente y devuelve la operación si está pendiente.
     // Si no existe, devuelve null para permitir el registro de una nueva operación.
     private Operation validateExistingOperationOrReturnPending(
@@ -270,45 +308,9 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
             // Este ultimo caso nunca llegara a pasar
             default -> throw new BusinessRuleException();
         }
-
     }
 
     // TODO: CONTINUAR CON LOS METODOS RELACIONADOS A BOARD
-    @Transactional(rollbackFor = Exception.class)
-    @Override
-    public Operation registerAddBoardAndBoardAccessUserOwner(UUID boardId, UUID userId, UUID operationId)
-            throws OperationConflictException, OperationNotPendingException, BoardAlreadyExistsException {
-
-        Operation existingOperation = validateExistingOperationOrReturnPending(
-                operationId,
-                boardId,
-                userId,
-                null,
-                null,
-                OperationType.ADD_BOARD_AND_BOARD_ACCESS_USER_OWNER);
-
-        if (existingOperation != null) {
-            return operationWorkflowService.saveOperation(existingOperation);
-        }
-
-        // Verificar si existe el tablero por ID
-        if (boardWorkflowService.existsBoardById(boardId)) {
-            throw new BoardAlreadyExistsException();
-        }
-
-        Operation operation = new Operation();
-        operation.setId(operationId);
-        operation.setType(OperationType.ADD_BOARD_AND_BOARD_ACCESS_USER_OWNER);
-        operation.setStatus(OperationStatus.CREATED);
-        operation.setBoardId(boardId);
-        operation.setUserId(userId);
-        operation.setNewRole(Role.OWNER);
-        operation.setAttempts(0);
-
-        operationWorkflowService.saveOperation(operation);
-
-        return operation;
-    }
 
     @Transactional(rollbackFor = Exception.class)
     @Override
@@ -327,7 +329,7 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
             return operationWorkflowService.saveOperation(existingOperation);
         }
 
-        // Verificar si no existe el tablero
+        // Verificar que no exista el tablero
         if (!boardWorkflowService.existsBoardById(boardId)) {
             throw new BoardNotFoundException();
         }

@@ -78,7 +78,8 @@ public class OperationProcessorImpl implements OperationProcessor {
                 operationDeactivateBoardAccessService.applyDeactivateBoardAccess(operation.getId());
 
             case ADD_BOARD_AND_BOARD_ACCESS_USER_OWNER ->
-                operationAddBoardAndBoardAccessUserOwnerService.applyAddBoardAndBoardAccessUserOwner(operation.getId());
+                operationAddBoardAndBoardAccessUserOwnerService
+                        .applyAddBoardAndBoardAccessUserOwner(operation.getId());
 
             case DELETE_BOARD_AND_BOARD_ACCESS_AND_TASKS ->
                 operationDeleteBoardAndBoardAccessAndTasksService

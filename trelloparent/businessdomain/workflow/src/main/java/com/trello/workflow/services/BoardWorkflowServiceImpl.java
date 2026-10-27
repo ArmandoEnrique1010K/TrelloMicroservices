@@ -145,6 +145,25 @@ public class BoardWorkflowServiceImpl implements BoardWorkflowService {
     }
 
     @Override
+    public void enableBoardStatusByIdAndEnableAllBoardAccessStatus(UUID boardId) {
+        Board board = boardRepository.findByIdAndStatusFalse(boardId).orElseThrow(BoardNotFoundException::new);
+
+        board.setStatus(true);
+        boardRepository.save(board);
+
+        // Activar todos los permisos de acceso del tablero
+        List<BoardAccess> boardAcceses = boardAccessRepository.findAllByBoardIdAndStatusFalse(boardId);
+
+        if (boardAcceses.isEmpty()) {
+            return;
+        }
+
+        // Habilitar de todos boardAccess el estado sin excepciones
+        boardAcceses.forEach(boardAccess -> boardAccess.setStatus(true));
+        boardAccessRepository.saveAll(boardAcceses);
+    }
+
+    @Override
     public void disableAllBoardsStatusByIdAndDisableAllBoardAccessesStatus(List<UUID> boardsIds) {
         List<Board> boards = boardRepository.findAllByIdInAndStatusTrue(boardsIds);
 
@@ -181,4 +200,5 @@ public class BoardWorkflowServiceImpl implements BoardWorkflowService {
         // boardAccessRepository.findAllByBoardIdAndStatusTrue(board);
         boardAccessRepository.enableAllByBoardIds(boardsIds);
     }
+
 }
