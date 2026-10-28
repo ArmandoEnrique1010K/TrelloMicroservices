@@ -14,7 +14,7 @@ public class WorkspaceProjectServiceImpl implements WorkspaceProjectService {
 
     private final WorkspaceRepository workspaceRepository;
 
-    WorkspaceProjectServiceImpl(WorkspaceRepository workspaceRepository) {
+    public WorkspaceProjectServiceImpl(WorkspaceRepository workspaceRepository) {
         this.workspaceRepository = workspaceRepository;
     }
 

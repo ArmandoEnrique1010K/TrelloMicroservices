@@ -187,7 +187,7 @@ public class InvitationRecipientRestController {
                                     "instance": null,
                                     "message": "Ha ocurrido un error inesperado",
                                     "status": 409,
-                                    "title": "Business rule violation",
+                                    "title": "Business rule violation"
                             }
                             """),
             })),

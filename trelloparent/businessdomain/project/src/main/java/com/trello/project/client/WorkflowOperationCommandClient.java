@@ -27,4 +27,16 @@ public interface WorkflowOperationCommandClient {
     @PostMapping("/operations/revert-deactivate-board-access")
     ResponseEntity<Void> revertDeactivateBoardAccess(
             @RequestHeader("X-Operation-Id") UUID operationId);
+
+    @PostMapping("/operations/revert-add-board-and-board-access-user-owner")
+    ResponseEntity<Void> revertAddBoardAndBoardAccessUserOwner(
+            @RequestHeader("X-Operation-Id") UUID operationId);
+
+    @PostMapping("/operations/revert-delete-board-and-board-access-and-tasks")
+    ResponseEntity<Void> revertDeleteBoardAndBoardAccessAndTasks(
+            @RequestHeader("X-Operation-Id") UUID operationId);
+
+    @PostMapping("/operations/revert-delete-all-boards-and-board-access-and-tasks")
+    ResponseEntity<Void> revertDeleteAllBoardsAndBoardAccessAndTasks(
+            @RequestHeader("X-Operation-Id") UUID operationId);
 }

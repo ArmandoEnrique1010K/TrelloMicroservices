@@ -45,7 +45,24 @@ public class WorkflowOperationCommandClientFallbackFactory implements FallbackFa
                 log.error("Error relacionado con revertDeactivateBoardAccess");
                 throw new ServiceUnavailableException();
             }
+
+            @Override
+            public ResponseEntity<Void> revertAddBoardAndBoardAccessUserOwner(UUID operationId) {
+                log.error("Error relacionado con revertAddBoardAndBoardAccessUserOwner");
+                throw new ServiceUnavailableException();
+            }
+
+            @Override
+            public ResponseEntity<Void> revertDeleteBoardAndBoardAccessAndTasks(UUID operationId) {
+                log.error("Error relacionado con revertDeleteBoardAndBoardAccessAndTasks");
+                throw new ServiceUnavailableException();
+            }
+
+            @Override
+            public ResponseEntity<Void> revertDeleteAllBoardsAndBoardAccessAndTasks(UUID operationId) {
+                log.error("Error relacionado con revertDeleteAllBoardsAndBoardAccessAndTasks");
+                throw new ServiceUnavailableException();
+            }
         };
     }
-
 }

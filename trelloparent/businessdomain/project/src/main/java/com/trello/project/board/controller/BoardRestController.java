@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -123,12 +124,14 @@ public class BoardRestController {
     })
     @PostMapping("/workspace/{workspaceId}")
     public ResponseEntity<SuccessfulResponse<BoardResponse>> createBoard(@AuthenticationPrincipal Jwt jwt,
+            // Clave secreta generada desde el frontend
+            @RequestHeader("Idempotency-Key") UUID idempotencyKey,
             @Parameter(description = "ID del espacio de trabajo", required = true, example = "550e8400-e29b-41d4-a716-446655440000") @PathVariable UUID workspaceId,
             @Valid @RequestBody BoardRequest input) throws BoardAlreadyExistsException {
 
         UUID userId = JwtUtils.getUserId(jwt);
 
-        BoardResponse response = boardService.createBoardByWorkspaceId(workspaceId, userId, input);
+        BoardResponse response = boardService.createBoardByWorkspaceId(workspaceId, userId, input, idempotencyKey);
 
         SuccessfulResponse<BoardResponse> successfulResponse = new SuccessfulResponse<>();
         successfulResponse.setMessage("Se agrego un nuevo tablero");

@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import com.trello.project.client.config.FeignClientConfig;
@@ -17,13 +18,18 @@ public interface WorkflowBoardCommandClient {
     // Si hay parametros dinamicos se utiliza @PathVariable
     @PostMapping("/boards/{boardId}")
     ResponseEntity<Void> addBoardAndBoardAccessUserOwner(
-            @PathVariable("boardId") UUID boardId);
+            @PathVariable("boardId") UUID boardId,
+            @RequestHeader("X-Operation-Id") UUID operationId);
 
     @DeleteMapping("/boards/{boardId}")
     ResponseEntity<Void> deleteBoardByIdAndBoardAccessAndTasks(
-            @PathVariable("boardId") UUID boardId);
+            @PathVariable("boardId") UUID boardId
+    // , @RequestHeader("X-Operation-Id") UUID operationId
+    );
 
     @DeleteMapping("/boards/batch")
     ResponseEntity<Void> deleteManyBoardsByIdsAndBoardAccessAndTasks(
-            @RequestParam(required = false) List<UUID> boardIds);
+            @RequestParam(required = false) List<UUID> boardIds
+    // , @RequestHeader("X-Operation-Id") UUID operationId
+    );
 }

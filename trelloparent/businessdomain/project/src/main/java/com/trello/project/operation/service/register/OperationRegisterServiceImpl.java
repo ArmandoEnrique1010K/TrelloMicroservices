@@ -1,25 +1,32 @@
 package com.trello.project.operation.service.register;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.trello.project.board.dto.request.BoardRequest;
+import com.trello.project.board.exception.BoardAlreadyExistsException;
 import com.trello.project.entities.Board;
 import com.trello.project.entities.Invitation;
 import com.trello.project.entities.Member;
 import com.trello.project.entities.Operation;
+import com.trello.project.entities.Workspace;
 import com.trello.project.enums.OperationStatus;
 import com.trello.project.enums.OperationType;
 import com.trello.project.enums.Role;
 import com.trello.project.enums.Status;
+import com.trello.project.exception.BusinessRuleException;
 import com.trello.project.invitation.exception.InvitationConfirmedException;
 import com.trello.project.operation.exception.OperationNotPendingException;
+import com.trello.project.service.BoardProjectService;
 import com.trello.project.service.InvitationProjectService;
 import com.trello.project.service.MemberProjectService;
 import com.trello.project.service.OperationProjectService;
+import com.trello.project.service.WorkspaceProjectService;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -30,14 +37,20 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
     private final OperationProjectService operationProjectService;
     private final InvitationProjectService invitationProjectService;
     private final MemberProjectService memberProjectService;
+    private final BoardProjectService boardProjectService;
+    private final WorkspaceProjectService workspaceProjectService;
 
     public OperationRegisterServiceImpl(
             OperationProjectService operationProjectService,
             InvitationProjectService invitationProjectService,
-            MemberProjectService memberProjectService) {
+            MemberProjectService memberProjectService,
+            BoardProjectService boardProjectService,
+            WorkspaceProjectService workspaceProjectService) {
         this.operationProjectService = operationProjectService;
         this.invitationProjectService = invitationProjectService;
         this.memberProjectService = memberProjectService;
+        this.boardProjectService = boardProjectService;
+        this.workspaceProjectService = workspaceProjectService;
     }
 
     /**
@@ -193,7 +206,7 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
     public Operation registerChangeRoleMember(Role role, UUID memberId, UUID ownerUserId) {
 
         // Validar logica de negocio
-        Member findedMember = memberProjectService.findMemberByIdAndOwnerUserId(memberId, ownerUserId);
+        Member findedMember = memberProjectService.findMemberActiveByIdAndOwnerUserId(memberId, ownerUserId);
 
         // Buscar operación existente
         Optional<Operation> existingOperation = operationProjectService.findLatestOperationByMemberIdAndType(memberId,
@@ -265,7 +278,7 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
     @Transactional(rollbackFor = Exception.class)
     @Override
     public Operation registerDeactivateMember(UUID memberId, UUID ownerUserId) {
-        Member findedMember = memberProjectService.findMemberByIdAndOwnerUserId(memberId, ownerUserId);
+        Member findedMember = memberProjectService.findMemberActiveByIdAndOwnerUserId(memberId, ownerUserId);
 
         Optional<Operation> existingOperation = operationProjectService.findLatestOperationByMemberIdAndType(memberId,
                 OperationType.DEACTIVATE_MEMBER);
@@ -315,6 +328,84 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
         operation.setCreatedAt(currentDateTime);
         operation.setNextAutomaticAttemptAt(null);
 
+        operationProjectService.saveOperation(operation);
+        return operation;
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public Operation registerAddBoardAndBoardAccessUserOwner(UUID workspaceId, UUID ownerUserId,
+            BoardRequest boardRequest,
+            UUID idempotencyKey) {
+
+        String name = boardRequest.getName();
+        String description = boardRequest.getDescription();
+
+        Workspace workspace = workspaceProjectService.findWorkspaceByIdAndOwnerUserId(
+                workspaceId,
+                ownerUserId);
+
+        if (boardProjectService.existsBoardByWorkspaceIdAndName(workspaceId, name)) {
+            throw new BoardAlreadyExistsException();
+        }
+
+        // 1. Comprobar si ya se registró esta misma solicitud.
+        Optional<Operation> existingOperation = operationProjectService
+                .findLatestOperationByWorkspaceIdAndIdempotencyKeyAndType(
+                        workspaceId,
+                        idempotencyKey,
+                        OperationType.CREATE_BOARD);
+
+        if (existingOperation.isPresent()) {
+            Operation existing = existingOperation.get();
+
+            // La misma clave no puede representar solicitudes diferentes.
+            if (!existing.getBoardName().equals(name)
+                    || !Objects.equals(existing.getBoardDescription(), description)) {
+                throw new BusinessRuleException();
+            }
+
+            // De acuerdo a su estado debe devolver la operacion existente, una excepcion o
+            // continuar con una nueva operacion
+            switch (existing.getStatus()) {
+                case REGISTERED, LOCAL_COMPENSATION_COMPLETED, COMPENSATION_COMPLETED -> {
+                    return existing;
+                }
+
+                case EXECUTION_PENDING,
+                        EXECUTING,
+                        COMPENSATION_PENDING,
+                        LOCAL_COMPENSATION_IN_PROGRESS,
+                        MANUAL_INTERVENTION_REQUIRED ->
+                    throw new OperationNotPendingException();
+
+                case COMPLETED -> {
+                }
+            }
+        }
+
+        // 3. Crear identificadores para una operación nueva.
+        UUID boardId = UUID.randomUUID();
+        UUID operationId = UUID.randomUUID();
+
+        Operation operation = new Operation();
+        operation.setId(operationId);
+        operation.setIdempotencyKey(idempotencyKey);
+        operation.setType(OperationType.CREATE_BOARD);
+        operation.setStatus(OperationStatus.REGISTERED);
+        operation.setManualAttempts(0);
+        operation.setAutomaticAttempts(0);
+        operation.setBoardId(boardId);
+        operation.setBoardName(name);
+        operation.setBoardDescription(description);
+        operation.setOwnerUserId(ownerUserId);
+        operation.setWorkspaceId(workspace.getId());
+
+        LocalDateTime currentDateTime = LocalDateTime.now();
+        operation.setCreatedAt(currentDateTime);
+        operation.setNextAutomaticAttemptAt(null);
+
+        // 4. Persistir la operación antes de ejecutar la creación.
         operationProjectService.saveOperation(operation);
         return operation;
     }

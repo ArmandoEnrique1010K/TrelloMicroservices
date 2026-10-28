@@ -39,4 +39,11 @@ public interface OperationProjectService {
             OperationType type);
 
     Optional<Operation> findLatestOperationByMemberIdAndType(UUID memberId, OperationType type);
+
+    Optional<Operation> findLatestOperationByWorkspaceIdAndOwnerUserIdAndBoardNameAndType(UUID workspaceId,
+            UUID ownerUserId, String boardName,
+            OperationType type);
+
+    Optional<Operation> findLatestOperationByWorkspaceIdAndIdempotencyKeyAndType(UUID workspaceId, UUID idempotencyKey,
+            OperationType type);
 }

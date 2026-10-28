@@ -9,7 +9,11 @@ import com.trello.project.board.dto.response.BoardResponse;
 import com.trello.project.board.exception.BoardAlreadyExistsException;
 
 public interface BoardService {
-    BoardResponse createBoardByWorkspaceId(UUID workspaceId, UUID ownerUserId, BoardRequest boardRequest)
+
+    // idempotencyKey es una clave aleatoria que se puede pasar desde el frontend
+    // como por ejemplo desde un formulario en una ventana modal
+    BoardResponse createBoardByWorkspaceId(UUID workspaceId, UUID ownerUserId, BoardRequest boardRequest,
+            UUID idempotencyKey)
             throws BoardAlreadyExistsException;
 
     List<BoardResponse> listAllBoardsByWorkspaceId(UUID workspaceId, UUID ownerUserId);

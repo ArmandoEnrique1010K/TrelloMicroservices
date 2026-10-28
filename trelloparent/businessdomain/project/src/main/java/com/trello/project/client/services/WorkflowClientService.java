@@ -32,7 +32,7 @@ public interface WorkflowClientService {
             WorkflowRole oldRoleName,
             UUID operationId);
 
-    void addBoardAndBoardAccessUserOwner(UUID boardId);
+    void addBoardAndBoardAccessUserOwner(UUID boardId, UUID operationId);
 
     void deleteBoardByIdAndBoardAccessAndTasks(UUID boardId);
 
@@ -45,4 +45,6 @@ public interface WorkflowClientService {
     void revertChangeRoleBoardAccess(UUID operationId);
 
     void revertDeactivateBoardAccess(UUID operationId);
+
+    void revertAddBoardAndBoardAccessUserOwner(UUID operationId);
 }

@@ -51,6 +51,17 @@ public class Operation {
     // Usuario autor del tablero
     private UUID ownerUserId;
 
+    // Nombre del tablero
+    private String boardName;
+    // Descripción del tablero
+    private String boardDescription;
+
+    // ID de espacio de trabajo
+    private UUID workspaceId;
+
+    // Clave enviada desde el frontend
+    private UUID idempotencyKey;
+
     // Boolean con B mayuscula para que admita los valores
     // null, true o false
 

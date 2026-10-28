@@ -1,5 +1,6 @@
 package com.trello.project.operation.service.register;
 
+import com.trello.project.board.dto.request.BoardRequest;
 import com.trello.project.entities.Operation;
 import com.trello.project.enums.Role;
 import com.trello.project.invitation.exception.InvitationConfirmedException;
@@ -17,4 +18,9 @@ public interface OperationRegisterService {
     Operation registerChangeRoleMember(Role role, UUID memberId, UUID ownerUserId);
 
     Operation registerDeactivateMember(UUID memberId, UUID ownerUserId);
+
+    // Crear tablero y permiso de acceso del usuario administrador
+    Operation registerAddBoardAndBoardAccessUserOwner(UUID workspaceId, UUID ownerUserId,
+            BoardRequest boardRequest,
+            UUID idempotencyKey);
 }

@@ -12,8 +12,14 @@ import com.trello.project.client.dto.response.UsersByIdResponse;
 import com.trello.project.client.services.IdentityClientService;
 import com.trello.project.client.services.WorkflowClientService;
 import com.trello.project.entities.Board;
+import com.trello.project.entities.Operation;
 import com.trello.project.entities.Workspace;
+import com.trello.project.enums.OperationStatus;
 import com.trello.project.exception.ServiceUnavailableException;
+import com.trello.project.member.dto.response.MemberResponse;
+import com.trello.project.operation.service.handler.OperationAddBoardAndBoardAccessUserOwnerService;
+import com.trello.project.operation.service.processor.OperationAddBoardAndBoardAccessUserOwnerProcessor;
+import com.trello.project.operation.service.register.OperationRegisterService;
 import com.trello.project.service.BoardProjectService;
 import com.trello.project.service.WorkspaceProjectService;
 
@@ -39,11 +45,16 @@ public class BoardServiceImpl implements BoardService {
     private final WorkflowClientService workflowClientService;
     private final BoardMembershipResponseMapper boardMembershipResponseMapper;
     private final IdentityClientService identityClientService;
+    private final OperationRegisterService operationRegisterService;
+    private final OperationAddBoardAndBoardAccessUserOwnerService operationAddBoardAndBoardAccessUserOwnerService;
+    private final OperationAddBoardAndBoardAccessUserOwnerProcessor operationAddBoardAndBoardAccessUserOwnerProcessor;
 
     public BoardServiceImpl(BoardProjectService boardProjectService, BoardRequestMapper boardRequestMapper,
             BoardResponseMapper boardResponseMapper, WorkspaceProjectService workspaceProjectService,
             WorkflowClientService workflowClientService, BoardMembershipResponseMapper boardMembershipResponseMapper,
-            IdentityClientService identityClientService) {
+            IdentityClientService identityClientService, OperationRegisterService operationRegisterService,
+            OperationAddBoardAndBoardAccessUserOwnerService operationAddBoardAndBoardAccessUserOwnerService,
+            OperationAddBoardAndBoardAccessUserOwnerProcessor operationAddBoardAndBoardAccessUserOwnerProcessor) {
         this.boardProjectService = boardProjectService;
         this.boardRequestMapper = boardRequestMapper;
         this.boardResponseMapper = boardResponseMapper;
@@ -51,40 +62,67 @@ public class BoardServiceImpl implements BoardService {
         this.workflowClientService = workflowClientService;
         this.boardMembershipResponseMapper = boardMembershipResponseMapper;
         this.identityClientService = identityClientService;
+        this.operationRegisterService = operationRegisterService;
+        this.operationAddBoardAndBoardAccessUserOwnerService = operationAddBoardAndBoardAccessUserOwnerService;
+        this.operationAddBoardAndBoardAccessUserOwnerProcessor = operationAddBoardAndBoardAccessUserOwnerProcessor;
     }
 
-    @Transactional(rollbackFor = Exception.class)
+    // TODO: CONTINUAR AQUI
+    // @Transactional(rollbackFor = Exception.class)
     @Override
-    public BoardResponse createBoardByWorkspaceId(UUID workspaceId, UUID ownerUserId, BoardRequest boardRequest)
+    public BoardResponse createBoardByWorkspaceId(UUID workspaceId, UUID ownerUserId, BoardRequest boardRequest,
+            UUID idempotencyKey)
             throws BoardAlreadyExistsException {
 
-        String name = boardRequest.getName();
+        Operation operation = operationRegisterService.registerAddBoardAndBoardAccessUserOwner(workspaceId, ownerUserId,
+                boardRequest,
+                idempotencyKey);
 
-        Workspace workspace = workspaceProjectService.findWorkspaceByIdAndOwnerUserId(
-                workspaceId,
-                ownerUserId);
+        if (operation.getStatus() == OperationStatus.REGISTERED
+                || operation.getStatus() == OperationStatus.LOCAL_COMPENSATION_COMPLETED
+                || operation.getStatus() == OperationStatus.COMPENSATION_COMPLETED) {
 
-        if (boardProjectService.existsBoardByWorkspaceIdAndName(workspaceId, name)) {
-            throw new BoardAlreadyExistsException();
+            operationAddBoardAndBoardAccessUserOwnerService.applyAddBoardAndBoardAccessUserOwner(operation.getId(),
+                    false);
         }
 
-        Board boardToBoardRequest = boardRequestMapper.boardRequestToBoard(boardRequest);
-        boardToBoardRequest.setWorkspace(workspace);
+        BoardResponse response = operationAddBoardAndBoardAccessUserOwnerProcessor
+                .processAddBoardAndBoardAccessUserOwnerOperation(operation.getId());
 
-        Board savedBoard = boardProjectService.saveBoard(boardToBoardRequest);
-        BoardResponse boardResponse = boardResponseMapper.boardToBoardResponse(savedBoard);
+        return response;
 
-        // Guarda los datos en la base de datos del microservicio Workflow
-        // Solamente los datos necesarios: ID de tablero, Rol (WorkflowRole) e ID de
-        // usuario
-        // workflowClientService.addBoardAccess(boardResponse.getId(),
-        // WorkflowRole.OWNER);
+        // String name = boardRequest.getName();
 
-        // Guardar un tablero
-        // TODO: INVESTIGAR COMO MANEJAR PETICIONES CUANDO EL MICROSERVICIO ESTA CAIDO
-        workflowClientService.addBoardAndBoardAccessUserOwner(savedBoard.getId());
+        // Workspace workspace =
+        // workspaceProjectService.findWorkspaceByIdAndOwnerUserId(
+        // workspaceId,
+        // ownerUserId);
 
-        return boardResponse;
+        // if (boardProjectService.existsBoardByWorkspaceIdAndName(workspaceId, name)) {
+        // throw new BoardAlreadyExistsException();
+        // }
+
+        // Board boardToBoardRequest =
+        // boardRequestMapper.boardRequestToBoard(boardRequest);
+        // boardToBoardRequest.setWorkspace(workspace);
+
+        // Board savedBoard = boardProjectService.saveBoard(boardToBoardRequest);
+        // BoardResponse boardResponse =
+        // boardResponseMapper.boardToBoardResponse(savedBoard);
+
+        // // // Guarda los datos en la base de datos del microservicio Workflow
+        // // // Solamente los datos necesarios: ID de tablero, Rol (WorkflowRole) e ID
+        // de
+        // // // usuario
+        // // // workflowClientService.addBoardAccess(boardResponse.getId(),
+        // // // WorkflowRole.OWNER);
+
+        // // Guardar un tablero
+        // // TODO: INVESTIGAR COMO MANEJAR PETICIONES CUANDO EL MICROSERVICIO ESTA
+        // CAIDO
+        // workflowClientService.addBoardAndBoardAccessUserOwner(savedBoard.getId());
+
+        // return boardResponse;
     }
 
     @Override

@@ -18,4 +18,6 @@ public interface BoardRequestMapper {
             @Mapping(target = "createdAt", ignore = true)
     })
     Board boardRequestToBoard(BoardRequest source);
+
+    BoardRequest boardToBoardRequest(Board source);
 }

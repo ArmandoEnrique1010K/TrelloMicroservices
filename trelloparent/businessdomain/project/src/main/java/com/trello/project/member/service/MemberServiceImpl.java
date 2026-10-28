@@ -22,7 +22,6 @@ import com.trello.project.enums.Role;
 import com.trello.project.exception.ServiceUnavailableException;
 import com.trello.project.member.dto.response.MemberResponse;
 import com.trello.project.member.dto.response.UserMemberResponse;
-import com.trello.project.member.mapper.MemberResponseMapper;
 import com.trello.project.member.mapper.UserMemberResponseMapper;
 import com.trello.project.operation.service.handler.OperationChangeRoleMemberService;
 import com.trello.project.operation.service.handler.OperationDeactivateMemberService;
@@ -30,18 +29,15 @@ import com.trello.project.operation.service.processor.OperationChangeRoleMemberP
 import com.trello.project.operation.service.processor.OperationDeactivateMemberProcessor;
 import com.trello.project.operation.service.register.OperationRegisterService;
 import com.trello.project.service.BoardProjectService;
-import com.trello.project.service.InvitationProjectService;
 import com.trello.project.service.MemberProjectService;
 
 @Service
 public class MemberServiceImpl implements MemberService {
 
     private final IdentityClientService identityClientService;
-    private final MemberResponseMapper memberResponseMapper;
     private final UserMemberResponseMapper userMemberResponseMapper;
     private final BoardProjectService boardProjectService;
     private final MemberProjectService memberProjectService;
-    private final InvitationProjectService invitationProjectService;
     private final OperationRegisterService operationRegisterService;
     private final OperationChangeRoleMemberService operationChangeRoleMemberService;
     private final OperationChangeRoleMemberProcessor operationChangeRoleMemberProcessor;
@@ -49,8 +45,8 @@ public class MemberServiceImpl implements MemberService {
     private final OperationDeactivateMemberProcessor operationDeactivateMemberProcessor;
 
     public MemberServiceImpl(BoardProjectService boardProjectService, MemberProjectService memberProjectService,
-            MemberResponseMapper memberResponseMapper, UserMemberResponseMapper userMemberResponseMapper,
-            IdentityClientService identityClientService, InvitationProjectService invitationProjectService,
+            UserMemberResponseMapper userMemberResponseMapper,
+            IdentityClientService identityClientService,
             OperationRegisterService operationRegisterService,
             OperationChangeRoleMemberService operationChangeRoleMemberService,
             OperationChangeRoleMemberProcessor operationChangeRoleMemberProcessor,
@@ -58,10 +54,8 @@ public class MemberServiceImpl implements MemberService {
             OperationDeactivateMemberProcessor operationDeactivateMemberProcessor) {
         this.boardProjectService = boardProjectService;
         this.memberProjectService = memberProjectService;
-        this.memberResponseMapper = memberResponseMapper;
         this.userMemberResponseMapper = userMemberResponseMapper;
         this.identityClientService = identityClientService;
-        this.invitationProjectService = invitationProjectService;
         this.operationRegisterService = operationRegisterService;
         this.operationChangeRoleMemberService = operationChangeRoleMemberService;
         this.operationChangeRoleMemberProcessor = operationChangeRoleMemberProcessor;

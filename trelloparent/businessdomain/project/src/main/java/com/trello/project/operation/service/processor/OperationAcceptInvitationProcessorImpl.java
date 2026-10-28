@@ -300,7 +300,4 @@ public class OperationAcceptInvitationProcessorImpl implements OperationAcceptIn
             throw new OperationCompensatedException();
         }
     }
-
 }
-
-// TODO: 2. Corregir el uso del estado en processAcceptInvitationOperation()
