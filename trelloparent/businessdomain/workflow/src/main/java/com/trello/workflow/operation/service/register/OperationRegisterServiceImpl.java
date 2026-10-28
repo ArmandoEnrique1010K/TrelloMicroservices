@@ -310,8 +310,6 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
         }
     }
 
-    // TODO: CONTINUAR CON LOS METODOS RELACIONADOS A BOARD
-
     @Transactional(rollbackFor = Exception.class)
     @Override
     public Operation registerDeleteBoardAndBoardAccessAndTasks(UUID boardId, UUID operationId)

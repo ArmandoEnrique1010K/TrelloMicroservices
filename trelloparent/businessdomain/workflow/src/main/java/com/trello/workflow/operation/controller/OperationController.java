@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.trello.workflow.common.StandarizedApiExceptionResponse;
 import com.trello.workflow.operation.service.handler.OperationActivateBoardAccessService;
 import com.trello.workflow.operation.service.handler.OperationAddBoardAccessService;
+import com.trello.workflow.operation.service.handler.OperationAddBoardAndBoardAccessUserOwnerService;
 import com.trello.workflow.operation.service.handler.OperationChangeRoleBoardAccessService;
 import com.trello.workflow.operation.service.handler.OperationDeactivateBoardAccessService;
 import com.trello.workflow.operation.service.handler.OperationDeleteAllBoardsAndBoardAccessAndTasksService;
@@ -35,6 +36,7 @@ public class OperationController {
     private final OperationActivateBoardAccessService operationActivateBoardAccessService;
     private final OperationChangeRoleBoardAccessService operationChangeRoleBoardAccessService;
     private final OperationDeactivateBoardAccessService operationDeactivateBoardAccessService;
+    private final OperationAddBoardAndBoardAccessUserOwnerService operationAddBoardAndBoardAccessUserOwnerService;
     private final OperationDeleteBoardAndBoardAccessAndTasksService operationDeleteBoardAndBoardAccessAndTasksService;
     private final OperationDeleteAllBoardsAndBoardAccessAndTasksService operationDeleteAllBoardsAndBoardAccessAndTasksService;
 
@@ -42,12 +44,14 @@ public class OperationController {
             OperationActivateBoardAccessService operationActivateBoardAccessService,
             OperationChangeRoleBoardAccessService operationChangeRoleBoardAccessService,
             OperationDeactivateBoardAccessService operationDeactivateBoardAccessService,
+            OperationAddBoardAndBoardAccessUserOwnerService operationAddBoardAndBoardAccessUserOwnerService,
             OperationDeleteBoardAndBoardAccessAndTasksService operationDeleteBoardAndBoardAccessAndTasksService,
             OperationDeleteAllBoardsAndBoardAccessAndTasksService operationDeleteAllBoardsAndBoardAccessAndTasksService) {
         this.operationAddBoardAccessService = operationAddBoardAccessService;
         this.operationActivateBoardAccessService = operationActivateBoardAccessService;
         this.operationChangeRoleBoardAccessService = operationChangeRoleBoardAccessService;
         this.operationDeactivateBoardAccessService = operationDeactivateBoardAccessService;
+        this.operationAddBoardAndBoardAccessUserOwnerService = operationAddBoardAndBoardAccessUserOwnerService;
         this.operationDeleteBoardAndBoardAccessAndTasksService = operationDeleteBoardAndBoardAccessAndTasksService;
         this.operationDeleteAllBoardsAndBoardAccessAndTasksService = operationDeleteAllBoardsAndBoardAccessAndTasksService;
     }
@@ -398,6 +402,15 @@ public class OperationController {
     }
 
     // TODO: AÑADIR LAS @ApiResponses
+    @Operation(summary = "Revierte una operación de tipo agregar tablero junto con el permiso de acceso del usuario administrador", description = "Revierte los cambios realizados en la base de datos luego de agregar un tablero junto al permiso de acceso del usuario administrador")
+    @SecurityRequirement(name = "bearerAuth")
+    @PostMapping("/revert-add-board-and-board-access-user-owner")
+    public ResponseEntity<Void> revertAddBoardAndBoardAccessUserOwner(
+            @RequestHeader("X-Operation-Id") UUID operationId) {
+        operationAddBoardAndBoardAccessUserOwnerService.revertAddBoardAndBoardAccessUserOwner(operationId);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).body(null);
+    }
+
     @Operation(summary = "Revierte una operación de tipo eliminar tablero junto con permisos de acceso y tareas", description = "Revierte los cambios realizados en la base de datos luego de cambiar el estado de un tablero y sus permisos de acceso")
     @SecurityRequirement(name = "bearerAuth")
     @PostMapping("/revert-delete-board-and-board-access-and-tasks")

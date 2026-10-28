@@ -240,7 +240,7 @@ public class BoardRestController {
     })
     @DeleteMapping("/batch")
     public ResponseEntity<Void> deleteManyBoardsByIdsAndBoardAccessAndTasks(
-            @Parameter(description = "Lista de IDs del tablero", required = true, example = "550e8400-e29b-41d4-a716-446655440000") @RequestParam(required = false) List<UUID> boardIds,
+            @Parameter(description = "Lista de IDs del tablero", required = false, example = "550e8400-e29b-41d4-a716-446655440000") @RequestParam(required = false) List<UUID> boardIds,
             @RequestHeader("X-Operation-Id") UUID operationId) {
         boardService.deleteAllBoardsByIdsAndBoardAccessAndTasks(boardIds, operationId);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).body(null);
