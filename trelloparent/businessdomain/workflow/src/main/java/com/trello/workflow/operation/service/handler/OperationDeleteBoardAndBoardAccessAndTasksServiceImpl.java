@@ -15,6 +15,9 @@ import com.trello.workflow.operation.exception.OperationNotPendingException;
 import com.trello.workflow.services.BoardWorkflowService;
 import com.trello.workflow.services.OperationWorkflowService;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Service
 public class OperationDeleteBoardAndBoardAccessAndTasksServiceImpl
         implements OperationDeleteBoardAndBoardAccessAndTasksService {
@@ -61,16 +64,22 @@ public class OperationDeleteBoardAndBoardAccessAndTasksServiceImpl
     @Override
     public void revertDeleteBoardAndBoardAccessAndTasks(UUID operationId)
             throws OperationNotFoundException, OperationConflictException, OperationNotPendingException {
+
+        log.info("Buscando operacion");
+        log.info("ID de operacion:" + operationId);
+
         Operation operation = operationWorkflowService
                 .findOperationById(operationId)
                 .orElseThrow(OperationNotFoundException::new);
 
         if (operation.getType() != OperationType.DELETE_BOARD_AND_BOARD_ACCESS_AND_TASKS) {
+            log.info("Operacion en conflicto");
             throw new OperationConflictException();
         }
 
         if (operation.getStatus() == OperationStatus.CREATED
                 && operation.getStatus() == OperationStatus.COMPLETED) {
+            log.info("Operacion no pendiente");
             throw new OperationNotPendingException();
         }
 
@@ -87,8 +96,10 @@ public class OperationDeleteBoardAndBoardAccessAndTasksServiceImpl
         // boardAccessWorkflowService.enableAllBoardAccessStatusByBoardId(boardId);
 
         // Realizar ambas operaciones en 1 solo query
-        boardWorkflowService.enableBoardStatusByIdAndEnableAllBoardAccessStatus(boardId);
 
+        log.info("Habilitando permisos de acceso y tablero");
+        boardWorkflowService.enableBoardStatusByIdAndEnableAllBoardAccessStatus(boardId);
+        log.info("Operacion pendiente");
         operation.setStatus(OperationStatus.PENDING);
         operation.setCompletedAt(LocalDateTime.now());
         operationWorkflowService.saveOperation(operation);

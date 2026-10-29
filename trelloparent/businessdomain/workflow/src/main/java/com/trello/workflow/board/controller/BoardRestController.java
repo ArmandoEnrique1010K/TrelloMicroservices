@@ -200,6 +200,15 @@ public class BoardRestController {
             @RequestHeader("X-Operation-Id") UUID operationId) {
 
         boardService.deleteBoardAndBoardAccessAndTasks(boardId, operationId);
+        // Prueba de rendimiento
+        // Retrasar la respuesta después del commit del servicio.
+        // try {
+        // Thread.sleep(4000);
+        // } catch (InterruptedException e) {
+        // Thread.currentThread().interrupt();
+        // throw new RuntimeException(e);
+        // }
+
         return ResponseEntity.status(HttpStatus.NO_CONTENT).body(null);
     }
 

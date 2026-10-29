@@ -24,9 +24,8 @@ public interface WorkflowBoardCommandClient {
 
     @DeleteMapping("/boards/{boardId}")
     ResponseEntity<Void> deleteBoardByIdAndBoardAccessAndTasks(
-            @PathVariable("boardId") UUID boardId
-    // , @RequestHeader("X-Operation-Id") UUID operationId
-    );
+            @PathVariable("boardId") UUID boardId,
+            @RequestHeader("X-Operation-Id") UUID operationId);
 
     @DeleteMapping("/boards/batch")
     ResponseEntity<Void> deleteManyBoardsByIdsAndBoardAccessAndTasks(

@@ -92,4 +92,9 @@ public class OperationProjectServiceImpl implements OperationProjectService {
         return operationRepository.findFirstByWorkspaceIdAndIdempotencyKeyAndTypeOrderByCreatedAtDesc(workspaceId,
                 idempotencyKey, type);
     }
+
+    @Override
+    public Optional<Operation> findLatestOperationByBoardIdAndType(UUID boardId, OperationType type) {
+        return operationRepository.findFirstByBoardIdAndTypeOrderByCreatedAtDesc(boardId, type);
+    }
 }

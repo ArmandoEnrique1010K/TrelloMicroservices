@@ -23,4 +23,6 @@ public interface OperationRegisterService {
     Operation registerAddBoardAndBoardAccessUserOwner(UUID workspaceId, UUID ownerUserId,
             BoardRequest boardRequest,
             UUID idempotencyKey);
+
+    Operation registerDeleteBoard(UUID ownerUserId, UUID boardId);
 }

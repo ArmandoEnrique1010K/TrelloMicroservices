@@ -34,4 +34,7 @@ public interface BoardProjectService {
             throws WorkspaceNotFoundException, BoardNotFoundException, MemberNotFoundException;
 
     List<Board> findAllBoardsByMemberActiveTrueAndMemberUserId(UUID memberUserId);
+
+    // Cambiar estado del tablero
+    void changeStatusBoardById(UUID boardId, UUID ownerUserId, boolean status) throws BoardNotFoundException;
 }

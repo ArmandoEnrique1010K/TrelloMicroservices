@@ -121,4 +121,12 @@ public class BoardProjectServiceImpl implements BoardProjectService {
     public List<Board> findAllBoardsByMemberActiveTrueAndMemberUserId(UUID memberUserId) {
         return boardRepository.findByMemberActiveTrueAndMemberUserId(memberUserId);
     }
+
+    @Override
+    public void changeStatusBoardById(UUID boardId, UUID ownerUserId, boolean status) throws BoardNotFoundException {
+        Board board = boardRepository.findById(boardId)
+                .orElseThrow(BoardNotFoundException::new);
+        board.setStatus(status);
+        boardRepository.save(board);
+    }
 }

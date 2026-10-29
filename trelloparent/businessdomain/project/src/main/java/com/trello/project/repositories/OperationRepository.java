@@ -50,4 +50,6 @@ public interface OperationRepository extends JpaRepository<Operation, UUID> {
 
     Optional<Operation> findFirstByWorkspaceIdAndIdempotencyKeyAndTypeOrderByCreatedAtDesc(UUID workspaceId,
             UUID idempotencyKey, OperationType type);
+
+    Optional<Operation> findFirstByBoardIdAndTypeOrderByCreatedAtDesc(UUID boardId, OperationType type);
 }

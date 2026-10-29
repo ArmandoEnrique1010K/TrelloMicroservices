@@ -405,4 +405,54 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
         operationProjectService.saveOperation(operation);
         return operation;
     }
+
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public Operation registerDeleteBoard(UUID ownerUserId, UUID boardId) {
+
+        log.info("BoardID: " + boardId);
+        log.info("OWNER USER ID: " + ownerUserId);
+        // Asegurar de que el tablero exista
+        boardProjectService.findBoardByIdAndOwnerUserId(boardId, ownerUserId);
+
+        Optional<Operation> existingOperation = operationProjectService.findLatestOperationByBoardIdAndType(boardId,
+                OperationType.DELETE_BOARD);
+
+        if (existingOperation.isPresent()) {
+            Operation existing = existingOperation.get();
+
+            switch (existing.getStatus()) {
+                case REGISTERED, LOCAL_COMPENSATION_COMPLETED, COMPENSATION_COMPLETED -> {
+                    return existing;
+                }
+
+                case EXECUTION_PENDING,
+                        EXECUTING,
+                        COMPENSATION_PENDING,
+                        LOCAL_COMPENSATION_IN_PROGRESS,
+                        MANUAL_INTERVENTION_REQUIRED ->
+                    throw new OperationNotPendingException();
+
+                case COMPLETED -> {
+                }
+            }
+        }
+        UUID operationId = UUID.randomUUID();
+
+        Operation operation = new Operation();
+        operation.setId(operationId);
+        operation.setType(OperationType.DELETE_BOARD);
+        operation.setStatus(OperationStatus.REGISTERED);
+        operation.setManualAttempts(0);
+        operation.setAutomaticAttempts(0);
+        operation.setBoardId(boardId);
+        operation.setOwnerUserId(ownerUserId);
+
+        LocalDateTime currentDateTime = LocalDateTime.now();
+        operation.setCreatedAt(currentDateTime);
+        operation.setNextAutomaticAttemptAt(null);
+
+        operationProjectService.saveOperation(operation);
+        return operation;
+    }
 }

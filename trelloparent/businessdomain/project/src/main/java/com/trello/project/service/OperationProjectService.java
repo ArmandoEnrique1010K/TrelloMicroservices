@@ -46,4 +46,6 @@ public interface OperationProjectService {
 
     Optional<Operation> findLatestOperationByWorkspaceIdAndIdempotencyKeyAndType(UUID workspaceId, UUID idempotencyKey,
             OperationType type);
+
+    Optional<Operation> findLatestOperationByBoardIdAndType(UUID boardId, OperationType type);
 }

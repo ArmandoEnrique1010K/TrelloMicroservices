@@ -9,53 +9,59 @@ import com.trello.project.board.mapper.BoardResponseMapper;
 import com.trello.project.client.dto.response.UserResponse;
 import com.trello.project.client.dto.response.UsersByIdResponse;
 import com.trello.project.client.services.IdentityClientService;
-import com.trello.project.client.services.WorkflowClientService;
 import com.trello.project.entities.Board;
 import com.trello.project.entities.Operation;
 import com.trello.project.enums.OperationStatus;
 import com.trello.project.exception.ServiceUnavailableException;
 import com.trello.project.operation.service.handler.OperationAddBoardAndBoardAccessUserOwnerService;
+import com.trello.project.operation.service.handler.OperationDeleteBoardService;
 import com.trello.project.operation.service.processor.OperationAddBoardAndBoardAccessUserOwnerProcessor;
+import com.trello.project.operation.service.processor.OperationDeleteBoardProcessor;
 import com.trello.project.operation.service.register.OperationRegisterService;
 import com.trello.project.service.BoardProjectService;
+
+import java.util.function.Function;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.UUID;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.util.UUID;
 
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class BoardServiceImpl implements BoardService {
 
     private final BoardProjectService boardProjectService;
     private final BoardResponseMapper boardResponseMapper;
-    private final WorkflowClientService workflowClientService;
     private final BoardMembershipResponseMapper boardMembershipResponseMapper;
     private final IdentityClientService identityClientService;
     private final OperationRegisterService operationRegisterService;
     private final OperationAddBoardAndBoardAccessUserOwnerService operationAddBoardAndBoardAccessUserOwnerService;
     private final OperationAddBoardAndBoardAccessUserOwnerProcessor operationAddBoardAndBoardAccessUserOwnerProcessor;
+    private final OperationDeleteBoardService operationDeleteBoardService;
+    private final OperationDeleteBoardProcessor operationDeleteBoardProcessor;
 
     public BoardServiceImpl(BoardProjectService boardProjectService,
             BoardResponseMapper boardResponseMapper,
-            WorkflowClientService workflowClientService, BoardMembershipResponseMapper boardMembershipResponseMapper,
-            IdentityClientService identityClientService, OperationRegisterService operationRegisterService,
+            BoardMembershipResponseMapper boardMembershipResponseMapper,
+            IdentityClientService identityClientService,
+            OperationRegisterService operationRegisterService,
             OperationAddBoardAndBoardAccessUserOwnerService operationAddBoardAndBoardAccessUserOwnerService,
-            OperationAddBoardAndBoardAccessUserOwnerProcessor operationAddBoardAndBoardAccessUserOwnerProcessor) {
+            OperationAddBoardAndBoardAccessUserOwnerProcessor operationAddBoardAndBoardAccessUserOwnerProcessor,
+            OperationDeleteBoardService operationDeleteBoardService,
+            OperationDeleteBoardProcessor operationDeleteBoardProcessor) {
         this.boardProjectService = boardProjectService;
         this.boardResponseMapper = boardResponseMapper;
-        this.workflowClientService = workflowClientService;
         this.boardMembershipResponseMapper = boardMembershipResponseMapper;
         this.identityClientService = identityClientService;
         this.operationRegisterService = operationRegisterService;
         this.operationAddBoardAndBoardAccessUserOwnerService = operationAddBoardAndBoardAccessUserOwnerService;
         this.operationAddBoardAndBoardAccessUserOwnerProcessor = operationAddBoardAndBoardAccessUserOwnerProcessor;
+        this.operationDeleteBoardService = operationDeleteBoardService;
+        this.operationDeleteBoardProcessor = operationDeleteBoardProcessor;
     }
 
     // TODO: CONTINUAR AQUI
@@ -150,12 +156,39 @@ public class BoardServiceImpl implements BoardService {
         return boardResponse;
     }
 
-    @Transactional(rollbackFor = Exception.class)
+    // @Transactional(rollbackFor = Exception.class)
     @Override
     public void deleteBoard(UUID ownerUserId, UUID boardId) {
+
+        // Operation operation =
+        // operationRegisterService.registerAddBoardAndBoardAccessUserOwner(workspaceId,
+        // ownerUserId,
+        // boardRequest,
+        // idempotencyKey);
+
+        // if (operation.getStatus() == OperationStatus.REGISTERED
+        // || operation.getStatus() == OperationStatus.LOCAL_COMPENSATION_COMPLETED
+        // || operation.getStatus() == OperationStatus.COMPENSATION_COMPLETED) {
+
+        // operationAddBoardAndBoardAccessUserOwnerService.applyAddBoardAndBoardAccessUserOwner(operation.getId(),
+        // false);
+        // }
+        // operationAddBoardAndBoardAccessUserOwnerProcessor
+        // .processAddBoardAndBoardAccessUserOwnerOperation(operation.getId());
+
+        Operation operation = operationRegisterService.registerDeleteBoard(ownerUserId, boardId);
+
+        if (operation.getStatus() == OperationStatus.REGISTERED
+                || operation.getStatus() == OperationStatus.LOCAL_COMPENSATION_COMPLETED
+                || operation.getStatus() == OperationStatus.COMPENSATION_COMPLETED) {
+            operationDeleteBoardService.applyDeleteBoard(operation.getId(), false);
+        }
+
+        operationDeleteBoardProcessor.processDeleteBoardOperation(operation.getId());
+
         // Llamar al endpoint del microservicio Workflow para borrar el tablero
-        boardProjectService.findBoardByIdAndOwnerUserId(boardId, ownerUserId);
-        workflowClientService.deleteBoardByIdAndBoardAccessAndTasks(boardId);
+        // boardProjectService.findBoardByIdAndOwnerUserId(boardId, ownerUserId);
+        // workflowClientService.deleteBoardByIdAndBoardAccessAndTasks(boardId);
     }
 
     @Override
