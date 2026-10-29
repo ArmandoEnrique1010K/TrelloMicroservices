@@ -13,18 +13,20 @@ import com.trello.project.entities.Board;
 import com.trello.project.enums.Role;
 
 public interface BoardRepository extends JpaRepository<Board, UUID> {
-    List<Board> findByWorkspaceId(UUID workspaceId);
+    List<Board> findByWorkspaceIdAndStatusTrue(UUID workspaceId);
 
-    boolean existsByWorkspaceIdAndName(UUID workspaceId, String name);
+    boolean existsByWorkspaceIdAndNameAndStatusTrue(UUID workspaceId, String name);
 
-    boolean existsByWorkspaceIdAndNameAndIdNot(
+    boolean existsByWorkspaceIdAndNameAndIdNotAndStatusTrue(
             UUID workspaceId,
             String name,
             UUID boardId);
 
-    Optional<Board> findByIdAndWorkspaceId(
-            UUID boardId,
-            UUID workspaceId);
+    // Optional<Board> findByIdAndWorkspaceId(
+    // UUID boardId,
+    // UUID workspaceId);
+
+    // Se utiliza para listar los miembros del tablero
 
     // Verificar si el ID del usuario coincide con el ID del administrador del
     // tablero o uno de los miembros del tablero por ID
@@ -35,6 +37,7 @@ public interface BoardRepository extends JpaRepository<Board, UUID> {
                 FROM Board b
                 LEFT JOIN b.members m
                 WHERE b.id = :boardId
+                AND b.status = true
                 AND (
                     b.workspace.ownerUserId = :userId
                     OR (
@@ -56,6 +59,7 @@ public interface BoardRepository extends JpaRepository<Board, UUID> {
                 FROM Board b
                 JOIN b.members m
                 WHERE m.userId = :userId
+                  AND b.status = true
                   AND m.active = true
             """)
     List<Board> findByMemberActiveTrueAndMemberUserId(@Param("userId") UUID userId);

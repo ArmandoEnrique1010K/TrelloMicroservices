@@ -36,7 +36,7 @@ public class BoardProjectServiceImpl implements BoardProjectService {
         workspaceRepository.findByIdAndOwnerUserId(workspaceId, ownerUserId)
                 .orElseThrow(WorkspaceNotFoundException::new);
 
-        return boardRepository.findByWorkspaceId(workspaceId);
+        return boardRepository.findByWorkspaceIdAndStatusTrue(workspaceId);
     }
 
     @Override
@@ -44,7 +44,7 @@ public class BoardProjectServiceImpl implements BoardProjectService {
         workspaceRepository.findById(workspaceId)
                 .orElseThrow(WorkspaceNotFoundException::new);
 
-        return boardRepository.existsByWorkspaceIdAndName(workspaceId, name);
+        return boardRepository.existsByWorkspaceIdAndNameAndStatusTrue(workspaceId, name);
     }
 
     @Override
@@ -55,7 +55,7 @@ public class BoardProjectServiceImpl implements BoardProjectService {
         workspaceRepository.findById(workspaceId)
                 .orElseThrow(WorkspaceNotFoundException::new);
 
-        return boardRepository.existsByWorkspaceIdAndNameAndIdNot(workspaceId, name, boardId);
+        return boardRepository.existsByWorkspaceIdAndNameAndIdNotAndStatusTrue(workspaceId, name, boardId);
     }
 
     @Override
