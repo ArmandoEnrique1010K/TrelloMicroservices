@@ -99,6 +99,11 @@ public class OperationAddBoardAndBoardAccessUserOwnerProcessorImpl
             if (updatedOperation.getStatus() == OperationStatus.COMPENSATION_COMPLETED) {
                 throw new OperationCompensatedException();
             }
+
+            // En lugar de devolver un null, se devuelve la misma excepción porque el
+            // tablero ya fue eliminado
+            // return null;
+            throw new OperationCompensatedException();
             // TODO: DEFINIR UN BLOQUE CATCH CON LAS EXCEPCIONES DE TIPO RUNTIME EXCEPTION
             // DESDE EL MICROSERVICIO WORKFLOW
 
@@ -110,9 +115,11 @@ public class OperationAddBoardAndBoardAccessUserOwnerProcessorImpl
         UUID boardId = operation.getBoardId();
         UUID ownerUserId = operation.getOwnerUserId();
 
+        // Solamente si el tablero existe, devolvera un boardResponse
         Board board = boardProjectService.findBoardByIdAndOwnerUserId(boardId, ownerUserId);
         BoardResponse boardResponse = boardResponseMapper.boardToBoardResponse(board);
         return boardResponse;
+
     }
 
     private void processAddBoardAndBoardAccessUserOwner(Operation operation) {
@@ -158,6 +165,7 @@ public class OperationAddBoardAndBoardAccessUserOwnerProcessorImpl
 
         try {
             workflowClientService.revertAddBoardAndBoardAccessUserOwner(operation.getId());
+            operationUtils.markCompensationCompleted(operation);
         } catch (ServiceUnavailableException e) {
             operationUtils.markLocalCompensationCompleted(operation);
             throw new OperationCompensatedException();

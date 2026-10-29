@@ -15,7 +15,8 @@ public interface BoardRequestMapper {
             @Mapping(target = "workspace", ignore = true),
             @Mapping(target = "members", ignore = true),
             @Mapping(target = "invitations", ignore = true),
-            @Mapping(target = "createdAt", ignore = true)
+            @Mapping(target = "createdAt", ignore = true),
+            @Mapping(target = "status", ignore = true)
     })
     Board boardRequestToBoard(BoardRequest source);
 

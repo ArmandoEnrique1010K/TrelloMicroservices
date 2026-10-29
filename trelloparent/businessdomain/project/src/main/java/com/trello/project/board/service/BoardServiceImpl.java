@@ -5,7 +5,6 @@ import com.trello.project.board.dto.response.BoardMembershipResponse;
 import com.trello.project.board.dto.response.BoardResponse;
 import com.trello.project.board.exception.BoardAlreadyExistsException;
 import com.trello.project.board.mapper.BoardMembershipResponseMapper;
-import com.trello.project.board.mapper.BoardRequestMapper;
 import com.trello.project.board.mapper.BoardResponseMapper;
 import com.trello.project.client.dto.response.UserResponse;
 import com.trello.project.client.dto.response.UsersByIdResponse;
@@ -13,16 +12,12 @@ import com.trello.project.client.services.IdentityClientService;
 import com.trello.project.client.services.WorkflowClientService;
 import com.trello.project.entities.Board;
 import com.trello.project.entities.Operation;
-import com.trello.project.entities.Workspace;
 import com.trello.project.enums.OperationStatus;
 import com.trello.project.exception.ServiceUnavailableException;
-import com.trello.project.member.dto.response.MemberResponse;
 import com.trello.project.operation.service.handler.OperationAddBoardAndBoardAccessUserOwnerService;
 import com.trello.project.operation.service.processor.OperationAddBoardAndBoardAccessUserOwnerProcessor;
 import com.trello.project.operation.service.register.OperationRegisterService;
 import com.trello.project.service.BoardProjectService;
-import com.trello.project.service.WorkspaceProjectService;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -39,9 +34,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class BoardServiceImpl implements BoardService {
 
     private final BoardProjectService boardProjectService;
-    private final BoardRequestMapper boardRequestMapper;
     private final BoardResponseMapper boardResponseMapper;
-    private final WorkspaceProjectService workspaceProjectService;
     private final WorkflowClientService workflowClientService;
     private final BoardMembershipResponseMapper boardMembershipResponseMapper;
     private final IdentityClientService identityClientService;
@@ -49,16 +42,14 @@ public class BoardServiceImpl implements BoardService {
     private final OperationAddBoardAndBoardAccessUserOwnerService operationAddBoardAndBoardAccessUserOwnerService;
     private final OperationAddBoardAndBoardAccessUserOwnerProcessor operationAddBoardAndBoardAccessUserOwnerProcessor;
 
-    public BoardServiceImpl(BoardProjectService boardProjectService, BoardRequestMapper boardRequestMapper,
-            BoardResponseMapper boardResponseMapper, WorkspaceProjectService workspaceProjectService,
+    public BoardServiceImpl(BoardProjectService boardProjectService,
+            BoardResponseMapper boardResponseMapper,
             WorkflowClientService workflowClientService, BoardMembershipResponseMapper boardMembershipResponseMapper,
             IdentityClientService identityClientService, OperationRegisterService operationRegisterService,
             OperationAddBoardAndBoardAccessUserOwnerService operationAddBoardAndBoardAccessUserOwnerService,
             OperationAddBoardAndBoardAccessUserOwnerProcessor operationAddBoardAndBoardAccessUserOwnerProcessor) {
         this.boardProjectService = boardProjectService;
-        this.boardRequestMapper = boardRequestMapper;
         this.boardResponseMapper = boardResponseMapper;
-        this.workspaceProjectService = workspaceProjectService;
         this.workflowClientService = workflowClientService;
         this.boardMembershipResponseMapper = boardMembershipResponseMapper;
         this.identityClientService = identityClientService;

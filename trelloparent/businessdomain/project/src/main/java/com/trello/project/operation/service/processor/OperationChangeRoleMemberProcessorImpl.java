@@ -172,6 +172,7 @@ public class OperationChangeRoleMemberProcessorImpl implements OperationChangeRo
 
         try {
             workflowClientService.revertChangeRoleBoardAccess(operation.getId());
+            operationUtils.markCompensationCompleted(operation);
         } catch (ServiceUnavailableException e) {
             operationUtils.markLocalCompensationCompleted(operation);
             throw new OperationCompensatedException();

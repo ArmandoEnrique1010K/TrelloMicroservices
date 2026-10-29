@@ -35,6 +35,7 @@ public class OperationAddBoardAndBoardAccessUserOwnerServiceImpl
         this.workspaceProjectService = workspaceProjectService;
     }
 
+    @Transactional(rollbackFor = Exception.class)
     @Override
     public void applyAddBoardAndBoardAccessUserOwner(UUID operationId, boolean automatic)
             throws OperationNotFoundException, OperationNotPendingException, InvitationConfirmedException {

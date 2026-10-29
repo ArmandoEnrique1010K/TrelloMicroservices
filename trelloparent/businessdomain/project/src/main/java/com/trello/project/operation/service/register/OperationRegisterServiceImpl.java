@@ -1,7 +1,6 @@
 package com.trello.project.operation.service.register;
 
 import java.time.LocalDateTime;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -19,7 +18,6 @@ import com.trello.project.enums.OperationStatus;
 import com.trello.project.enums.OperationType;
 import com.trello.project.enums.Role;
 import com.trello.project.enums.Status;
-import com.trello.project.exception.BusinessRuleException;
 import com.trello.project.invitation.exception.InvitationConfirmedException;
 import com.trello.project.operation.exception.OperationNotPendingException;
 import com.trello.project.service.BoardProjectService;
@@ -359,16 +357,14 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
         if (existingOperation.isPresent()) {
             Operation existing = existingOperation.get();
 
-            // La misma clave no puede representar solicitudes diferentes.
-            if (!existing.getBoardName().equals(name)
-                    || !Objects.equals(existing.getBoardDescription(), description)) {
-                throw new BusinessRuleException();
-            }
-
             // De acuerdo a su estado debe devolver la operacion existente, una excepcion o
             // continuar con una nueva operacion
             switch (existing.getStatus()) {
                 case REGISTERED, LOCAL_COMPENSATION_COMPLETED, COMPENSATION_COMPLETED -> {
+                    // Si el usuario ha cambiado el nombre y la descripcion en el mismo formulario,
+                    // debe actualizarlo
+                    existing.setBoardName(name);
+                    existing.setBoardDescription(description);
                     return existing;
                 }
 

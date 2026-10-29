@@ -158,6 +158,7 @@ public class OperationDeactivateMemberProcessorImpl implements OperationDeactiva
 
         try {
             workflowClientService.revertDeactivateBoardAccess(operation.getId());
+            operationUtils.markCompensationCompleted(operation);
         } catch (ServiceUnavailableException e) {
             operationUtils.markLocalCompensationCompleted(operation);
             throw new OperationCompensatedException();

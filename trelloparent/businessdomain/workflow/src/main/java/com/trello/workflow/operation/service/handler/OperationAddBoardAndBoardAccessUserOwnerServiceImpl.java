@@ -64,7 +64,7 @@ public class OperationAddBoardAndBoardAccessUserOwnerServiceImpl
         UUID boardId = currentOperation.getBoardId();
         UUID userId = currentOperation.getUserId();
         // OWNER
-        Role newRole = currentOperation.getNewRole();
+        // Role newRole = currentOperation.getNewRole();
 
         // En este caso para verificar si existe el tablero por ID no se realiza
         // mediante un query porque el ID no es generado de forma automatica
@@ -93,7 +93,7 @@ public class OperationAddBoardAndBoardAccessUserOwnerServiceImpl
         BoardAccess boardAccess = new BoardAccess();
         boardAccess.setUserId(userId);
         boardAccess.setUserActive(true);
-        boardAccess.setRole(newRole);
+        boardAccess.setRole(Role.OWNER);
         boardAccess.setBoard(savedBoard);
         boardAccess.setStatus(true);
 
