@@ -10,6 +10,9 @@ import com.trello.project.client.WorkflowBoardCommandClient;
 import com.trello.project.client.WorkflowOperationCommandClient;
 import com.trello.project.client.enums.WorkflowRole;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Service
 public class WorkflowClientServiceImpl implements WorkflowClientService {
 
@@ -62,8 +65,18 @@ public class WorkflowClientServiceImpl implements WorkflowClientService {
     }
 
     @Override
-    public void deleteManyBoardsByIdsAndBoardAccessAndTasks(List<UUID> boardIds) {
-        workflowBoardCommandClient.deleteManyBoardsByIdsAndBoardAccessAndTasks(boardIds);
+    public void deleteManyBoardsByIdsAndBoardAccessAndTasks(List<UUID> boardIds, UUID operationId) {
+
+        List<UUID> normalizedBoardsIds = boardIds == null
+                ? List.of()
+                : boardIds;
+
+        if (!normalizedBoardsIds.isEmpty()) {
+            log.info("LA LISTA DE BOARDS IDS NO ESTA VACIA");
+            workflowBoardCommandClient.deleteManyBoardsByIdsAndBoardAccessAndTasks(
+                    normalizedBoardsIds,
+                    operationId);
+        }
     }
 
     // Operacion
@@ -95,5 +108,10 @@ public class WorkflowClientServiceImpl implements WorkflowClientService {
     @Override
     public void revertDeleteBoardByIdAndBoardAccessAndTasks(UUID operationId) {
         workflowOperationCommandClient.revertDeleteBoardAndBoardAccessAndTasks(operationId);
+    }
+
+    @Override
+    public void revertDeleteManyBoardsByIdsAndBoardAccessAndTasks(UUID operationId) {
+        workflowOperationCommandClient.revertDeleteAllBoardsAndBoardAccessAndTasks(operationId);
     }
 }

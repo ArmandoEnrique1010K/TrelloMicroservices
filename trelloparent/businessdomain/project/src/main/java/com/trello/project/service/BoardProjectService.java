@@ -22,6 +22,9 @@ public interface BoardProjectService {
     Board findBoardByIdAndOwnerUserId(UUID boardId, UUID ownerUserId)
             throws WorkspaceNotFoundException, BoardNotFoundException;
 
+    Board findBoardByIdAndOwnerUserIdAndActive(UUID boardId, UUID ownerUserId)
+            throws WorkspaceNotFoundException, BoardNotFoundException;
+
     Board saveBoard(Board board);
 
     void deleteBoardByIdAndOwnerUserId(UUID boardId, UUID ownerUserId)
@@ -37,4 +40,7 @@ public interface BoardProjectService {
 
     // Cambiar estado del tablero
     void changeStatusBoardById(UUID boardId, UUID ownerUserId, boolean status) throws BoardNotFoundException;
+
+    void changeStatusManyBoardsByIds(List<UUID> boardsIds, UUID ownerUserId, boolean status);
+
 }

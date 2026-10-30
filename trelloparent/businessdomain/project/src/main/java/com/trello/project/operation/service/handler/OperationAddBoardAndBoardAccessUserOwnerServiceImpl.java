@@ -73,7 +73,7 @@ public class OperationAddBoardAndBoardAccessUserOwnerServiceImpl
         UUID boardId = persistedOperation.getBoardId();
         // UUID idempotencyKey = persistedOperation.getIdempotencyKey();
 
-        Workspace workspace = workspaceProjectService.findWorkspaceByIdAndOwnerUserId(
+        Workspace workspace = workspaceProjectService.findWorkspaceByIdAndOwnerUserIdAndStatusTrue(
                 workspaceId,
                 ownerUserId);
 

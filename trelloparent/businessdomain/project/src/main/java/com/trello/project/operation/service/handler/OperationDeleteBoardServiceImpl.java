@@ -63,7 +63,7 @@ public class OperationDeleteBoardServiceImpl implements OperationDeleteBoardServ
         log.info("BUSCANDO");
 
         // Verificar si existe tablero
-        boardProjectService.findBoardByIdAndOwnerUserId(boardId, ownerUserId);
+        boardProjectService.findBoardByIdAndOwnerUserIdAndActive(boardId, ownerUserId);
         log.info("CAMBIANDO ESTADO");
 
         // En lugar de borrar el tablero se va a cambiar su estado

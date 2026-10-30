@@ -116,7 +116,7 @@ public class OperationAddBoardAndBoardAccessUserOwnerProcessorImpl
         UUID ownerUserId = operation.getOwnerUserId();
 
         // Solamente si el tablero existe, devolvera un boardResponse
-        Board board = boardProjectService.findBoardByIdAndOwnerUserId(boardId, ownerUserId);
+        Board board = boardProjectService.findBoardByIdAndOwnerUserIdAndActive(boardId, ownerUserId);
         BoardResponse boardResponse = boardResponseMapper.boardToBoardResponse(board);
         return boardResponse;
 
@@ -127,7 +127,7 @@ public class OperationAddBoardAndBoardAccessUserOwnerProcessorImpl
         UUID ownerUserId = operation.getOwnerUserId();
 
         // Verificar que exista el tablero
-        boardProjectService.findBoardByIdAndOwnerUserId(boardId, ownerUserId);
+        boardProjectService.findBoardByIdAndOwnerUserIdAndActive(boardId, ownerUserId);
 
         workflowClientService.addBoardAndBoardAccessUserOwner(boardId, operation.getId());
     }

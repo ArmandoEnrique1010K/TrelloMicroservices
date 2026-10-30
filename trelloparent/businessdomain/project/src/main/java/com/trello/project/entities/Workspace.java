@@ -40,4 +40,6 @@ public class Workspace {
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
+
+    private boolean status;
 }

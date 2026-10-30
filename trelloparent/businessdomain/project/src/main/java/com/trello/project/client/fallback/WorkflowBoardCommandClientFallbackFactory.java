@@ -39,7 +39,8 @@ public class WorkflowBoardCommandClientFallbackFactory implements FallbackFactor
             }
 
             @Override
-            public ResponseEntity<Void> deleteManyBoardsByIdsAndBoardAccessAndTasks(List<UUID> boardIds) {
+            public ResponseEntity<Void> deleteManyBoardsByIdsAndBoardAccessAndTasks(List<UUID> boardIds,
+                    UUID operationId) {
                 log.error("Error relacionado con deleteManyBoardsByIdsAndBoardAccessAndTasks");
 
                 throw new ServiceUnavailableException();

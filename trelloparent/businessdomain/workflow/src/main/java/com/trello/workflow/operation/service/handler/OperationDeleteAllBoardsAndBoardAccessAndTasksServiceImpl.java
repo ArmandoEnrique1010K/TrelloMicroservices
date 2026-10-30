@@ -67,8 +67,15 @@ public class OperationDeleteAllBoardsAndBoardAccessAndTasksServiceImpl
 
         List<UUID> boardsIds = operation.getBoardIds();
 
-        // Habilitar estado de los tableros incluyendo sus permisos de acceso
-        boardWorkflowService.enableAllBoardsStatusByIdAndEnableAllBoardAccessesStatus(boardsIds);
+        List<UUID> normalizedBoardsIds = boardsIds == null
+                ? List.of()
+                : boardsIds;
+
+        // Solamente si la lista no esta vacia
+        if (!normalizedBoardsIds.isEmpty()) {
+            // Habilitar estado de los tableros incluyendo sus permisos de acceso
+            boardWorkflowService.enableAllBoardsStatusByIdAndEnableAllBoardAccessesStatus(boardsIds);
+        }
 
         operation.setStatus(OperationStatus.PENDING);
         operation.setCompletedAt(LocalDateTime.now());

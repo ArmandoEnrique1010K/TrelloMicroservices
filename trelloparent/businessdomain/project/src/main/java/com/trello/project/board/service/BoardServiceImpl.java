@@ -137,7 +137,7 @@ public class BoardServiceImpl implements BoardService {
         String description = boardRequest.getDescription();
 
         // Buscar tablero
-        Board findedBoard = boardProjectService.findBoardByIdAndOwnerUserId(
+        Board findedBoard = boardProjectService.findBoardByIdAndOwnerUserIdAndActive(
                 boardId,
                 ownerUserId);
 
@@ -194,7 +194,7 @@ public class BoardServiceImpl implements BoardService {
     @Override
     public List<UUID> listAllMembersIdsAndInvitationsIdsByBoardId(UUID ownerUserId, UUID boardId) {
 
-        Board findedBoard = boardProjectService.findBoardByIdAndOwnerUserId(boardId, ownerUserId);
+        Board findedBoard = boardProjectService.findBoardByIdAndOwnerUserIdAndActive(boardId, ownerUserId);
 
         List<UUID> memberIds = findedBoard.getMembers()
                 .stream()

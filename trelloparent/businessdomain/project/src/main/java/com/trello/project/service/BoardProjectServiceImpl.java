@@ -33,7 +33,7 @@ public class BoardProjectServiceImpl implements BoardProjectService {
     public List<Board> findAllBoardsByWorkspaceIdAndOwnerUserId(UUID workspaceId, UUID ownerUserId)
             throws WorkspaceNotFoundException {
 
-        workspaceRepository.findByIdAndOwnerUserId(workspaceId, ownerUserId)
+        workspaceRepository.findByIdAndOwnerUserIdAndStatusTrue(workspaceId, ownerUserId)
                 .orElseThrow(WorkspaceNotFoundException::new);
 
         return boardRepository.findByWorkspaceIdAndStatusTrue(workspaceId);
@@ -64,7 +64,20 @@ public class BoardProjectServiceImpl implements BoardProjectService {
         Board board = boardRepository.findById(boardId)
                 .orElseThrow(BoardNotFoundException::new);
 
-        workspaceRepository.findByIdAndOwnerUserId(
+        workspaceRepository.findByIdAndOwnerUserIdAndStatusTrue(
+                board.getWorkspace().getId(),
+                ownerUserId).orElseThrow(WorkspaceNotFoundException::new);
+
+        return board;
+    }
+
+    @Override
+    public Board findBoardByIdAndOwnerUserIdAndActive(UUID boardId, UUID ownerUserId)
+            throws WorkspaceNotFoundException, BoardNotFoundException {
+        Board board = boardRepository.findByIdAndStatusTrue(boardId)
+                .orElseThrow(BoardNotFoundException::new);
+
+        workspaceRepository.findByIdAndOwnerUserIdAndStatusTrue(
                 board.getWorkspace().getId(),
                 ownerUserId).orElseThrow(WorkspaceNotFoundException::new);
 
@@ -84,7 +97,7 @@ public class BoardProjectServiceImpl implements BoardProjectService {
                 .findById(boardId)
                 .orElseThrow(BoardNotFoundException::new);
 
-        workspaceRepository.findByIdAndOwnerUserId(board.getWorkspace().getId(), ownerUserId)
+        workspaceRepository.findByIdAndOwnerUserIdAndStatusTrue(board.getWorkspace().getId(), ownerUserId)
                 .orElseThrow(WorkspaceNotFoundException::new);
 
         boardRepository.delete(board);
@@ -102,7 +115,7 @@ public class BoardProjectServiceImpl implements BoardProjectService {
     public Board findBoardByIdAndOwnerUserIdAndInactiveUserId(UUID boardId, UUID ownerUserId,
             UUID userId) throws WorkspaceNotFoundException, BoardNotFoundException, MemberNotFoundException {
 
-        Board board = boardRepository.findById(boardId)
+        Board board = boardRepository.findByIdAndStatusTrue(boardId)
                 .orElseThrow(BoardNotFoundException::new);
 
         // Si uno de los ID de userId, no coincide con el ID del miembro quiere decir
@@ -110,7 +123,7 @@ public class BoardProjectServiceImpl implements BoardProjectService {
         memberRepository.findByBoardIdAndUserIdAndActiveFalse(boardId,
                 userId).orElseThrow(MemberNotFoundException::new);
 
-        workspaceRepository.findByIdAndOwnerUserId(
+        workspaceRepository.findByIdAndOwnerUserIdAndStatusTrue(
                 board.getWorkspace().getId(),
                 ownerUserId).orElseThrow(WorkspaceNotFoundException::new);
 
@@ -124,9 +137,16 @@ public class BoardProjectServiceImpl implements BoardProjectService {
 
     @Override
     public void changeStatusBoardById(UUID boardId, UUID ownerUserId, boolean status) throws BoardNotFoundException {
-        Board board = boardRepository.findById(boardId)
+        Board board = boardRepository.findByIdAndStatusTrue(boardId)
                 .orElseThrow(BoardNotFoundException::new);
         board.setStatus(status);
         boardRepository.save(board);
     }
+
+    @Override
+    public void changeStatusManyBoardsByIds(List<UUID> boardsIds, UUID ownerUserId, boolean status) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'changeStatusManyBoardsByIds'");
+    }
+
 }

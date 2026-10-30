@@ -5,6 +5,7 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 
 import com.trello.project.client.services.WorkflowClientService;
+import com.trello.project.entities.Board;
 import com.trello.project.entities.Operation;
 import com.trello.project.enums.OperationStatus;
 import com.trello.project.enums.OperationType;
@@ -20,6 +21,9 @@ import com.trello.project.operation.service.utils.OperationUtils;
 import com.trello.project.service.BoardProjectService;
 import com.trello.project.service.OperationProjectService;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Service
 public class OperationDeleteBoardProcessorImpl implements OperationDeleteBoardProcessor {
 
@@ -103,7 +107,10 @@ public class OperationDeleteBoardProcessorImpl implements OperationDeleteBoardPr
         UUID boardId = operation.getBoardId();
         UUID ownerUserId = operation.getOwnerUserId();
 
-        boardProjectService.findBoardByIdAndOwnerUserId(boardId, ownerUserId);
+        log.info("TABLERO ENCONTRADO");
+        // El estado del tablero no importa
+        Board board = boardProjectService.findBoardByIdAndOwnerUserId(boardId, ownerUserId);
+        log.info("TABLERO ID: " + board.getId());
         workflowClientService.deleteBoardByIdAndBoardAccessAndTasks(boardId, operation.getId());
     }
 

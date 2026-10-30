@@ -13,6 +13,8 @@ import com.trello.project.entities.Board;
 import com.trello.project.enums.Role;
 
 public interface BoardRepository extends JpaRepository<Board, UUID> {
+    Optional<Board> findByIdAndStatusTrue(UUID boardId);
+
     List<Board> findByWorkspaceIdAndStatusTrue(UUID workspaceId);
 
     boolean existsByWorkspaceIdAndNameAndStatusTrue(UUID workspaceId, String name);

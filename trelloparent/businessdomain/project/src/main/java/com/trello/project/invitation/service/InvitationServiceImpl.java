@@ -76,7 +76,7 @@ public class InvitationServiceImpl implements InvitationService {
     public InvitationResponse sendInvitation(UUID boardId, UUID ownerUserId, UUID recipientUserId,
             InvitationRequest invitationRequest) throws InvitationAlreadyExistsException {
 
-        Board board = boardProjectService.findBoardByIdAndOwnerUserId(boardId, ownerUserId);
+        Board board = boardProjectService.findBoardByIdAndOwnerUserIdAndActive(boardId, ownerUserId);
         // System.out.println(board.getId());
 
         // Si hay una invitación rechazada, no podra volver a enviar la invitación a
@@ -122,7 +122,7 @@ public class InvitationServiceImpl implements InvitationService {
     public List<BoardInvitationResponse> listAllInvitationsByBoardId(UUID boardId, UUID ownerUserId) {
         // Verificar que el usuario que ha iniciado sesion en la aplicacion sea el
         // administrador del tablero
-        boardProjectService.findBoardByIdAndOwnerUserId(boardId, ownerUserId);
+        boardProjectService.findBoardByIdAndOwnerUserIdAndActive(boardId, ownerUserId);
 
         List<Invitation> listInvitations = invitationProjectService.findAllInvitationsByBoardId(boardId);
         List<BoardInvitationResponse> responses = boardInvitationResponseMapper
@@ -216,7 +216,7 @@ public class InvitationServiceImpl implements InvitationService {
         // usuarios disponibles para invitarlos
 
         // Se excluye de la lista desde el controlador del microservicio Identity
-        Board findedBoard = boardProjectService.findBoardByIdAndOwnerUserId(boardId, ownerUserId);
+        Board findedBoard = boardProjectService.findBoardByIdAndOwnerUserIdAndActive(boardId, ownerUserId);
         List<UUID> memberIds = findedBoard.getMembers()
                 .stream()
                 .map(member -> member.getUserId())

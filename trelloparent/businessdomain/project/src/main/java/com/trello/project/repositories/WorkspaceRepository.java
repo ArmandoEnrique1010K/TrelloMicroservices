@@ -10,16 +10,21 @@ import java.util.Optional;
 
 public interface WorkspaceRepository extends JpaRepository<Workspace, UUID> {
 
-    List<Workspace> findByOwnerUserId(UUID ownerUserId);
+    List<Workspace> findByOwnerUserIdAndStatusTrue(UUID ownerUserId);
 
-    boolean existsByOwnerUserIdAndName(UUID ownerUserId, String name);
+    boolean existsByOwnerUserIdAndNameAndStatusTrue(UUID ownerUserId, String name);
 
-    boolean existsByOwnerUserIdAndNameAndIdNot(
+    boolean existsByOwnerUserIdAndNameAndIdNotAndStatusTrue(
             UUID ownerUserId,
             String name,
             UUID workspaceId);
 
+    Optional<Workspace> findByIdAndOwnerUserIdAndStatusTrue(
+            UUID workspaceId,
+            UUID ownerUserId);
+
     Optional<Workspace> findByIdAndOwnerUserId(
             UUID workspaceId,
             UUID ownerUserId);
+
 }

@@ -29,7 +29,6 @@ public interface WorkflowBoardCommandClient {
 
     @DeleteMapping("/boards/batch")
     ResponseEntity<Void> deleteManyBoardsByIdsAndBoardAccessAndTasks(
-            @RequestParam(required = false) List<UUID> boardIds
-    // , @RequestHeader("X-Operation-Id") UUID operationId
-    );
+            @RequestParam(required = false) List<UUID> boardIds,
+            @RequestHeader("X-Operation-Id") UUID operationId);
 }

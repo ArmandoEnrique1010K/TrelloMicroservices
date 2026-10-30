@@ -14,7 +14,8 @@ public interface WorkspaceRequestMapper {
             @Mapping(target = "id", ignore = true),
             @Mapping(target = "ownerUserId", ignore = true),
             @Mapping(target = "boards", ignore = true),
-            @Mapping(target = "createdAt", ignore = true)
+            @Mapping(target = "createdAt", ignore = true),
+            @Mapping(target = "status", ignore = true)
     })
     Workspace workspaceRequestToWorkspace(WorkspaceRequest source);
 }

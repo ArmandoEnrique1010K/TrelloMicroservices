@@ -1,6 +1,7 @@
 package com.trello.workflow.operation.service.register;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -294,27 +295,32 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
         return operation;
     }
 
+    // boardsIds puede ser nulo si no hay tableros creados en el espacio de trabajo
     @Transactional(rollbackFor = Exception.class)
     @Override
     public Operation registerDeleteAllBoardsAndBoardAccessAndTasks(List<UUID> boardsIds, UUID operationId)
             throws OperationConflictException, OperationNotPendingException, BoardNotFoundException {
+        // Normalizar lista de IDs de tableros
+        List<UUID> normalizedBoardsIds = boardsIds == null
+                ? List.of()
+                : boardsIds;
 
         Operation existingOperation = validateExistingOperationOrReturnPending(
                 operationId,
                 null,
                 null,
                 null,
-                boardsIds, OperationType.DELETE_ALL_BOARDS_AND_BOARD_ACCESS_AND_TASKS);
+                normalizedBoardsIds, OperationType.DELETE_ALL_BOARDS_AND_BOARD_ACCESS_AND_TASKS);
 
         if (existingOperation != null) {
             // Aqui cambia la lista de IDs de tableros
-            existingOperation.setBoardIds(boardsIds);
+            existingOperation.setBoardIds(normalizedBoardsIds);
             return operationWorkflowService.saveOperation(existingOperation);
         }
 
-        // Aunque esto nunca va a pasar
-        // Si la cantidad de tableros no coinciden con los tableros por IDs
-        if (boardWorkflowService.countBoardsByIds(boardsIds) != boardsIds.size()) {
+        // Validar existencia de todos los tableros
+        if (!normalizedBoardsIds.isEmpty()
+                && boardWorkflowService.countBoardsByIds(normalizedBoardsIds) != normalizedBoardsIds.size()) {
             // TODO: Cambiar la excepcion por uno más detallista
             throw new BoardNotFoundException();
         }
@@ -351,15 +357,24 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
 
         Operation existing = existingOperation.get();
 
-        log.info("OPERACION EXISTENTE ");
+        // List<UUID> existingBoardsIds = existing.getBoardIds() == null
+        // ? List.of()
+        // : existing.getBoardIds();
+
+        // List<UUID> requestedBoardsIds = boardsIds == null
+        // ? List.of()
+        // : boardsIds;
+
+        log.info("OPERACION EXISTENTE");
         // Comprobar que los datos de la solicitud coincidan con la operación
         // registrada.
         if (existing.getType() != expectedType
-                || !existing.getBoardId().equals(boardId)
+                || !Objects.equals(existing.getBoardId(), boardId)
                 // El id del usuario es opcional
                 || (userId != null && !existing.getUserId().equals(userId))
-                // La lista de boardsIds es opcional, se utiliza en un solo metodo
-                || (boardsIds != null && existing.getBoardIds() != boardsIds)) {
+        // La lista de boardsIds es opcional, se utiliza en un solo metodo
+        // || !existingBoardsIds.equals(requestedBoardsIds)
+        ) {
             // Excepción de una operación conflictiva
 
             log.info("OPERACION CONFLICTIVA");

@@ -165,6 +165,10 @@ public class BoardWorkflowServiceImpl implements BoardWorkflowService {
 
     @Override
     public void disableAllBoardsStatusByIdAndDisableAllBoardAccessesStatus(List<UUID> boardsIds) {
+        if (boardsIds == null || boardsIds.isEmpty()) {
+            return;
+        }
+
         List<Board> boards = boardRepository.findAllByIdInAndStatusTrue(boardsIds);
 
         if (boards.isEmpty()) {
@@ -184,7 +188,11 @@ public class BoardWorkflowServiceImpl implements BoardWorkflowService {
 
     @Override
     public void enableAllBoardsStatusByIdAndEnableAllBoardAccessesStatus(List<UUID> boardsIds) {
-        List<Board> boards = boardRepository.findAllByIdInAndStatusTrue(boardsIds);
+        if (boardsIds == null || boardsIds.isEmpty()) {
+            return;
+        }
+
+        List<Board> boards = boardRepository.findAllByIdInAndStatusFalse(boardsIds);
 
         if (boards.isEmpty()) {
             return;

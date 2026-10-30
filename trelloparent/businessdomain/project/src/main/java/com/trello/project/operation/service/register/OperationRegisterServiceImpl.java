@@ -339,7 +339,7 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
         String name = boardRequest.getName();
         String description = boardRequest.getDescription();
 
-        Workspace workspace = workspaceProjectService.findWorkspaceByIdAndOwnerUserId(
+        Workspace workspace = workspaceProjectService.findWorkspaceByIdAndOwnerUserIdAndStatusTrue(
                 workspaceId,
                 ownerUserId);
 
@@ -413,7 +413,7 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
         log.info("BoardID: " + boardId);
         log.info("OWNER USER ID: " + ownerUserId);
         // Asegurar de que el tablero exista
-        boardProjectService.findBoardByIdAndOwnerUserId(boardId, ownerUserId);
+        boardProjectService.findBoardByIdAndOwnerUserIdAndActive(boardId, ownerUserId);
 
         Optional<Operation> existingOperation = operationProjectService.findLatestOperationByBoardIdAndType(boardId,
                 OperationType.DELETE_BOARD);
@@ -454,5 +454,53 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
 
         operationProjectService.saveOperation(operation);
         return operation;
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public Operation registerDeleteWorkspace(UUID ownerUserId, UUID workspaceId) {
+
+        workspaceProjectService.findWorkspaceByIdAndOwnerUserIdAndStatusTrue(workspaceId, ownerUserId);
+        Optional<Operation> existingOperation = operationProjectService
+                .findLatestOperationByWorkspaceIdAndType(
+                        workspaceId,
+                        OperationType.DELETE_WORKSPACE);
+
+        if (existingOperation.isPresent()) {
+            Operation existing = existingOperation.get();
+
+            switch (existing.getStatus()) {
+                case REGISTERED, LOCAL_COMPENSATION_COMPLETED, COMPENSATION_COMPLETED -> {
+                    return existing;
+                }
+
+                case EXECUTION_PENDING,
+                        EXECUTING,
+                        COMPENSATION_PENDING,
+                        LOCAL_COMPENSATION_IN_PROGRESS,
+                        MANUAL_INTERVENTION_REQUIRED ->
+                    throw new OperationNotPendingException();
+
+                case COMPLETED -> {
+                }
+            }
+        }
+        UUID operationId = UUID.randomUUID();
+        Operation operation = new Operation();
+        operation.setId(operationId);
+        operation.setType(OperationType.DELETE_WORKSPACE);
+        operation.setStatus(OperationStatus.REGISTERED);
+        operation.setManualAttempts(0);
+        operation.setAutomaticAttempts(0);
+        operation.setWorkspaceId(workspaceId);
+        operation.setOwnerUserId(ownerUserId);
+
+        LocalDateTime currentDateTime = LocalDateTime.now();
+        operation.setCreatedAt(currentDateTime);
+        operation.setNextAutomaticAttemptAt(null);
+
+        operationProjectService.saveOperation(operation);
+        return operation;
+
     }
 }

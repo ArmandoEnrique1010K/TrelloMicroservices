@@ -25,4 +25,6 @@ public interface OperationRegisterService {
             UUID idempotencyKey);
 
     Operation registerDeleteBoard(UUID ownerUserId, UUID boardId);
+
+    Operation registerDeleteWorkspace(UUID ownerUserId, UUID workspaceId);
 }

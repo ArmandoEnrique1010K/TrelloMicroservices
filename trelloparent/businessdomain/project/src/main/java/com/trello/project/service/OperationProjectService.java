@@ -48,4 +48,6 @@ public interface OperationProjectService {
             OperationType type);
 
     Optional<Operation> findLatestOperationByBoardIdAndType(UUID boardId, OperationType type);
+
+    Optional<Operation> findLatestOperationByWorkspaceIdAndType(UUID workspaceId, OperationType type);
 }
