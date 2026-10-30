@@ -137,7 +137,7 @@ public class BoardProjectServiceImpl implements BoardProjectService {
 
     @Override
     public void changeStatusBoardById(UUID boardId, UUID ownerUserId, boolean status) throws BoardNotFoundException {
-        Board board = boardRepository.findByIdAndStatusTrue(boardId)
+        Board board = boardRepository.findById(boardId)
                 .orElseThrow(BoardNotFoundException::new);
         board.setStatus(status);
         boardRepository.save(board);

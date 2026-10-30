@@ -75,7 +75,7 @@ public class WorkspaceProjectServiceImpl implements WorkspaceProjectService {
     public void changeStatusWorkspaceById(UUID workspaceId, UUID ownerUserId, boolean status)
             throws WorkspaceNotFoundException {
         Workspace workspace = workspaceRepository
-                .findByIdAndOwnerUserIdAndStatusTrue(workspaceId, ownerUserId)
+                .findByIdAndOwnerUserId(workspaceId, ownerUserId)
                 .orElseThrow(WorkspaceNotFoundException::new);
 
         workspace.setStatus(status);

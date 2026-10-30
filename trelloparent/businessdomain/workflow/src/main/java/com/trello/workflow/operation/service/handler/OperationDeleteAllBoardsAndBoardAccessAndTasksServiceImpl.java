@@ -36,11 +36,20 @@ public class OperationDeleteAllBoardsAndBoardAccessAndTasksServiceImpl
                 .findOperationById(operationId)
                 .orElseThrow(OperationNotFoundException::new);
 
-        List<UUID> boardsIds = currentOperation.getBoardIds();
+        // RESULTADO CUANDO NO HAY TABLEROS: []
+        // List<UUID> boardsIds = currentOperation.getBoardIds();
 
         // Logica de negocio: deshabilitar el estado de los tableros incluyendo sus
         // boardsAccess
-        boardWorkflowService.disableAllBoardsStatusByIdAndDisableAllBoardAccessesStatus(boardsIds);
+        List<UUID> normalizedBoardsIds = currentOperation.getBoardIds() == null
+                ? List.of()
+                : currentOperation.getBoardIds();
+
+        if (!normalizedBoardsIds.isEmpty()) {
+            boardWorkflowService
+                    .disableAllBoardsStatusByIdAndDisableAllBoardAccessesStatus(
+                            normalizedBoardsIds);
+        }
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -56,6 +65,7 @@ public class OperationDeleteAllBoardsAndBoardAccessAndTasksServiceImpl
             throw new OperationConflictException();
         }
 
+        // TODO: PROBAR SI EL USO DE || ES MEJOR QUE &&
         if (operation.getStatus() == OperationStatus.CREATED
                 && operation.getStatus() == OperationStatus.COMPLETED) {
             throw new OperationNotPendingException();
@@ -65,16 +75,15 @@ public class OperationDeleteAllBoardsAndBoardAccessAndTasksServiceImpl
         operation.setCompletedAt(null);
         operationWorkflowService.saveOperation(operation);
 
-        List<UUID> boardsIds = operation.getBoardIds();
-
-        List<UUID> normalizedBoardsIds = boardsIds == null
+        List<UUID> normalizedBoardsIds = operation.getBoardIds() == null
                 ? List.of()
-                : boardsIds;
+                : operation.getBoardIds();
 
-        // Solamente si la lista no esta vacia
+        // Restaurar tableros y permisos solamente si existen.
         if (!normalizedBoardsIds.isEmpty()) {
-            // Habilitar estado de los tableros incluyendo sus permisos de acceso
-            boardWorkflowService.enableAllBoardsStatusByIdAndEnableAllBoardAccessesStatus(boardsIds);
+            boardWorkflowService
+                    .enableAllBoardsStatusByIdAndEnableAllBoardAccessesStatus(
+                            normalizedBoardsIds);
         }
 
         operation.setStatus(OperationStatus.PENDING);

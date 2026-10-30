@@ -67,16 +67,17 @@ public class WorkflowClientServiceImpl implements WorkflowClientService {
     @Override
     public void deleteManyBoardsByIdsAndBoardAccessAndTasks(List<UUID> boardIds, UUID operationId) {
 
-        List<UUID> normalizedBoardsIds = boardIds == null
-                ? List.of()
-                : boardIds;
+        // List<UUID> normalizedBoardsIds = boardIds == null
+        // ? List.of()
+        // : boardIds;
 
-        if (!normalizedBoardsIds.isEmpty()) {
-            log.info("LA LISTA DE BOARDS IDS NO ESTA VACIA");
-            workflowBoardCommandClient.deleteManyBoardsByIdsAndBoardAccessAndTasks(
-                    normalizedBoardsIds,
-                    operationId);
-        }
+        // if (!normalizedBoardsIds.isEmpty()) {
+        // log.info("LA LISTA DE BOARDS IDS NO ESTA VACIA");
+        workflowBoardCommandClient.deleteManyBoardsByIdsAndBoardAccessAndTasks(
+                // normalizedBoardsIds,
+                boardIds,
+                operationId);
+        // }
     }
 
     // Operacion

@@ -295,12 +295,13 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
         return operation;
     }
 
-    // boardsIds puede ser nulo si no hay tableros creados en el espacio de trabajo
     @Transactional(rollbackFor = Exception.class)
     @Override
     public Operation registerDeleteAllBoardsAndBoardAccessAndTasks(List<UUID> boardsIds, UUID operationId)
             throws OperationConflictException, OperationNotPendingException, BoardNotFoundException {
         // Normalizar lista de IDs de tableros
+        // Se guarda List.of() en lugar de un null para especificar que la operación no
+        // tiene tableros asociados
         List<UUID> normalizedBoardsIds = boardsIds == null
                 ? List.of()
                 : boardsIds;
@@ -327,9 +328,9 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
 
         Operation operation = new Operation();
         operation.setId(operationId);
-        operation.setType(OperationType.DELETE_BOARD_AND_BOARD_ACCESS_AND_TASKS);
+        operation.setType(OperationType.DELETE_ALL_BOARDS_AND_BOARD_ACCESS_AND_TASKS);
         operation.setStatus(OperationStatus.CREATED);
-        operation.setBoardIds(boardsIds);
+        operation.setBoardIds(normalizedBoardsIds);
         operation.setAttempts(0);
 
         operationWorkflowService.saveOperation(operation);
