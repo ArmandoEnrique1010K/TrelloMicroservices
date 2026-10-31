@@ -11,7 +11,6 @@ import com.trello.workflow.enums.OperationStatus;
 import com.trello.workflow.enums.OperationType;
 import com.trello.workflow.operation.exception.OperationConflictException;
 import com.trello.workflow.operation.exception.OperationNotFoundException;
-import com.trello.workflow.operation.exception.OperationNotPendingException;
 import com.trello.workflow.services.BoardWorkflowService;
 import com.trello.workflow.services.OperationWorkflowService;
 
@@ -36,7 +35,7 @@ public class OperationDeleteBoardAndBoardAccessAndTasksServiceImpl
     @Override
     public void applyDeleteBoardAndBoardAccessAndTasks(UUID operationId) throws OperationNotFoundException {
         Operation currentOperation = operationWorkflowService
-                .findOperationById(operationId)
+                .findOptionalOperationById(operationId)
                 .orElseThrow(OperationNotFoundException::new);
 
         UUID boardId = currentOperation.getBoardId();
@@ -63,24 +62,14 @@ public class OperationDeleteBoardAndBoardAccessAndTasksServiceImpl
     @Transactional(rollbackFor = Exception.class)
     @Override
     public void revertDeleteBoardAndBoardAccessAndTasks(UUID operationId)
-            throws OperationNotFoundException, OperationConflictException, OperationNotPendingException {
-
-        log.info("Buscando operacion");
-        log.info("ID de operacion:" + operationId);
+            throws OperationNotFoundException, OperationConflictException {
 
         Operation operation = operationWorkflowService
-                .findOperationById(operationId)
+                .findOptionalOperationById(operationId)
                 .orElseThrow(OperationNotFoundException::new);
 
         if (operation.getType() != OperationType.DELETE_BOARD_AND_BOARD_ACCESS_AND_TASKS) {
-            log.info("Operacion en conflicto");
             throw new OperationConflictException();
-        }
-
-        if (operation.getStatus() == OperationStatus.CREATED
-                && operation.getStatus() == OperationStatus.COMPLETED) {
-            log.info("Operacion no pendiente");
-            throw new OperationNotPendingException();
         }
 
         operation.setStatus(OperationStatus.PROCESSING);
@@ -96,10 +85,8 @@ public class OperationDeleteBoardAndBoardAccessAndTasksServiceImpl
         // boardAccessWorkflowService.enableAllBoardAccessStatusByBoardId(boardId);
 
         // Realizar ambas operaciones en 1 solo query
-
-        log.info("Habilitando permisos de acceso y tablero");
         boardWorkflowService.enableBoardStatusByIdAndEnableAllBoardAccessStatus(boardId);
-        log.info("Operacion pendiente");
+
         operation.setStatus(OperationStatus.PENDING);
         operation.setCompletedAt(LocalDateTime.now());
         operationWorkflowService.saveOperation(operation);

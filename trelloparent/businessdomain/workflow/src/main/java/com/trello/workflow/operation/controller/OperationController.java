@@ -99,30 +99,17 @@ public class OperationController {
                             """),
             })),
 
-            @ApiResponse(responseCode = "409", description = "Error de lógica de negocio", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = {
-                    @ExampleObject(name = "La operación no tiene un estado pendiente", summary = "La operación no tiene un estado pendiente", value = """
-                            {
-                                    "detail": "The operation does not have a 'PENDING' or relationated status",
-                                    "fields": null,
-                                    "instance": null,
-                                    "message": "Ha ocurrido un error",
-                                    "status": 409,
-                                    "title": "Operation not pending",
-                                    "type": "/errors/operation/not-pending"
-                            }
-                            """),
-                    @ExampleObject(name = "Los datos enviados no coinciden con los datos de la operación", summary = "Los datos enviados no coinciden con los datos de la operación", value = """
-                            {
-                                    "detail": "The data related to the operation do not match the requested data",
-                                    "fields": null,
-                                    "instance": null,
-                                    "message": "Ha ocurrido un error",
-                                    "status": 409,
-                                    "title": "Operation in conflict",
-                                    "type": "/errors/operation/conflict"
-                            }
-                            """),
-            })),
+            @ApiResponse(responseCode = "409", description = "La operación no tiene un estado pendiente", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
+                    {
+                            "detail": "The operation does not have a 'PENDING' or relationated status",
+                            "fields": null,
+                            "instance": null,
+                            "message": "Ha ocurrido un error",
+                            "status": 409,
+                            "title": "Operation not pending",
+                            "type": "/errors/operation/not-pending"
+                    }
+                    """))),
 
             @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
                     {
@@ -185,30 +172,17 @@ public class OperationController {
                             """),
             })),
 
-            @ApiResponse(responseCode = "409", description = "Error de lógica de negocio", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = {
-                    @ExampleObject(name = "La operación no tiene un estado pendiente", summary = "La operación no tiene un estado pendiente", value = """
-                            {
-                                    "detail": "The operation does not have a 'PENDING' or relationated status",
-                                    "fields": null,
-                                    "instance": null,
-                                    "message": "Ha ocurrido un error",
-                                    "status": 409,
-                                    "title": "Operation not pending",
-                                    "type": "/errors/operation/not-pending"
-                            }
-                            """),
-                    @ExampleObject(name = "Los datos enviados no coinciden con los datos de la operación", summary = "Los datos enviados no coinciden con los datos de la operación", value = """
-                            {
-                                    "detail": "The data related to the operation do not match the requested data",
-                                    "fields": null,
-                                    "instance": null,
-                                    "message": "Ha ocurrido un error",
-                                    "status": 409,
-                                    "title": "Operation in conflict",
-                                    "type": "/errors/operation/conflict"
-                            }
-                            """),
-            })),
+            @ApiResponse(responseCode = "409", description = "La operación no tiene un estado pendiente", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
+                    {
+                            "detail": "The operation does not have a 'PENDING' or relationated status",
+                            "fields": null,
+                            "instance": null,
+                            "message": "Ha ocurrido un error",
+                            "status": 409,
+                            "title": "Operation not pending",
+                            "type": "/errors/operation/not-pending"
+                    }
+                    """))),
 
             @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
                     {
@@ -271,30 +245,17 @@ public class OperationController {
                             """),
             })),
 
-            @ApiResponse(responseCode = "409", description = "Error de lógica de negocio", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = {
-                    @ExampleObject(name = "La operación no tiene un estado pendiente", summary = "La operación no tiene un estado pendiente", value = """
-                            {
-                                    "detail": "The operation does not have a 'PENDING' or relationated status",
-                                    "fields": null,
-                                    "instance": null,
-                                    "message": "Ha ocurrido un error",
-                                    "status": 409,
-                                    "title": "Operation not pending",
-                                    "type": "/errors/operation/not-pending"
-                            }
-                            """),
-                    @ExampleObject(name = "Los datos enviados no coinciden con los datos de la operación", summary = "Los datos enviados no coinciden con los datos de la operación", value = """
-                            {
-                                    "detail": "The data related to the operation do not match the requested data",
-                                    "fields": null,
-                                    "instance": null,
-                                    "message": "Ha ocurrido un error",
-                                    "status": 409,
-                                    "title": "Operation in conflict",
-                                    "type": "/errors/operation/conflict"
-                            }
-                            """),
-            })),
+            @ApiResponse(responseCode = "409", description = "La operación no tiene un estado pendiente", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
+                    {
+                            "detail": "The operation does not have a 'PENDING' or relationated status",
+                            "fields": null,
+                            "instance": null,
+                            "message": "Ha ocurrido un error",
+                            "status": 409,
+                            "title": "Operation not pending",
+                            "type": "/errors/operation/not-pending"
+                    }
+                    """))),
 
             @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
                     {
@@ -357,30 +318,17 @@ public class OperationController {
                             """),
             })),
 
-            @ApiResponse(responseCode = "409", description = "Error de lógica de negocio", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = {
-                    @ExampleObject(name = "La operación no tiene un estado pendiente", summary = "La operación no tiene un estado pendiente", value = """
-                            {
-                                    "detail": "The operation does not have a 'PENDING' or relationated status",
-                                    "fields": null,
-                                    "instance": null,
-                                    "message": "Ha ocurrido un error",
-                                    "status": 409,
-                                    "title": "Operation not pending",
-                                    "type": "/errors/operation/not-pending"
-                            }
-                            """),
-                    @ExampleObject(name = "Los datos enviados no coinciden con los datos de la operación", summary = "Los datos enviados no coinciden con los datos de la operación", value = """
-                            {
-                                    "detail": "The data related to the operation do not match the requested data",
-                                    "fields": null,
-                                    "instance": null,
-                                    "message": "Ha ocurrido un error",
-                                    "status": 409,
-                                    "title": "Operation in conflict",
-                                    "type": "/errors/operation/conflict"
-                            }
-                            """),
-            })),
+            @ApiResponse(responseCode = "409", description = "La operación no tiene un estado pendiente", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
+                    {
+                            "detail": "The operation does not have a 'PENDING' or relationated status",
+                            "fields": null,
+                            "instance": null,
+                            "message": "Ha ocurrido un error",
+                            "status": 409,
+                            "title": "Operation not pending",
+                            "type": "/errors/operation/not-pending"
+                    }
+                    """))),
 
             @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
                     {
@@ -401,9 +349,83 @@ public class OperationController {
         return ResponseEntity.status(HttpStatus.NO_CONTENT).body(null);
     }
 
-    // TODO: AÑADIR LAS @ApiResponses
     @Operation(summary = "Revierte una operación de tipo agregar tablero junto con el permiso de acceso del usuario administrador", description = "Revierte los cambios realizados en la base de datos luego de agregar un tablero junto al permiso de acceso del usuario administrador")
     @SecurityRequirement(name = "bearerAuth")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Se ha revertido la operación"),
+
+            @ApiResponse(responseCode = "401", description = "El usuario no esta autenticado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
+                    {
+                        "detail": "Authentication is required to access this resource",
+                        "fields": null,
+                        "instance": null,
+                        "message": "Ha ocurrido un error inesperado",
+                        "status": 401,
+                        "title": "Unauthorized",
+                        "type": "/errors/authentication/not-authenticated"
+                    }
+                    """))),
+
+            @ApiResponse(responseCode = "404", description = "No se ha encontrado el recurso solicitado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = {
+                    @ExampleObject(name = "La operación no existe", summary = "La operación no existe", value = """
+                            {
+                                "detail": "The operation was not found in the system",
+                                "fields": null,
+                                "instance": null,
+                                "message": "Ha ocurrido un error",
+                                "status": 404,
+                                "title": "Operation not found",
+                                "type": "/errors/operation/not-found"
+                            }
+                            """),
+                    @ExampleObject(name = "El tablero no existe", summary = "El tablero no existe", value = """
+                            {
+                                "detail": "The board was not found in the system",
+                                "fields": null,
+                                "instance": null,
+                                "message": "No se ha encontrado el tablero",
+                                "status": 404,
+                                "title": "Board not found",
+                                "type": "/errors/board-not-found"
+                            }
+                            """),
+                    @ExampleObject(name = "El permiso de acceso al tablero no existe", summary = "El permiso de acceso al tablero no existe", value = """
+                            {
+                                "detail": "The board access was not found in the system",
+                                "fields": null,
+                                "instance": null,
+                                "message": "No se ha encontrado el permiso de acceso al tablero",
+                                "status": 404,
+                                "title": "Board access not found",
+                                "type": "/errors/board-accesses-not-found"
+                            }
+                            """),
+            })),
+
+            @ApiResponse(responseCode = "409", description = "La operación no tiene un estado pendiente", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
+                    {
+                            "detail": "The operation does not have a 'PENDING' or relationated status",
+                            "fields": null,
+                            "instance": null,
+                            "message": "Ha ocurrido un error",
+                            "status": 409,
+                            "title": "Operation not pending",
+                            "type": "/errors/operation/not-pending"
+                    }
+                    """))),
+
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
+                    {
+                      "detail": "An unexpected error occurred while processing the request",
+                      "fields": null,
+                      "instance": null,
+                      "message": "Ha ocurrido un error inesperado",
+                      "status": 500,
+                      "title": "Internal server error",
+                      "type": "/errors/internal-server-error"
+                    }
+                    """))),
+    })
     @PostMapping("/revert-add-board-and-board-access-user-owner")
     public ResponseEntity<Void> revertAddBoardAndBoardAccessUserOwner(
             @RequestHeader("X-Operation-Id") UUID operationId) {
@@ -413,6 +435,70 @@ public class OperationController {
 
     @Operation(summary = "Revierte una operación de tipo eliminar tablero junto con permisos de acceso y tareas", description = "Revierte los cambios realizados en la base de datos luego de cambiar el estado de un tablero y sus permisos de acceso")
     @SecurityRequirement(name = "bearerAuth")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Se ha revertido la operación"),
+
+            @ApiResponse(responseCode = "401", description = "El usuario no esta autenticado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
+                    {
+                        "detail": "Authentication is required to access this resource",
+                        "fields": null,
+                        "instance": null,
+                        "message": "Ha ocurrido un error inesperado",
+                        "status": 401,
+                        "title": "Unauthorized",
+                        "type": "/errors/authentication/not-authenticated"
+                    }
+                    """))),
+
+            @ApiResponse(responseCode = "404", description = "No se ha encontrado el recurso solicitado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = {
+                    @ExampleObject(name = "La operación no existe", summary = "La operación no existe", value = """
+                            {
+                                "detail": "The operation was not found in the system",
+                                "fields": null,
+                                "instance": null,
+                                "message": "Ha ocurrido un error",
+                                "status": 404,
+                                "title": "Operation not found",
+                                "type": "/errors/operation/not-found"
+                            }
+                            """),
+                    @ExampleObject(name = "El tablero no existe", summary = "El tablero no existe", value = """
+                            {
+                                "detail": "The board was not found in the system",
+                                "fields": null,
+                                "instance": null,
+                                "message": "No se ha encontrado el tablero",
+                                "status": 404,
+                                "title": "Board not found",
+                                "type": "/errors/board-not-found"
+                            }
+                            """),
+            })),
+
+            @ApiResponse(responseCode = "409", description = "La operación no tiene un estado pendiente", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
+                    {
+                            "detail": "The operation does not have a 'PENDING' or relationated status",
+                            "fields": null,
+                            "instance": null,
+                            "message": "Ha ocurrido un error",
+                            "status": 409,
+                            "title": "Operation not pending",
+                            "type": "/errors/operation/not-pending"
+                    }
+                    """))),
+
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
+                    {
+                      "detail": "An unexpected error occurred while processing the request",
+                      "fields": null,
+                      "instance": null,
+                      "message": "Ha ocurrido un error inesperado",
+                      "status": 500,
+                      "title": "Internal server error",
+                      "type": "/errors/internal-server-error"
+                    }
+                    """))),
+    })
     @PostMapping("/revert-delete-board-and-board-access-and-tasks")
     public ResponseEntity<Void> revertDeleteBoardAndBoardAccessAndTasks(
             @RequestHeader("X-Operation-Id") UUID operationId) {
@@ -423,6 +509,57 @@ public class OperationController {
     // TODO: AÑADIR LAS @ApiResponses
     @Operation(summary = "Revierte una operación de tipo eliminar varios tableros junto con sus respectivos permisos de acceso y tareas", description = "Revierte los cambios realizados en la base de datos luego de cambiar el estado de una lista de tableros y sus permisos de acceso")
     @SecurityRequirement(name = "bearerAuth")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Se ha revertido la operación"),
+
+            @ApiResponse(responseCode = "401", description = "El usuario no esta autenticado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
+                    {
+                        "detail": "Authentication is required to access this resource",
+                        "fields": null,
+                        "instance": null,
+                        "message": "Ha ocurrido un error inesperado",
+                        "status": 401,
+                        "title": "Unauthorized",
+                        "type": "/errors/authentication/not-authenticated"
+                    }
+                    """))),
+
+            @ApiResponse(responseCode = "404", description = "La operación no existe", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
+                        {
+                            "detail": "The operation was not found in the system",
+                            "fields": null,
+                            "instance": null,
+                            "message": "Ha ocurrido un error",
+                            "status": 404,
+                            "title": "Operation not found",
+                            "type": "/errors/operation/not-found"
+                        }
+                    """))),
+
+            @ApiResponse(responseCode = "409", description = "La operación no tiene un estado pendiente", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
+                    {
+                            "detail": "The operation does not have a 'PENDING' or relationated status",
+                            "fields": null,
+                            "instance": null,
+                            "message": "Ha ocurrido un error",
+                            "status": 409,
+                            "title": "Operation not pending",
+                            "type": "/errors/operation/not-pending"
+                    }
+                    """))),
+
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
+                    {
+                      "detail": "An unexpected error occurred while processing the request",
+                      "fields": null,
+                      "instance": null,
+                      "message": "Ha ocurrido un error inesperado",
+                      "status": 500,
+                      "title": "Internal server error",
+                      "type": "/errors/internal-server-error"
+                    }
+                    """))),
+    })
     @PostMapping("/revert-delete-all-boards-and-board-access-and-tasks")
     public ResponseEntity<Void> revertDeleteAllBoardsAndBoardAccessAndTasks(
             @RequestHeader("X-Operation-Id") UUID operationId) {

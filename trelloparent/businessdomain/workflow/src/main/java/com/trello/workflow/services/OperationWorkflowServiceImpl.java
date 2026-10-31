@@ -21,7 +21,7 @@ public class OperationWorkflowServiceImpl implements OperationWorkflowService {
     // de OperationNotFoundException, en lugar de colocarlo en el paquete generico
     // "exceptions", se coloca en el paquete "operation.exception"
     @Override
-    public Optional<Operation> findOperationById(UUID operationId) {
+    public Optional<Operation> findOptionalOperationById(UUID operationId) {
         return operationRepository.findById(operationId);
     }
 
@@ -29,5 +29,4 @@ public class OperationWorkflowServiceImpl implements OperationWorkflowService {
     public Operation saveOperation(Operation operation) {
         return operationRepository.save(operation);
     }
-
 }

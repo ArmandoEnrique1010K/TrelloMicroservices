@@ -6,7 +6,7 @@ import java.util.UUID;
 import com.trello.workflow.entities.Operation;
 
 public interface OperationWorkflowService {
-    Optional<Operation> findOperationById(UUID operationId);
+    Optional<Operation> findOptionalOperationById(UUID operationId);
 
     Operation saveOperation(Operation operation);
 }

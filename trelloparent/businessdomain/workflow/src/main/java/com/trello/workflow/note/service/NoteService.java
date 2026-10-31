@@ -9,7 +9,9 @@ import com.trello.workflow.note.dto.response.NoteResponse;
 
 public interface NoteService {
 
-    NoteResponse createNote(NoteRequest noteRequest, UUID taskId, UUID userId) throws ForbiddenOperationException;
+    NoteResponse createNote(NoteRequest noteRequest, UUID taskId, UUID userId)
+            throws ForbiddenOperationException;
 
-    void deleteNote(UUID noteId, UUID userId) throws ForbiddenOperationException, MismatchedAuthorException;
+    void deleteNote(UUID noteId, UUID userId)
+            throws MismatchedAuthorException, ForbiddenOperationException;
 }

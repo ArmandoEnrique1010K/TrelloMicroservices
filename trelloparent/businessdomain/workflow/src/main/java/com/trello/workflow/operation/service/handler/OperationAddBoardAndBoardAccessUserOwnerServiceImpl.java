@@ -16,7 +16,6 @@ import com.trello.workflow.enums.OperationType;
 import com.trello.workflow.enums.Role;
 import com.trello.workflow.operation.exception.OperationConflictException;
 import com.trello.workflow.operation.exception.OperationNotFoundException;
-import com.trello.workflow.operation.exception.OperationNotPendingException;
 import com.trello.workflow.services.BoardAccessWorkflowService;
 import com.trello.workflow.services.BoardWorkflowService;
 import com.trello.workflow.services.OperationWorkflowService;
@@ -58,7 +57,7 @@ public class OperationAddBoardAndBoardAccessUserOwnerServiceImpl
     public void applyAddBoardAndBoardAccessUserOwner(UUID operationId)
             throws BoardAlreadyExistsException, OperationNotFoundException {
         Operation currentOperation = operationWorkflowService
-                .findOperationById(operationId)
+                .findOptionalOperationById(operationId)
                 .orElseThrow(OperationNotFoundException::new);
 
         UUID boardId = currentOperation.getBoardId();
@@ -102,18 +101,14 @@ public class OperationAddBoardAndBoardAccessUserOwnerServiceImpl
 
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public void revertAddBoardAndBoardAccessUserOwner(UUID operationId) {
+    public void revertAddBoardAndBoardAccessUserOwner(UUID operationId)
+            throws OperationNotFoundException, OperationConflictException {
         Operation operation = operationWorkflowService
-                .findOperationById(operationId)
+                .findOptionalOperationById(operationId)
                 .orElseThrow(OperationNotFoundException::new);
 
         if (operation.getType() != OperationType.ADD_BOARD_AND_BOARD_ACCESS_USER_OWNER) {
             throw new OperationConflictException();
-        }
-
-        if (operation.getStatus() == OperationStatus.CREATED
-                && operation.getStatus() == OperationStatus.COMPLETED) {
-            throw new OperationNotPendingException();
         }
 
         operation.setStatus(OperationStatus.PROCESSING);

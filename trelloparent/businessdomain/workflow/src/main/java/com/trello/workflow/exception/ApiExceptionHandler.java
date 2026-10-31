@@ -272,6 +272,23 @@ public class ApiExceptionHandler {
         return ResponseEntity.status(status).body(standarizedApiExceptionResponse);
     }
 
+    // Excepcion de uno o varios tableros no encontrados
+    @ExceptionHandler(ManyBoardsNotFoundException.class)
+    public ResponseEntity<StandarizedApiExceptionResponse> handleManyBoardsNotFoundException(
+            ManyBoardsNotFoundException ex) {
+        HttpStatus status = HttpStatus.NOT_FOUND;
+
+        StandarizedApiExceptionResponse standarizedApiExceptionResponse = new StandarizedApiExceptionResponse(
+                "/errors/many-boards-not-found",
+                "One or many boards not found",
+                status.value(),
+                "One or many boards were not found in the system",
+                null,
+                "Uno o varios tableros asociados no fuerón encontrados");
+
+        return ResponseEntity.status(status).body(standarizedApiExceptionResponse);
+    }
+
     // -----------------------------------------------
     // Excepciones relacionadas a tareas
     // -----------------------------------------------

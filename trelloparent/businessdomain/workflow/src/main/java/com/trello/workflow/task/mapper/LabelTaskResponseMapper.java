@@ -15,7 +15,7 @@ public interface LabelTaskResponseMapper {
 
     LabelTaskResponse taskToLabelTaskResponse(Task source);
 
-    List<LabelTaskResponse> taskListToLabelTaskResponseList(List<Task> source);
+    // List<LabelTaskResponse> taskListToLabelTaskResponseList(List<Task> source);
 
     // Mapear los labels
     default List<LabelResponse> mapLabels(Set<Label> labels) {

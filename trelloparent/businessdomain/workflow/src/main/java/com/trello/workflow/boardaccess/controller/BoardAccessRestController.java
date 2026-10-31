@@ -196,6 +196,17 @@ public class BoardAccessRestController {
             })),
 
             @ApiResponse(responseCode = "409", description = "Error de lógica de negocio", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = {
+                    @ExampleObject(name = "El rol OWNER no puede ser alterado", summary = "El rol OWNER no puede ser alterado", value = """
+                            {
+                                    "detail": "Activating the user with role OWNER is not permitted for this dashboard access",
+                                    "fields": null,
+                                    "instance": null,
+                                    "message": "Ha ocurrido un error",
+                                    "status": 409,
+                                    "title": "User activate is locked",
+                                    "type": "/errors/board-accesses/user-active-not-allowed"
+                            }
+                            """),
                     @ExampleObject(name = "La operación no tiene un estado pendiente", summary = "La operación no tiene un estado pendiente", value = """
                             {
                                     "detail": "The operation does not have a 'PENDING' or relationated status",
@@ -252,6 +263,15 @@ public class BoardAccessRestController {
             @Parameter(description = "Rol antiguo del miembro", required = true, example = "ADMIN") @PathVariable Role oldRoleName,
             @RequestHeader("X-Operation-Id") UUID operationId) {
         boardAccessService.activateBoardAccess(boardId, memberUserId, roleName, oldRoleName, operationId);
+        // Prueba de rendimiento
+        // Retrasar la respuesta después del commit del servicio.
+        // try {
+        // Thread.sleep(4000);
+        // } catch (InterruptedException e) {
+        // Thread.currentThread().interrupt();
+        // throw new RuntimeException(e);
+        // }
+
         return ResponseEntity.status(HttpStatus.NO_CONTENT).body(null);
     }
 
@@ -298,6 +318,17 @@ public class BoardAccessRestController {
             })),
 
             @ApiResponse(responseCode = "409", description = "Error de lógica de negocio", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = {
+                    @ExampleObject(name = "El rol OWNER no puede ser alterado", summary = "El rol OWNER no puede ser alterado", value = """
+                            {
+                                    "detail": "Activating the user with role OWNER is not permitted for this dashboard access",
+                                    "fields": null,
+                                    "instance": null,
+                                    "message": "Ha ocurrido un error",
+                                    "status": 409,
+                                    "title": "User activate is locked",
+                                    "type": "/errors/board-accesses/user-active-not-allowed"
+                            }
+                            """),
                     @ExampleObject(name = "La operación no tiene un estado pendiente", summary = "La operación no tiene un estado pendiente", value = """
                             {
                                     "detail": "The operation does not have a 'PENDING' or relationated status",
@@ -401,6 +432,17 @@ public class BoardAccessRestController {
             })),
 
             @ApiResponse(responseCode = "409", description = "Error de lógica de negocio", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = {
+                    @ExampleObject(name = "El rol OWNER no puede ser alterado", summary = "El rol OWNER no puede ser alterado", value = """
+                            {
+                                    "detail": "Activating the user with role OWNER is not permitted for this dashboard access",
+                                    "fields": null,
+                                    "instance": null,
+                                    "message": "Ha ocurrido un error",
+                                    "status": 409,
+                                    "title": "User activate is locked",
+                                    "type": "/errors/board-accesses/user-active-not-allowed"
+                            }
+                            """),
                     @ExampleObject(name = "La operación no tiene un estado pendiente", summary = "La operación no tiene un estado pendiente", value = """
                             {
                                     "detail": "The operation does not have a 'PENDING' or relationated status",

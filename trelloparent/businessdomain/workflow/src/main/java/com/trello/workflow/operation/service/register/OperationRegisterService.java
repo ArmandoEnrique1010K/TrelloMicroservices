@@ -9,6 +9,8 @@ import com.trello.workflow.boardaccess.exception.BoardAccessUserActiveNotAllowed
 import com.trello.workflow.entities.Operation;
 import com.trello.workflow.enums.Role;
 import com.trello.workflow.exception.BoardNotFoundException;
+import com.trello.workflow.exception.BusinessRuleException;
+import com.trello.workflow.exception.ManyBoardsNotFoundException;
 import com.trello.workflow.operation.exception.OperationConflictException;
 import com.trello.workflow.operation.exception.OperationNotPendingException;
 
@@ -17,27 +19,34 @@ public interface OperationRegisterService {
 
     // Agregar permiso de acceso
     Operation registerAddBoardAccess(UUID boardId, UUID userId, Role newRole, UUID operationId)
-            throws OperationConflictException, OperationNotPendingException, BoardAccessAlreadyExistsException;
+            throws OperationConflictException, OperationNotPendingException, BusinessRuleException,
+            BoardAccessAlreadyExistsException;
 
     // Activar permiso de acceso
     Operation registerActivateBoardAccess(UUID boardId, UUID userId, Role newRole, Role oldRole, UUID operationId)
-            throws OperationConflictException, OperationNotPendingException, BoardAccessUserActiveNotAllowedException;
+            throws OperationConflictException, OperationNotPendingException, BusinessRuleException,
+            BoardAccessUserActiveNotAllowedException;
 
     // Cambiar rol de permiso de acceso
     Operation registerChangeRoleBoardAccess(UUID boardId, UUID userId, Role newRole, Role oldRole, UUID operationId)
-            throws OperationConflictException, OperationNotPendingException, BoardAccessUserActiveNotAllowedException;
+            throws OperationConflictException, OperationNotPendingException, BusinessRuleException,
+            BoardAccessUserActiveNotAllowedException;
 
     // Desactivar permiso de acceso
     Operation registerDeactivateBoardAccess(UUID boardId, UUID userId, Role oldRole, UUID operationId)
-            throws OperationConflictException, OperationNotPendingException, BoardAccessUserActiveNotAllowedException;
+            throws OperationConflictException, OperationNotPendingException, BusinessRuleException,
+            BoardAccessUserActiveNotAllowedException;
 
     // Guardar tablero y permiso de acceso del usuario administrador
     Operation registerAddBoardAndBoardAccessUserOwner(UUID boardId, UUID userId, UUID operationId)
-            throws OperationConflictException, OperationNotPendingException, BoardAlreadyExistsException;
+            throws OperationConflictException, OperationNotPendingException, BusinessRuleException,
+            BoardAlreadyExistsException;
 
     Operation registerDeleteBoardAndBoardAccessAndTasks(UUID boardId, UUID operationId)
-            throws OperationConflictException, OperationNotPendingException, BoardNotFoundException;
+            throws OperationConflictException, OperationNotPendingException, BusinessRuleException,
+            BoardNotFoundException;
 
     Operation registerDeleteAllBoardsAndBoardAccessAndTasks(List<UUID> boardsIds, UUID operationId)
-            throws OperationConflictException, OperationNotPendingException, BoardNotFoundException;
+            throws OperationConflictException, OperationNotPendingException, BusinessRuleException,
+            ManyBoardsNotFoundException;
 }

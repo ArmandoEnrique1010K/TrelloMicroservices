@@ -65,7 +65,8 @@ public class NoteServiceImpl implements NoteService {
     // Solamente el usuario que ha creado la nota la puede eliminar, además debe
     // tener el rol de MEMBER para eliminarlo (estricto)
     @Override
-    public void deleteNote(UUID noteId, UUID userId) throws ForbiddenOperationException, MismatchedAuthorException {
+    public void deleteNote(UUID noteId, UUID userId)
+            throws MismatchedAuthorException, ForbiddenOperationException {
 
         Note findedNote = noteWorkflowService.findNoteById(noteId);
         UUID boardId = findedNote.getTask().getBoard().getId();

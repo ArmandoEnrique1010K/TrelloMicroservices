@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
-import com.trello.workflow.board.exception.BoardAlreadyExistsException;
 import com.trello.workflow.entities.Operation;
 import com.trello.workflow.enums.OperationStatus;
 import com.trello.workflow.operation.service.processor.OperationProcessor;
@@ -30,7 +29,7 @@ public class BoardServiceImpl implements BoardService {
 
     @Override
     public void addBoardAndBoardAccessUserOwner(UUID boardId, UUID userId,
-            UUID operationId) throws BoardAlreadyExistsException {
+            UUID operationId) {
         Operation operation = operationRegisterService.registerAddBoardAndBoardAccessUserOwner(boardId, userId,
                 operationId);
 

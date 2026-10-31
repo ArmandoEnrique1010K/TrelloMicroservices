@@ -15,7 +15,6 @@ import com.trello.workflow.enums.OperationType;
 import com.trello.workflow.enums.Role;
 import com.trello.workflow.operation.exception.OperationConflictException;
 import com.trello.workflow.operation.exception.OperationNotFoundException;
-import com.trello.workflow.operation.exception.OperationNotPendingException;
 import com.trello.workflow.services.BoardAccessWorkflowService;
 import com.trello.workflow.services.BoardWorkflowService;
 import com.trello.workflow.services.OperationWorkflowService;
@@ -41,7 +40,7 @@ public class OperationAddBoardAccessServiceImpl implements OperationAddBoardAcce
             throws OperationNotFoundException, BoardAccessAlreadyExistsException {
         // Recuperar la operación que se va a ejecutar
         Operation currentOperation = operationWorkflowService
-                .findOperationById(operationId)
+                .findOptionalOperationById(operationId)
                 .orElseThrow(OperationNotFoundException::new);
 
         // Obtener los identificadores necesarios para localizar el permiso de acceso.
@@ -75,21 +74,15 @@ public class OperationAddBoardAccessServiceImpl implements OperationAddBoardAcce
     @Transactional(rollbackFor = Exception.class)
     @Override
     public void revertAddBoardAccess(UUID operationId)
-            throws OperationNotFoundException, OperationConflictException, OperationNotPendingException {
+            throws OperationNotFoundException, OperationConflictException {
         // Recuperar la operación que se va a compensar.
         Operation operation = operationWorkflowService
-                .findOperationById(operationId)
+                .findOptionalOperationById(operationId)
                 .orElseThrow(OperationNotFoundException::new);
 
         // Comprobar que la operación corresponda al alta de un permiso de acceso.
         if (operation.getType() != OperationType.ADD_BOARD_ACCESS) {
             throw new OperationConflictException();
-        }
-
-        // Permitir la compensación únicamente de operaciones completadas o pendientes.
-        if (operation.getStatus() != OperationStatus.COMPLETED
-                && operation.getStatus() != OperationStatus.PENDING) {
-            throw new OperationNotPendingException();
         }
 
         // Registrar que la operación se encuentra en proceso de compensación.

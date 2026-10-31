@@ -4,8 +4,7 @@ import java.util.List;
 import java.util.UUID;
 
 public interface BoardService {
-    void addBoardAndBoardAccessUserOwner(UUID boardId, UUID userId,
-            UUID operationId);
+    void addBoardAndBoardAccessUserOwner(UUID boardId, UUID userId, UUID operationId);
 
     void deleteBoardAndBoardAccessAndTasks(UUID boardId, UUID operationId);
 

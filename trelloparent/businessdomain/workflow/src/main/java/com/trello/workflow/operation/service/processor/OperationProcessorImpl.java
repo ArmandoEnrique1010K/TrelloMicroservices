@@ -52,10 +52,11 @@ public class OperationProcessorImpl implements OperationProcessor {
 
     // Procesa una operación registrada según su tipo y estado actual.
     @Override
-    public void processOperation(UUID operationId) throws OperationNotPendingException, BusinessRuleException {
+    public void processOperation(UUID operationId)
+            throws OperationNotPendingException, BusinessRuleException {
         // Recuperar la operación que se va a procesar.
         Operation operation = operationWorkflowService
-                .findOperationById(operationId)
+                .findOptionalOperationById(operationId)
                 .orElseThrow(OperationNotFoundException::new);
 
         // Permitir el procesamiento únicamente de operaciones nuevas o pendientes.

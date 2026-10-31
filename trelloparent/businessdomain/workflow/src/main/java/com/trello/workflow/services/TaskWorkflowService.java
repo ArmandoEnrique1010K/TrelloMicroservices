@@ -11,7 +11,9 @@ public interface TaskWorkflowService {
 
     List<Task> findAllTasksByBoardId(UUID boardId);
 
-    Task findTaskById(UUID taskId) throws TaskNotFoundException;
+    Task findTaskById(UUID taskId)
+            throws TaskNotFoundException;
 
-    void deleteTaskById(UUID taskId) throws TaskNotFoundException;
+    void deleteTaskById(UUID taskId)
+            throws TaskNotFoundException;
 }

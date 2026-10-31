@@ -1,6 +1,6 @@
 package com.trello.workflow.task.mapper;
 
-import java.util.List;
+// import java.util.List;
 
 import org.mapstruct.Mapper;
 
@@ -12,5 +12,5 @@ public interface TaskResponseMapper {
 
     TaskResponse taskToTaskResponse(Task source);
 
-    List<TaskResponse> taskListToTaskResponseList(List<Task> source);
+    // List<TaskResponse> taskListToTaskResponseList(List<Task> source);
 }

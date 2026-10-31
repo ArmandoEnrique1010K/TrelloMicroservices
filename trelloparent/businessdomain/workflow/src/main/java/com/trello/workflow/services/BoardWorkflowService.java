@@ -12,7 +12,8 @@ public interface BoardWorkflowService {
 
     boolean existsBoardById(UUID boardId);
 
-    Board findBoardById(UUID boardId) throws BoardNotFoundException;
+    Board findBoardById(UUID boardId)
+            throws BoardNotFoundException;
 
     // TODO: ELIMINAR ESTE METODO
     // void deleteBoardById(UUID boardId) throws BoardNotFoundException;
@@ -28,16 +29,18 @@ public interface BoardWorkflowService {
 
     // void disableBoardsStatusesByIds(List<UUID> boardsIds);
 
-    void enableBoardStatusById(UUID boardId) throws BoardNotFoundException;
+    // void enableBoardStatusById(UUID boardId)
+    // throws BoardNotFoundException;
 
     // void enableBoardsStatusesByIds(List<UUID> boardsIds);
 
     void disableBoardStatusByIdAndDisableAllBoardAccessStatus(UUID boardId)
-            throws BoardNotFoundException, BoardAccessNotFoundException;
+            throws BoardNotFoundException;
+
+    void enableBoardStatusByIdAndEnableAllBoardAccessStatus(UUID boardId)
+            throws BoardNotFoundException;
 
     void disableAllBoardsStatusByIdAndDisableAllBoardAccessesStatus(List<UUID> boardsIds);
-
-    void enableBoardStatusByIdAndEnableAllBoardAccessStatus(UUID boardId);
 
     void enableAllBoardsStatusByIdAndEnableAllBoardAccessesStatus(List<UUID> boardsIds);
 }

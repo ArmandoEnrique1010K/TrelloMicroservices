@@ -12,13 +12,16 @@ public interface LabelWorkflowService {
 
     List<Label> findAllLabelsByBoardId(UUID boardId);
 
-    Label findLabelById(UUID labelId) throws LabelNotFoundException;
+    Label findLabelById(UUID labelId)
+            throws LabelNotFoundException;
 
-    void deleteLabelById(UUID labelId) throws LabelNotFoundException;
+    void deleteLabelById(UUID labelId)
+            throws LabelNotFoundException;
 
     boolean existsLabelByBoardIdAndContent(UUID boardId, String content);
 
     boolean existsLabelByBoardIdAndContentExcludingId(UUID boardId, String content, UUID labelId);
 
-    Label findLabelByIdAndBoardId(UUID labelId, UUID boardId) throws LabelNotFoundException;
+    Label findLabelByIdAndBoardId(UUID labelId, UUID boardId)
+            throws LabelNotFoundException;
 }

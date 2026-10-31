@@ -4,5 +4,4 @@ import com.trello.workflow.entities.History;
 
 public interface HistoryWorkflowService {
     History saveHistory(History history);
-
 }

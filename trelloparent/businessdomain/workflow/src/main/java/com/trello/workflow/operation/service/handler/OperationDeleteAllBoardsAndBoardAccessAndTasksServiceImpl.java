@@ -12,7 +12,6 @@ import com.trello.workflow.enums.OperationStatus;
 import com.trello.workflow.enums.OperationType;
 import com.trello.workflow.operation.exception.OperationConflictException;
 import com.trello.workflow.operation.exception.OperationNotFoundException;
-import com.trello.workflow.operation.exception.OperationNotPendingException;
 import com.trello.workflow.services.BoardWorkflowService;
 import com.trello.workflow.services.OperationWorkflowService;
 
@@ -33,7 +32,7 @@ public class OperationDeleteAllBoardsAndBoardAccessAndTasksServiceImpl
     public void applyDeleteAllBoardsAndBoardAccessAndTasks(UUID operationId) throws OperationNotFoundException {
 
         Operation currentOperation = operationWorkflowService
-                .findOperationById(operationId)
+                .findOptionalOperationById(operationId)
                 .orElseThrow(OperationNotFoundException::new);
 
         // RESULTADO CUANDO NO HAY TABLEROS: []
@@ -55,20 +54,14 @@ public class OperationDeleteAllBoardsAndBoardAccessAndTasksServiceImpl
     @Transactional(rollbackFor = Exception.class)
     @Override
     public void revertDeleteAllBoardsAndBoardAccessAndTasks(UUID operationId)
-            throws OperationNotFoundException, OperationConflictException, OperationNotPendingException {
+            throws OperationNotFoundException, OperationConflictException {
 
         Operation operation = operationWorkflowService
-                .findOperationById(operationId)
+                .findOptionalOperationById(operationId)
                 .orElseThrow(OperationNotFoundException::new);
 
         if (operation.getType() != OperationType.DELETE_ALL_BOARDS_AND_BOARD_ACCESS_AND_TASKS) {
             throw new OperationConflictException();
-        }
-
-        // TODO: PROBAR SI EL USO DE || ES MEJOR QUE &&
-        if (operation.getStatus() == OperationStatus.CREATED
-                && operation.getStatus() == OperationStatus.COMPLETED) {
-            throw new OperationNotPendingException();
         }
 
         operation.setStatus(OperationStatus.PROCESSING);

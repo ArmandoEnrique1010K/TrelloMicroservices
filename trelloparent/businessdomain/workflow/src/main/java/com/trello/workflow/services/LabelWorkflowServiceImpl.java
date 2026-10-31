@@ -14,7 +14,7 @@ public class LabelWorkflowServiceImpl implements LabelWorkflowService {
 
     private final LabelRepository labelRepository;
 
-    LabelWorkflowServiceImpl(LabelRepository labelRepository) {
+    public LabelWorkflowServiceImpl(LabelRepository labelRepository) {
         this.labelRepository = labelRepository;
     }
 
@@ -29,13 +29,15 @@ public class LabelWorkflowServiceImpl implements LabelWorkflowService {
     }
 
     @Override
-    public Label findLabelById(UUID labelId) throws LabelNotFoundException {
+    public Label findLabelById(UUID labelId)
+            throws LabelNotFoundException {
         Label label = labelRepository.findById(labelId).orElseThrow(LabelNotFoundException::new);
         return label;
     }
 
     @Override
-    public void deleteLabelById(UUID labelId) throws LabelNotFoundException {
+    public void deleteLabelById(UUID labelId)
+            throws LabelNotFoundException {
         Label label = labelRepository.findById(labelId).orElseThrow(LabelNotFoundException::new);
         labelRepository.delete(label);
     }
@@ -51,7 +53,8 @@ public class LabelWorkflowServiceImpl implements LabelWorkflowService {
     }
 
     @Override
-    public Label findLabelByIdAndBoardId(UUID labelId, UUID boardId) throws LabelNotFoundException {
+    public Label findLabelByIdAndBoardId(UUID labelId, UUID boardId)
+            throws LabelNotFoundException {
         return labelRepository.findByIdAndBoardId(labelId, boardId).orElseThrow(LabelNotFoundException::new);
     }
 

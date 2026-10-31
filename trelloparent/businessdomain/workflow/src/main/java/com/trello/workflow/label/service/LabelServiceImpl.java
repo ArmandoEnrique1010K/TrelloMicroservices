@@ -43,7 +43,7 @@ public class LabelServiceImpl implements LabelService {
     @Override
     public LabelResponse createLabel(LabelRequest labelRequest, UUID boardId, Color colorName,
             UUID userId)
-            throws LabelAlreadyExistsException, ForbiddenOperationException {
+            throws ForbiddenOperationException, LabelAlreadyExistsException {
 
         String content = labelRequest.getContent();
 
@@ -80,7 +80,8 @@ public class LabelServiceImpl implements LabelService {
     }
 
     @Override
-    public List<LabelResponse> listAllLabels(UUID boardId, UUID userId) throws ForbiddenOperationException {
+    public List<LabelResponse> listAllLabels(UUID boardId, UUID userId)
+            throws ForbiddenOperationException {
         BoardAccess boardAccess = boardAccessWorkflowService.findBoardAccessByBoardIdAndUserIdAndUserActive(boardId,
                 userId);
 
@@ -101,7 +102,7 @@ public class LabelServiceImpl implements LabelService {
     // modificaran
     @Override
     public LabelResponse editLabel(UUID labelId, LabelRequest labelRequest, Color colorName, UUID userId)
-            throws LabelAlreadyExistsException, ForbiddenOperationException {
+            throws ForbiddenOperationException, LabelAlreadyExistsException {
 
         String content = labelRequest.getContent();
 
@@ -142,7 +143,8 @@ public class LabelServiceImpl implements LabelService {
     // Se tiene en cuenta que si elimina una etiqueta, se va a quitar de todas las
     // tareas que hayan tenido esa etiqueta eliminada
     @Override
-    public void deleteLabel(UUID labelId, UUID userId) throws ForbiddenOperationException {
+    public void deleteLabel(UUID labelId, UUID userId)
+            throws ForbiddenOperationException {
 
         Label findedLabel = labelWorkflowService.findLabelById(labelId);
         UUID boardId = findedLabel.getBoard().getId();

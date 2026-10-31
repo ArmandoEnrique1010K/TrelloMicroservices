@@ -15,7 +15,7 @@ public class TaskWorkflowServiceImpl implements TaskWorkflowService {
 
     private final TaskRepository taskRepository;
 
-    TaskWorkflowServiceImpl(TaskRepository taskRepository) {
+    public TaskWorkflowServiceImpl(TaskRepository taskRepository) {
         this.taskRepository = taskRepository;
     }
 
@@ -30,7 +30,8 @@ public class TaskWorkflowServiceImpl implements TaskWorkflowService {
     }
 
     @Override
-    public Task findTaskById(UUID taskId) throws TaskNotFoundException {
+    public Task findTaskById(UUID taskId)
+            throws TaskNotFoundException {
         Task task = taskRepository.findById(taskId).orElseThrow(TaskNotFoundException::new);
         return task;
     }
@@ -38,7 +39,8 @@ public class TaskWorkflowServiceImpl implements TaskWorkflowService {
     // Para borrar una tarea es necesario verificar que aun exista la tarea en la
     // base de datos
     @Override
-    public void deleteTaskById(UUID taskId) throws TaskNotFoundException {
+    public void deleteTaskById(UUID taskId)
+            throws TaskNotFoundException {
         Task task = taskRepository.findById(taskId).orElseThrow(TaskNotFoundException::new);
         taskRepository.delete(task);
     }

@@ -168,17 +168,66 @@ public class BoardRestController {
                     }
                     """))),
 
-            @ApiResponse(responseCode = "404", description = "El tablero no existe", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
-                    {
-                        "detail": "The board was not found in the system",
-                        "fields": null,
-                        "instance": null,
-                        "message": "No se ha encontrado el tablero",
-                        "status": 404,
-                        "title": "Board not found",
-                        "type": "/errors/board-not-found"
-                    }
-                    """))),
+            @ApiResponse(responseCode = "404", description = "No se ha encontrado el recurso solicitado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = {
+                    @ExampleObject(name = "La operación no existe", summary = "La operación no existe", value = """
+                            {
+                                "detail": "The operation was not found in the system",
+                                "fields": null,
+                                "instance": null,
+                                "message": "Ha ocurrido un error",
+                                "status": 404,
+                                "title": "Operation not found",
+                                "type": "/errors/operation/not-found"
+                            }
+                            """),
+                    @ExampleObject(name = "El tablero no existe", summary = "El tablero no existe", value = """
+                            {
+                                "detail": "The board was not found in the system",
+                                "fields": null,
+                                "instance": null,
+                                "message": "No se ha encontrado el tablero",
+                                "status": 404,
+                                "title": "Board not found",
+                                "type": "/errors/board-not-found"
+                            }
+                            """),
+            })),
+
+            @ApiResponse(responseCode = "409", description = "Error de lógica de negocio", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = {
+                    @ExampleObject(name = "La operación no tiene un estado pendiente", summary = "La operación no tiene un estado pendiente", value = """
+                            {
+                                    "detail": "The operation does not have a 'PENDING' or relationated status",
+                                    "fields": null,
+                                    "instance": null,
+                                    "message": "Ha ocurrido un error",
+                                    "status": 409,
+                                    "title": "Operation not pending",
+                                    "type": "/errors/operation/not-pending"
+                            }
+                            """),
+                    @ExampleObject(name = "Los datos enviados no coinciden con los datos de la operación", summary = "Los datos enviados no coinciden con los datos de la operación", value = """
+                            {
+                                    "detail": "The data related to the operation do not match the requested data",
+                                    "fields": null,
+                                    "instance": null,
+                                    "message": "Ha ocurrido un error",
+                                    "status": 409,
+                                    "title": "Operation in conflict",
+                                    "type": "/errors/operation/conflict"
+                            }
+                            """),
+                    @ExampleObject(name = "Se intento ejecutar una operación desconocida", summary = "Se intento ejecutar una operación desconocida", value = """
+                            {
+                                    "detail": "The operation cannot be completed because it violates a business rule",
+                                    "fields": null,
+                                    "instance": null,
+                                    "message": "Ha ocurrido un error inesperado",
+                                    "status": 409,
+                                    "title": "Business rule violation",
+                                    "type": "/errors/business-rule-violation"
+                            }
+                            """),
+            })),
 
             @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
                     {
@@ -192,8 +241,6 @@ public class BoardRestController {
                     }
                     """))),
     })
-
-    // TODO: AÑADIR LOS @ApiResponses
     @DeleteMapping("/{boardId}")
     public ResponseEntity<Void> deleteBoardAndBoardAccessAndTasks(
             @Parameter(description = "ID del tablero", required = true, example = "550e8400-e29b-41d4-a716-446655440000") @PathVariable UUID boardId,
@@ -230,20 +277,66 @@ public class BoardRestController {
                     }
                     """))),
 
-            // @ApiResponse(responseCode = "404", description = "El espacio de trabajo no
-            // existe", content = @Content(mediaType = "application/json", schema =
-            // @Schema(implementation = StandarizedApiExceptionResponse.class), examples =
-            // @ExampleObject(value = """
-            // {
-            // "detail": "The board was not found in the system",
-            // "fields": null,
-            // "instance": null,
-            // "message": "No se ha encontrado el tablero",
-            // "status": 404,
-            // "title": "Board not found",
-            // "type": "/errors/board-not-found"
-            // }
-            // """))),
+            @ApiResponse(responseCode = "404", description = "No se ha encontrado el recurso solicitado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = {
+                    @ExampleObject(name = "La operación no existe", summary = "La operación no existe", value = """
+                            {
+                                "detail": "The operation was not found in the system",
+                                "fields": null,
+                                "instance": null,
+                                "message": "Ha ocurrido un error",
+                                "status": 404,
+                                "title": "Operation not found",
+                                "type": "/errors/operation/not-found"
+                            }
+                            """),
+                    @ExampleObject(name = "Uno o varios tableros no existen", summary = "Uno o varios tableros no existen", value = """
+                            {
+                                "detail": "One or many boards were not found in the system",
+                                "fields": null,
+                                "instance": null,
+                                "message": "Uno o varios tableros asociados no fuerón encontrados",
+                                "status": 404,
+                                "title": "One or many boards not found",
+                                "type": "/errors/many-boards-not-found"
+                            }
+                            """),
+            })),
+
+            @ApiResponse(responseCode = "409", description = "Error de lógica de negocio", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = {
+                    @ExampleObject(name = "La operación no tiene un estado pendiente", summary = "La operación no tiene un estado pendiente", value = """
+                            {
+                                    "detail": "The operation does not have a 'PENDING' or relationated status",
+                                    "fields": null,
+                                    "instance": null,
+                                    "message": "Ha ocurrido un error",
+                                    "status": 409,
+                                    "title": "Operation not pending",
+                                    "type": "/errors/operation/not-pending"
+                            }
+                            """),
+                    @ExampleObject(name = "Los datos enviados no coinciden con los datos de la operación", summary = "Los datos enviados no coinciden con los datos de la operación", value = """
+                            {
+                                    "detail": "The data related to the operation do not match the requested data",
+                                    "fields": null,
+                                    "instance": null,
+                                    "message": "Ha ocurrido un error",
+                                    "status": 409,
+                                    "title": "Operation in conflict",
+                                    "type": "/errors/operation/conflict"
+                            }
+                            """),
+                    @ExampleObject(name = "Se intento ejecutar una operación desconocida", summary = "Se intento ejecutar una operación desconocida", value = """
+                            {
+                                    "detail": "The operation cannot be completed because it violates a business rule",
+                                    "fields": null,
+                                    "instance": null,
+                                    "message": "Ha ocurrido un error inesperado",
+                                    "status": 409,
+                                    "title": "Business rule violation",
+                                    "type": "/errors/business-rule-violation"
+                            }
+                            """),
+            })),
 
             @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
                     {

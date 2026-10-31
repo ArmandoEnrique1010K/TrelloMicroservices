@@ -12,13 +12,14 @@ import com.trello.workflow.label.exception.LabelAlreadyExistsException;
 public interface LabelService {
 
     LabelResponse createLabel(LabelRequest labelRequest, UUID boardId, Color colorName, UUID userId)
-            throws LabelAlreadyExistsException, ForbiddenOperationException;
+            throws ForbiddenOperationException, LabelAlreadyExistsException;
 
     List<LabelResponse> listAllLabels(UUID boardId, UUID userId)
             throws ForbiddenOperationException;
 
     LabelResponse editLabel(UUID labelId, LabelRequest labelRequest, Color colorName, UUID userId)
-            throws LabelAlreadyExistsException, ForbiddenOperationException;
+            throws ForbiddenOperationException, LabelAlreadyExistsException;
 
-    void deleteLabel(UUID labelId, UUID userId) throws ForbiddenOperationException;
+    void deleteLabel(UUID labelId, UUID userId)
+            throws ForbiddenOperationException;
 }

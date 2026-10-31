@@ -1,18 +1,21 @@
 package com.trello.workflow.history.mapper;
 
-import java.util.List;
+// import org.mapstruct.Mapper;
 
-import org.mapstruct.Mapping;
-import org.mapstruct.Mappings;
+// import java.util.List;
 
-import com.trello.workflow.entities.History;
-import com.trello.workflow.history.dto.response.HistoryResponse;
+// import org.mapstruct.Mapping;
+// import org.mapstruct.Mappings;
 
+// import com.trello.workflow.entities.History;
+// import com.trello.workflow.history.dto.response.HistoryResponse;
+
+// @Mapper(componentModel = "spring")
 public interface HistoryResponseMapper {
-    @Mappings({
-            @Mapping(target = "createdByUser", ignore = true)
-    })
-    HistoryResponse historyToHistoryResponse(History source);
+    // @Mappings({
+    // @Mapping(target = "createdByUser", ignore = true)
+    // })
+    // HistoryResponse historyToHistoryResponse(History source);
 
-    List<HistoryResponse> historyListToHistoryResponseList(List<History> source);
+    // List<HistoryResponse> historyListToHistoryResponseList(List<History> source);
 }

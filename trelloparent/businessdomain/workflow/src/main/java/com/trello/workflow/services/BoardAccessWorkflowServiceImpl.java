@@ -4,7 +4,6 @@ import com.trello.workflow.repositories.BoardAccessRepository;
 
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.List;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
@@ -103,15 +102,16 @@ public class BoardAccessWorkflowServiceImpl implements BoardAccessWorkflowServic
     // boardAccessRepository.saveAll(boardAcceses);
     // }
 
-    @Override
-    public void enableAllBoardAccessStatusByBoardId(UUID boardId) {
-        List<BoardAccess> boardAcceses = boardAccessRepository.findAllByBoardIdAndStatusFalse(boardId);
+    // @Override
+    // public void enableAllBoardAccessStatusByBoardId(UUID boardId) {
+    // List<BoardAccess> boardAcceses =
+    // boardAccessRepository.findAllByBoardIdAndStatusFalse(boardId);
 
-        if (boardAcceses.isEmpty()) {
-            return;
-        }
+    // if (boardAcceses.isEmpty()) {
+    // return;
+    // }
 
-        boardAcceses.forEach(boardAccess -> boardAccess.setStatus(true));
-        boardAccessRepository.saveAll(boardAcceses);
-    }
+    // boardAcceses.forEach(boardAccess -> boardAccess.setStatus(true));
+    // boardAccessRepository.saveAll(boardAcceses);
+    // }
 }

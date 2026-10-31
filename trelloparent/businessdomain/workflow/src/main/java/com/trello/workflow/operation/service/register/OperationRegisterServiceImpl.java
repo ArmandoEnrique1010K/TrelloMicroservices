@@ -18,6 +18,7 @@ import com.trello.workflow.enums.OperationType;
 import com.trello.workflow.enums.Role;
 import com.trello.workflow.exception.BoardNotFoundException;
 import com.trello.workflow.exception.BusinessRuleException;
+import com.trello.workflow.exception.ManyBoardsNotFoundException;
 import com.trello.workflow.operation.exception.OperationConflictException;
 import com.trello.workflow.operation.exception.OperationNotPendingException;
 import com.trello.workflow.services.BoardAccessWorkflowService;
@@ -48,7 +49,8 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
     @Transactional(rollbackFor = Exception.class)
     @Override
     public Operation registerAddBoardAccess(UUID boardId, UUID userId, Role newRole, UUID operationId)
-            throws OperationConflictException, OperationNotPendingException, BoardAccessAlreadyExistsException {
+            throws OperationConflictException, OperationNotPendingException, BusinessRuleException,
+            BoardAccessAlreadyExistsException {
 
         // Comprobar si existe una operación con el identificador proporcionado.
         Operation existingOperation = validateExistingOperationOrReturnPending(
@@ -93,7 +95,8 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
     @Override
     public Operation registerActivateBoardAccess(UUID boardId, UUID userId, Role newRole, Role oldRole,
             UUID operationId)
-            throws OperationConflictException, OperationNotPendingException, BoardAccessUserActiveNotAllowedException {
+            throws OperationConflictException, OperationNotPendingException, BusinessRuleException,
+            BoardAccessUserActiveNotAllowedException {
 
         Operation existingOperation = validateExistingOperationOrReturnPending(
                 operationId,
@@ -138,7 +141,8 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
     @Override
     public Operation registerChangeRoleBoardAccess(UUID boardId, UUID userId, Role newRole, Role oldRole,
             UUID operationId)
-            throws OperationConflictException, OperationNotPendingException, BoardAccessUserActiveNotAllowedException {
+            throws OperationConflictException, OperationNotPendingException, BusinessRuleException,
+            BoardAccessUserActiveNotAllowedException {
 
         Operation existingOperation = validateExistingOperationOrReturnPending(
                 operationId,
@@ -182,7 +186,8 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
     @Override
     public Operation registerDeactivateBoardAccess(UUID boardId, UUID userId, Role oldRole,
             UUID operationId)
-            throws OperationConflictException, OperationNotPendingException, BoardAccessUserActiveNotAllowedException {
+            throws OperationConflictException, OperationNotPendingException, BusinessRuleException,
+            BoardAccessUserActiveNotAllowedException {
 
         Operation existingOperation = validateExistingOperationOrReturnPending(
                 operationId,
@@ -223,7 +228,8 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
     @Transactional(rollbackFor = Exception.class)
     @Override
     public Operation registerAddBoardAndBoardAccessUserOwner(UUID boardId, UUID userId, UUID operationId)
-            throws OperationConflictException, OperationNotPendingException, BoardAlreadyExistsException {
+            throws OperationConflictException, OperationNotPendingException, BusinessRuleException,
+            BoardAlreadyExistsException {
 
         Operation existingOperation = validateExistingOperationOrReturnPending(
                 operationId,
@@ -261,7 +267,8 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
     @Transactional(rollbackFor = Exception.class)
     @Override
     public Operation registerDeleteBoardAndBoardAccessAndTasks(UUID boardId, UUID operationId)
-            throws OperationConflictException, OperationNotPendingException, BoardNotFoundException {
+            throws OperationConflictException, OperationNotPendingException, BusinessRuleException,
+            BoardNotFoundException {
 
         Operation existingOperation = validateExistingOperationOrReturnPending(
                 operationId,
@@ -270,8 +277,6 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
                 null,
                 null,
                 OperationType.DELETE_BOARD_AND_BOARD_ACCESS_AND_TASKS);
-
-        log.info("OPERACION VALIDADA");
 
         if (existingOperation != null) {
             return operationWorkflowService.saveOperation(existingOperation);
@@ -283,7 +288,6 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
         }
 
         Operation operation = new Operation();
-        log.info("ID DE OPERACION: " + operationId);
         operation.setId(operationId);
         operation.setType(OperationType.DELETE_BOARD_AND_BOARD_ACCESS_AND_TASKS);
         operation.setStatus(OperationStatus.CREATED);
@@ -298,7 +302,8 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
     @Transactional(rollbackFor = Exception.class)
     @Override
     public Operation registerDeleteAllBoardsAndBoardAccessAndTasks(List<UUID> boardsIds, UUID operationId)
-            throws OperationConflictException, OperationNotPendingException, BoardNotFoundException {
+            throws OperationConflictException, OperationNotPendingException, BusinessRuleException,
+            ManyBoardsNotFoundException {
         // Normalizar lista de IDs de tableros
         // Se guarda List.of() en lugar de un null para especificar que la operación no
         // tiene tableros asociados
@@ -322,8 +327,7 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
         // Validar existencia de todos los tableros
         if (!normalizedBoardsIds.isEmpty()
                 && boardWorkflowService.countBoardsByIds(normalizedBoardsIds) != normalizedBoardsIds.size()) {
-            // TODO: Cambiar la excepcion por uno más detallista
-            throw new BoardNotFoundException();
+            throw new ManyBoardsNotFoundException();
         }
 
         Operation operation = new Operation();
@@ -346,10 +350,11 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
             UUID userId,
             Role newRole,
             List<UUID> boardsIds,
-            OperationType expectedType) throws OperationConflictException, OperationNotPendingException {
+            OperationType expectedType)
+            throws OperationConflictException, OperationNotPendingException, BusinessRuleException {
 
         // Buscar la operación mediante su identificador.
-        Optional<Operation> existingOperation = operationWorkflowService.findOperationById(operationId);
+        Optional<Operation> existingOperation = operationWorkflowService.findOptionalOperationById(operationId);
 
         // Si no existe una operación con ese identificador, permitir su registro.
         if (existingOperation.isEmpty()) {
@@ -358,15 +363,6 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
 
         Operation existing = existingOperation.get();
 
-        // List<UUID> existingBoardsIds = existing.getBoardIds() == null
-        // ? List.of()
-        // : existing.getBoardIds();
-
-        // List<UUID> requestedBoardsIds = boardsIds == null
-        // ? List.of()
-        // : boardsIds;
-
-        log.info("OPERACION EXISTENTE");
         // Comprobar que los datos de la solicitud coincidan con la operación
         // registrada.
         if (existing.getType() != expectedType
@@ -377,8 +373,6 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
         // || !existingBoardsIds.equals(requestedBoardsIds)
         ) {
             // Excepción de una operación conflictiva
-
-            log.info("OPERACION CONFLICTIVA");
             throw new OperationConflictException();
         }
 
@@ -393,7 +387,7 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
             }
 
             // Impedir el reintento de operaciones que no están pendientes.
-            case CREATED, PROCESSING, COMPLETED, MANUAL_REVIEW -> {
+            case CREATED, PROCESSING, COMPLETED -> {
                 throw new OperationNotPendingException();
             }
 

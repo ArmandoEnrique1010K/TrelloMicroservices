@@ -102,13 +102,15 @@ public class BoardWorkflowServiceImpl implements BoardWorkflowService {
     // boardRepository.saveAll(boards);
     // }
 
-    @Override
-    public void enableBoardStatusById(UUID boardId) throws BoardNotFoundException {
-        Board board = boardRepository.findByIdAndStatusFalse(boardId).orElseThrow(BoardNotFoundException::new);
+    // @Override
+    // public void enableBoardStatusById(UUID boardId)
+    // throws BoardNotFoundException {
+    // Board board =
+    // boardRepository.findByIdAndStatusFalse(boardId).orElseThrow(BoardNotFoundException::new);
 
-        board.setStatus(true);
-        boardRepository.save(board);
-    }
+    // board.setStatus(true);
+    // boardRepository.save(board);
+    // }
 
     // @Override
     // public void enableBoardsStatusesByIds(List<UUID> boardsIds) {
@@ -124,7 +126,7 @@ public class BoardWorkflowServiceImpl implements BoardWorkflowService {
 
     @Override
     public void disableBoardStatusByIdAndDisableAllBoardAccessStatus(UUID boardId)
-            throws BoardNotFoundException, BoardAccessNotFoundException {
+            throws BoardNotFoundException {
 
         // Desactivar tablero
         Board board = boardRepository.findByIdAndStatusTrue(boardId).orElseThrow(BoardNotFoundException::new);
@@ -145,7 +147,8 @@ public class BoardWorkflowServiceImpl implements BoardWorkflowService {
     }
 
     @Override
-    public void enableBoardStatusByIdAndEnableAllBoardAccessStatus(UUID boardId) {
+    public void enableBoardStatusByIdAndEnableAllBoardAccessStatus(UUID boardId)
+            throws BoardNotFoundException {
         Board board = boardRepository.findByIdAndStatusFalse(boardId).orElseThrow(BoardNotFoundException::new);
 
         board.setStatus(true);
@@ -208,5 +211,4 @@ public class BoardWorkflowServiceImpl implements BoardWorkflowService {
         // boardAccessRepository.findAllByBoardIdAndStatusTrue(board);
         boardAccessRepository.enableAllByBoardIds(boardsIds);
     }
-
 }

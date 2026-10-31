@@ -14,7 +14,6 @@ import com.trello.workflow.enums.OperationType;
 import com.trello.workflow.enums.Role;
 import com.trello.workflow.operation.exception.OperationConflictException;
 import com.trello.workflow.operation.exception.OperationNotFoundException;
-import com.trello.workflow.operation.exception.OperationNotPendingException;
 import com.trello.workflow.services.BoardAccessWorkflowService;
 import com.trello.workflow.services.OperationWorkflowService;
 
@@ -35,7 +34,7 @@ public class OperationDeactivateBoardAccessServiceImpl implements OperationDeact
             throws OperationNotFoundException, BoardAccessUserActiveNotAllowedException {
 
         Operation currentOperation = operationWorkflowService
-                .findOperationById(operationId)
+                .findOptionalOperationById(operationId)
                 .orElseThrow(OperationNotFoundException::new);
 
         UUID boardId = currentOperation.getBoardId();
@@ -56,19 +55,14 @@ public class OperationDeactivateBoardAccessServiceImpl implements OperationDeact
     @Transactional(rollbackFor = Exception.class)
     @Override
     public void revertDeactivateBoardAccess(UUID operationId)
-            throws OperationNotFoundException, OperationConflictException, OperationNotPendingException {
+            throws OperationNotFoundException, OperationConflictException {
 
         Operation operation = operationWorkflowService
-                .findOperationById(operationId)
+                .findOptionalOperationById(operationId)
                 .orElseThrow(OperationNotFoundException::new);
 
         if (operation.getType() != OperationType.DEACTIVATE_BOARD_ACCESS) {
             throw new OperationConflictException();
-        }
-
-        if (operation.getStatus() == OperationStatus.CREATED
-                && operation.getStatus() == OperationStatus.COMPLETED) {
-            throw new OperationNotPendingException();
         }
 
         operation.setStatus(OperationStatus.PROCESSING);

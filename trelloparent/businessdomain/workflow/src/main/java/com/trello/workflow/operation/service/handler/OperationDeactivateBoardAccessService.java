@@ -5,7 +5,6 @@ import java.util.UUID;
 import com.trello.workflow.boardaccess.exception.BoardAccessUserActiveNotAllowedException;
 import com.trello.workflow.operation.exception.OperationConflictException;
 import com.trello.workflow.operation.exception.OperationNotFoundException;
-import com.trello.workflow.operation.exception.OperationNotPendingException;
 
 public interface OperationDeactivateBoardAccessService {
 
@@ -13,5 +12,5 @@ public interface OperationDeactivateBoardAccessService {
             throws OperationNotFoundException, BoardAccessUserActiveNotAllowedException;
 
     void revertDeactivateBoardAccess(UUID operationId)
-            throws OperationNotFoundException, OperationConflictException, OperationNotPendingException;
+            throws OperationNotFoundException, OperationConflictException;
 }
