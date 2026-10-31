@@ -12,6 +12,7 @@ import com.trello.workflow.entities.Operation;
 import com.trello.workflow.enums.OperationStatus;
 import com.trello.workflow.enums.OperationType;
 import com.trello.workflow.enums.Role;
+import com.trello.workflow.exception.BoardAccessNotFoundException;
 import com.trello.workflow.operation.exception.OperationConflictException;
 import com.trello.workflow.operation.exception.OperationNotFoundException;
 import com.trello.workflow.services.BoardAccessWorkflowService;
@@ -31,7 +32,7 @@ public class OperationActivateBoardAccessServiceImpl implements OperationActivat
     @Transactional(rollbackFor = Exception.class)
     @Override
     public void applyActivateBoardAccess(UUID operationId)
-            throws OperationNotFoundException, BoardAccessUserActiveNotAllowedException {
+            throws OperationNotFoundException, BoardAccessUserActiveNotAllowedException, BoardAccessNotFoundException {
 
         Operation currentOperation = operationWorkflowService
                 .findOptionalOperationById(operationId)
@@ -42,9 +43,10 @@ public class OperationActivateBoardAccessServiceImpl implements OperationActivat
         Role newRole = currentOperation.getNewRole();
 
         // Volver a preguntar si existe tablero y si el usuario no tiene el rol de OWNER
-        BoardAccess findedBoardAccess = boardAccessWorkflowService.findBoardAccessByBoardIdAndUserIdAndUserInactive(
-                boardId,
-                userId);
+        BoardAccess findedBoardAccess = boardAccessWorkflowService
+                .findBoardAccessByBoardIdAndUserIdAndUserInactiveAndStatusTrue(
+                        boardId,
+                        userId);
 
         if (findedBoardAccess.getRole().equals(Role.OWNER)) {
             throw new BoardAccessUserActiveNotAllowedException();
@@ -59,7 +61,7 @@ public class OperationActivateBoardAccessServiceImpl implements OperationActivat
     @Transactional(rollbackFor = Exception.class)
     @Override
     public void revertActivateBoardAccess(UUID operationId)
-            throws OperationNotFoundException, OperationConflictException {
+            throws OperationNotFoundException, OperationConflictException, BoardAccessNotFoundException {
 
         Operation operation = operationWorkflowService
                 .findOptionalOperationById(operationId)
@@ -84,7 +86,7 @@ public class OperationActivateBoardAccessServiceImpl implements OperationActivat
         UUID userId = operation.getUserId();
         Role oldRole = operation.getOldRole();
 
-        boardAccessWorkflowService.inactivateBoardAccessAndChangeRoleByBoardIdAndUserId(
+        boardAccessWorkflowService.inactivateBoardAccessAndChangeRoleByBoardIdAndUserIdAndStatusTrue(
                 boardId, userId, oldRole);
 
         operation.setStatus(OperationStatus.PENDING);

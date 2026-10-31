@@ -13,6 +13,8 @@ import com.trello.workflow.entities.Operation;
 import com.trello.workflow.enums.OperationStatus;
 import com.trello.workflow.enums.OperationType;
 import com.trello.workflow.enums.Role;
+import com.trello.workflow.exception.BoardAccessNotFoundException;
+import com.trello.workflow.exception.BoardNotFoundException;
 import com.trello.workflow.operation.exception.OperationConflictException;
 import com.trello.workflow.operation.exception.OperationNotFoundException;
 import com.trello.workflow.services.BoardAccessWorkflowService;
@@ -37,7 +39,7 @@ public class OperationAddBoardAccessServiceImpl implements OperationAddBoardAcce
     @Transactional(rollbackFor = Exception.class)
     @Override
     public void applyAddBoardAccess(UUID operationId)
-            throws OperationNotFoundException, BoardAccessAlreadyExistsException {
+            throws OperationNotFoundException, BoardAccessAlreadyExistsException, BoardNotFoundException {
         // Recuperar la operación que se va a ejecutar
         Operation currentOperation = operationWorkflowService
                 .findOptionalOperationById(operationId)
@@ -51,10 +53,10 @@ public class OperationAddBoardAccessServiceImpl implements OperationAddBoardAcce
         Role newRole = currentOperation.getNewRole();
 
         // Obtiene tablero por ID
-        Board board = boardWorkflowService.findBoardById(boardId);
+        Board board = boardWorkflowService.findBoardByIdAndStatusTrue(boardId);
 
         // Comprobar que el usuario todavía no tenga permiso de acceso al tablero.
-        if (boardAccessWorkflowService.existsBoardAccessByBoardIdAndUserId(boardId, userId)) {
+        if (boardAccessWorkflowService.existsBoardAccessByBoardIdAndUserIdAndStatusTrue(boardId, userId)) {
             throw new BoardAccessAlreadyExistsException();
         }
 
@@ -74,7 +76,7 @@ public class OperationAddBoardAccessServiceImpl implements OperationAddBoardAcce
     @Transactional(rollbackFor = Exception.class)
     @Override
     public void revertAddBoardAccess(UUID operationId)
-            throws OperationNotFoundException, OperationConflictException {
+            throws OperationNotFoundException, OperationConflictException, BoardAccessNotFoundException {
         // Recuperar la operación que se va a compensar.
         Operation operation = operationWorkflowService
                 .findOptionalOperationById(operationId)
@@ -95,7 +97,7 @@ public class OperationAddBoardAccessServiceImpl implements OperationAddBoardAcce
         UUID userId = operation.getUserId();
 
         // Eliminar el permiso de acceso creado por la operación original.
-        boardAccessWorkflowService.deleteBoardAccessByBoardIdAndUserId(
+        boardAccessWorkflowService.deleteBoardAccessByBoardIdAndUserIdAndStatusTrue(
                 boardId, userId);
 
         // Registrar la finalización de la compensación.

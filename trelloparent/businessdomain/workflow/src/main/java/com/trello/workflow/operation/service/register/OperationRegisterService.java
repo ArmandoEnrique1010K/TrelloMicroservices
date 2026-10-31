@@ -8,9 +8,10 @@ import com.trello.workflow.boardaccess.exception.BoardAccessAlreadyExistsExcepti
 import com.trello.workflow.boardaccess.exception.BoardAccessUserActiveNotAllowedException;
 import com.trello.workflow.entities.Operation;
 import com.trello.workflow.enums.Role;
+import com.trello.workflow.exception.BoardAccessNotFoundException;
 import com.trello.workflow.exception.BoardNotFoundException;
 import com.trello.workflow.exception.BusinessRuleException;
-import com.trello.workflow.exception.ManyBoardsNotFoundException;
+import com.trello.workflow.operation.exception.ManyBoardsNotFoundException;
 import com.trello.workflow.operation.exception.OperationConflictException;
 import com.trello.workflow.operation.exception.OperationNotPendingException;
 
@@ -25,17 +26,17 @@ public interface OperationRegisterService {
     // Activar permiso de acceso
     Operation registerActivateBoardAccess(UUID boardId, UUID userId, Role newRole, Role oldRole, UUID operationId)
             throws OperationConflictException, OperationNotPendingException, BusinessRuleException,
-            BoardAccessUserActiveNotAllowedException;
+            BoardAccessUserActiveNotAllowedException, BoardAccessNotFoundException;
 
     // Cambiar rol de permiso de acceso
     Operation registerChangeRoleBoardAccess(UUID boardId, UUID userId, Role newRole, Role oldRole, UUID operationId)
             throws OperationConflictException, OperationNotPendingException, BusinessRuleException,
-            BoardAccessUserActiveNotAllowedException;
+            BoardAccessUserActiveNotAllowedException, BoardAccessNotFoundException;
 
     // Desactivar permiso de acceso
     Operation registerDeactivateBoardAccess(UUID boardId, UUID userId, Role oldRole, UUID operationId)
             throws OperationConflictException, OperationNotPendingException, BusinessRuleException,
-            BoardAccessUserActiveNotAllowedException;
+            BoardAccessUserActiveNotAllowedException, BoardAccessNotFoundException;
 
     // Guardar tablero y permiso de acceso del usuario administrador
     Operation registerAddBoardAndBoardAccessUserOwner(UUID boardId, UUID userId, UUID operationId)

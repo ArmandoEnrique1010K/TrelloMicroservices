@@ -14,6 +14,8 @@ import com.trello.workflow.entities.Operation;
 import com.trello.workflow.enums.OperationStatus;
 import com.trello.workflow.enums.OperationType;
 import com.trello.workflow.enums.Role;
+import com.trello.workflow.exception.BoardAccessNotFoundException;
+import com.trello.workflow.exception.BoardNotFoundException;
 import com.trello.workflow.operation.exception.OperationConflictException;
 import com.trello.workflow.operation.exception.OperationNotFoundException;
 import com.trello.workflow.services.BoardAccessWorkflowService;
@@ -67,7 +69,7 @@ public class OperationAddBoardAndBoardAccessUserOwnerServiceImpl
 
         // En este caso para verificar si existe el tablero por ID no se realiza
         // mediante un query porque el ID no es generado de forma automatica
-        // if (boardWorkflowService.existsBoardById(boardId)) {
+        // if (boardWorkflowService.existsBoardByIdAndStatusTrue(boardId)) {
         // throw new BoardAlreadyExistsException();
         // }
 
@@ -102,7 +104,8 @@ public class OperationAddBoardAndBoardAccessUserOwnerServiceImpl
     @Transactional(rollbackFor = Exception.class)
     @Override
     public void revertAddBoardAndBoardAccessUserOwner(UUID operationId)
-            throws OperationNotFoundException, OperationConflictException {
+            throws OperationNotFoundException, OperationConflictException, BoardNotFoundException,
+            BoardAccessNotFoundException {
         Operation operation = operationWorkflowService
                 .findOptionalOperationById(operationId)
                 .orElseThrow(OperationNotFoundException::new);
@@ -121,7 +124,7 @@ public class OperationAddBoardAndBoardAccessUserOwnerServiceImpl
 
         // Revertir los cambios en la base de datos
         // Eliminar el permiso de acceso del usuario administrador y el tablero
-        boardWorkflowService.deleteBoardByIdAndDeleteBoardAccessByBoardIdAndUserId(
+        boardWorkflowService.deleteBoardByIdAndStatusTrueAndDeleteBoardAccessByBoardIdAndUserIdAndStatusTrue(
                 boardId, userId);
 
         operation.setStatus(OperationStatus.PENDING);

@@ -87,8 +87,9 @@ public class TaskServiceImpl implements TaskService {
             throws ForbiddenOperationException {
 
         // Buscar permiso de acceso al tablero por boardId y userId
-        BoardAccess boardAccess = boardAccessWorkflowService.findBoardAccessByBoardIdAndUserIdAndUserActive(boardId,
-                userId);
+        BoardAccess boardAccess = boardAccessWorkflowService
+                .findBoardAccessByBoardIdAndUserIdAndUserActiveAndStatusTrue(boardId,
+                        userId);
 
         // Rol del usuario actual
         Role role = boardAccess.getRole();
@@ -130,7 +131,7 @@ public class TaskServiceImpl implements TaskService {
     @Override
     public List<AuthorTaskResponse> listAllTasksByBoardId(UUID boardId, UUID userId) {
         // Siempre y cuando sea el usuario administrador del tablero o cualquier miembro
-        boardAccessWorkflowService.findBoardAccessByBoardIdAndUserIdAndUserActive(boardId, userId);
+        boardAccessWorkflowService.findBoardAccessByBoardIdAndUserIdAndUserActiveAndStatusTrue(boardId, userId);
 
         List<Task> listTasksByBoardId = taskWorkflowService.findAllTasksByBoardId(boardId);
         List<AuthorTaskResponse> responses = authorTaskResponseMapper.taskListToAuthorTaskResponse(listTasksByBoardId);
@@ -161,8 +162,9 @@ public class TaskServiceImpl implements TaskService {
         UUID boardId = findedTask.getBoard().getId();
 
         // Buscar permiso de acceso al tablero por boardId y userId
-        BoardAccess boardAccess = boardAccessWorkflowService.findBoardAccessByBoardIdAndUserIdAndUserActive(boardId,
-                userId);
+        BoardAccess boardAccess = boardAccessWorkflowService
+                .findBoardAccessByBoardIdAndUserIdAndUserActiveAndStatusTrue(boardId,
+                        userId);
 
         boolean isAuthor = findedTask.getCreatedByUserId().equals(userId);
 
@@ -198,8 +200,9 @@ public class TaskServiceImpl implements TaskService {
 
         Task findedTask = taskWorkflowService.findTaskById(taskId);
         UUID boardId = findedTask.getBoard().getId();
-        BoardAccess boardAccess = boardAccessWorkflowService.findBoardAccessByBoardIdAndUserIdAndUserActive(boardId,
-                userId);
+        BoardAccess boardAccess = boardAccessWorkflowService
+                .findBoardAccessByBoardIdAndUserIdAndUserActiveAndStatusTrue(boardId,
+                        userId);
         Role role = boardAccess.getRole();
 
         if (!BoardAccessRoleUtils.hasAuthorization(role, Role.MEMBER)) {
@@ -229,8 +232,9 @@ public class TaskServiceImpl implements TaskService {
     public void deleteTask(UUID taskId, UUID userId) throws MismatchedAuthorException, ForbiddenOperationException {
         Task findedTask = taskWorkflowService.findTaskById(taskId);
         UUID boardId = findedTask.getBoard().getId();
-        BoardAccess boardAccess = boardAccessWorkflowService.findBoardAccessByBoardIdAndUserIdAndUserActive(boardId,
-                userId);
+        BoardAccess boardAccess = boardAccessWorkflowService
+                .findBoardAccessByBoardIdAndUserIdAndUserActiveAndStatusTrue(boardId,
+                        userId);
 
         boolean isAuthor = findedTask.getCreatedByUserId().equals(userId);
 
@@ -255,8 +259,9 @@ public class TaskServiceImpl implements TaskService {
         // 1. Obtener la tarea y validar el acceso del usuario al tablero
         Task findedTask = taskWorkflowService.findTaskById(taskId);
         UUID boardId = findedTask.getBoard().getId();
-        BoardAccess boardAccess = boardAccessWorkflowService.findBoardAccessByBoardIdAndUserIdAndUserActive(boardId,
-                userId);
+        BoardAccess boardAccess = boardAccessWorkflowService
+                .findBoardAccessByBoardIdAndUserIdAndUserActiveAndStatusTrue(boardId,
+                        userId);
         Role role = boardAccess.getRole();
 
         // 2. Mapear la información propia de Task
@@ -446,8 +451,9 @@ public class TaskServiceImpl implements TaskService {
         UUID boardId = findedTask.getBoard().getId();
 
         // Buscar permiso de acceso al tablero por boardId y userId
-        BoardAccess boardAccess = boardAccessWorkflowService.findBoardAccessByBoardIdAndUserIdAndUserActive(boardId,
-                userId);
+        BoardAccess boardAccess = boardAccessWorkflowService
+                .findBoardAccessByBoardIdAndUserIdAndUserActiveAndStatusTrue(boardId,
+                        userId);
 
         boolean isAuthor = findedTask.getCreatedByUserId().equals(userId);
 
@@ -495,8 +501,9 @@ public class TaskServiceImpl implements TaskService {
         Task findedTask = taskWorkflowService.findTaskById(taskId);
         UUID boardId = findedTask.getBoard().getId();
 
-        BoardAccess boardAccess = boardAccessWorkflowService.findBoardAccessByBoardIdAndUserIdAndUserActive(boardId,
-                userId);
+        BoardAccess boardAccess = boardAccessWorkflowService
+                .findBoardAccessByBoardIdAndUserIdAndUserActiveAndStatusTrue(boardId,
+                        userId);
 
         boolean isAuthor = findedTask.getCreatedByUserId().equals(userId);
 
@@ -546,8 +553,9 @@ public class TaskServiceImpl implements TaskService {
 
         Task findedTask = taskWorkflowService.findTaskById(taskId);
         UUID boardId = findedTask.getBoard().getId();
-        BoardAccess boardAccess = boardAccessWorkflowService.findBoardAccessByBoardIdAndUserIdAndUserActive(boardId,
-                userId);
+        BoardAccess boardAccess = boardAccessWorkflowService
+                .findBoardAccessByBoardIdAndUserIdAndUserActiveAndStatusTrue(boardId,
+                        userId);
 
         boolean isAuthor = findedTask.getCreatedByUserId().equals(userId);
 

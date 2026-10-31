@@ -15,6 +15,7 @@ import com.trello.workflow.boardaccess.exception.BoardAccessAlreadyExistsExcepti
 import com.trello.workflow.boardaccess.exception.BoardAccessUserActiveNotAllowedException;
 import com.trello.workflow.common.StandarizedApiExceptionResponse;
 import com.trello.workflow.label.exception.LabelAlreadyExistsException;
+import com.trello.workflow.operation.exception.ManyBoardsNotFoundException;
 import com.trello.workflow.operation.exception.OperationConflictException;
 import com.trello.workflow.operation.exception.OperationNotFoundException;
 import com.trello.workflow.operation.exception.OperationNotPendingException;

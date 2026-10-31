@@ -506,7 +506,6 @@ public class OperationController {
         return ResponseEntity.status(HttpStatus.NO_CONTENT).body(null);
     }
 
-    // TODO: AÑADIR LAS @ApiResponses
     @Operation(summary = "Revierte una operación de tipo eliminar varios tableros junto con sus respectivos permisos de acceso y tareas", description = "Revierte los cambios realizados en la base de datos luego de cambiar el estado de una lista de tableros y sus permisos de acceso")
     @SecurityRequirement(name = "bearerAuth")
     @ApiResponses(value = {

@@ -22,11 +22,6 @@ public class NoteWorkflowServiceImpl implements NoteWorkflowService {
         return noteRepository.save(note);
     }
 
-    // @Override
-    // public List<Note> findAllNotesByTaskId(UUID taskId) {
-    // return noteRepository.findByTaskId(taskId);
-    // }
-
     @Override
     public Note findNoteById(UUID noteId)
             throws NoteNotFoundException {

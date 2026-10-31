@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.trello.workflow.entities.Operation;
 import com.trello.workflow.enums.OperationStatus;
 import com.trello.workflow.enums.OperationType;
+import com.trello.workflow.exception.BoardNotFoundException;
 import com.trello.workflow.operation.exception.OperationConflictException;
 import com.trello.workflow.operation.exception.OperationNotFoundException;
 import com.trello.workflow.services.BoardWorkflowService;
@@ -33,7 +34,8 @@ public class OperationDeleteBoardAndBoardAccessAndTasksServiceImpl
     // ESTADO FALSE
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public void applyDeleteBoardAndBoardAccessAndTasks(UUID operationId) throws OperationNotFoundException {
+    public void applyDeleteBoardAndBoardAccessAndTasks(UUID operationId)
+            throws OperationNotFoundException, BoardNotFoundException {
         Operation currentOperation = operationWorkflowService
                 .findOptionalOperationById(operationId)
                 .orElseThrow(OperationNotFoundException::new);
@@ -56,13 +58,13 @@ public class OperationDeleteBoardAndBoardAccessAndTasksServiceImpl
 
         // Realizar ambas operaciones en un solo metodo del servicio, conlleva a que se
         // realice 2 queries de eliminación
-        boardWorkflowService.disableBoardStatusByIdAndDisableAllBoardAccessStatus(boardId);
+        boardWorkflowService.disableBoardStatusByIdAndStatusTrueAndDisableAllBoardAccessByStatusTrue(boardId);
     }
 
     @Transactional(rollbackFor = Exception.class)
     @Override
     public void revertDeleteBoardAndBoardAccessAndTasks(UUID operationId)
-            throws OperationNotFoundException, OperationConflictException {
+            throws OperationNotFoundException, OperationConflictException, BoardNotFoundException {
 
         Operation operation = operationWorkflowService
                 .findOptionalOperationById(operationId)
@@ -85,7 +87,7 @@ public class OperationDeleteBoardAndBoardAccessAndTasksServiceImpl
         // boardAccessWorkflowService.enableAllBoardAccessStatusByBoardId(boardId);
 
         // Realizar ambas operaciones en 1 solo query
-        boardWorkflowService.enableBoardStatusByIdAndEnableAllBoardAccessStatus(boardId);
+        boardWorkflowService.enableBoardStatusByIdAndStatusFalseAndEnableAllBoardAccessByStatusFalse(boardId);
 
         operation.setStatus(OperationStatus.PENDING);
         operation.setCompletedAt(LocalDateTime.now());

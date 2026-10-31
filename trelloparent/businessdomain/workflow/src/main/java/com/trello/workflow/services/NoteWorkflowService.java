@@ -8,8 +8,6 @@ import com.trello.workflow.exception.NoteNotFoundException;
 public interface NoteWorkflowService {
     Note saveNote(Note note);
 
-    // List<Note> findAllNotesByTaskId(UUID taskId);
-
     Note findNoteById(UUID noteId)
             throws NoteNotFoundException;
 

@@ -47,8 +47,9 @@ public class LabelServiceImpl implements LabelService {
 
         String content = labelRequest.getContent();
 
-        BoardAccess boardAccess = boardAccessWorkflowService.findBoardAccessByBoardIdAndUserIdAndUserActive(boardId,
-                userId);
+        BoardAccess boardAccess = boardAccessWorkflowService
+                .findBoardAccessByBoardIdAndUserIdAndUserActiveAndStatusTrue(boardId,
+                        userId);
 
         Role role = boardAccess.getRole();
 
@@ -82,8 +83,9 @@ public class LabelServiceImpl implements LabelService {
     @Override
     public List<LabelResponse> listAllLabels(UUID boardId, UUID userId)
             throws ForbiddenOperationException {
-        BoardAccess boardAccess = boardAccessWorkflowService.findBoardAccessByBoardIdAndUserIdAndUserActive(boardId,
-                userId);
+        BoardAccess boardAccess = boardAccessWorkflowService
+                .findBoardAccessByBoardIdAndUserIdAndUserActiveAndStatusTrue(boardId,
+                        userId);
 
         Role role = boardAccess.getRole();
 
@@ -109,8 +111,9 @@ public class LabelServiceImpl implements LabelService {
         Label findedLabel = labelWorkflowService.findLabelById(labelId);
         UUID boardId = findedLabel.getBoard().getId();
 
-        BoardAccess boardAccess = boardAccessWorkflowService.findBoardAccessByBoardIdAndUserIdAndUserActive(boardId,
-                userId);
+        BoardAccess boardAccess = boardAccessWorkflowService
+                .findBoardAccessByBoardIdAndUserIdAndUserActiveAndStatusTrue(boardId,
+                        userId);
 
         // Rol del usuario actual
         Role role = boardAccess.getRole();
@@ -149,8 +152,9 @@ public class LabelServiceImpl implements LabelService {
         Label findedLabel = labelWorkflowService.findLabelById(labelId);
         UUID boardId = findedLabel.getBoard().getId();
 
-        BoardAccess boardAccess = boardAccessWorkflowService.findBoardAccessByBoardIdAndUserIdAndUserActive(boardId,
-                userId);
+        BoardAccess boardAccess = boardAccessWorkflowService
+                .findBoardAccessByBoardIdAndUserIdAndUserActiveAndStatusTrue(boardId,
+                        userId);
         // Rol del usuario actual
         Role role = boardAccess.getRole();
 

@@ -5,9 +5,17 @@ import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 
+import com.trello.workflow.boardaccess.exception.BoardAccessAlreadyExistsException;
+import com.trello.workflow.boardaccess.exception.BoardAccessUserActiveNotAllowedException;
 import com.trello.workflow.entities.Operation;
 import com.trello.workflow.enums.OperationStatus;
 import com.trello.workflow.enums.Role;
+import com.trello.workflow.exception.BoardAccessNotFoundException;
+import com.trello.workflow.exception.BoardNotFoundException;
+import com.trello.workflow.exception.BusinessRuleException;
+import com.trello.workflow.operation.exception.OperationConflictException;
+import com.trello.workflow.operation.exception.OperationNotFoundException;
+import com.trello.workflow.operation.exception.OperationNotPendingException;
 import com.trello.workflow.operation.service.processor.OperationProcessor;
 import com.trello.workflow.operation.service.register.OperationRegisterService;
 import com.trello.workflow.services.OperationWorkflowService;
@@ -36,8 +44,9 @@ public class BoardAccessServiceImpl implements BoardAccessService {
 
     // Registra y procesa la operación de añadir un permiso de acceso al tablero.
     @Override
-    public void addBoardAccess(UUID boardId, UUID userId, Role role,
-            UUID operationId) {
+    public void addBoardAccess(UUID boardId, UUID userId, Role role, UUID operationId)
+            throws OperationConflictException, OperationNotPendingException, BusinessRuleException,
+            BoardAccessAlreadyExistsException, OperationNotFoundException, BoardNotFoundException {
         // Registrar la operación o recuperar una operación pendiente.
         Operation operation = operationRegisterService.registerAddBoardAccess(boardId, userId, role, operationId);
 
@@ -57,8 +66,9 @@ public class BoardAccessServiceImpl implements BoardAccessService {
     // Activar un permiso de acceso al tablero
     @Override
     public void activateBoardAccess(UUID boardId, UUID memberUserId, Role role, Role oldRole,
-            UUID operationId) {
-
+            UUID operationId)
+            throws OperationConflictException, OperationNotPendingException, BusinessRuleException,
+            BoardAccessUserActiveNotAllowedException, BoardAccessNotFoundException, OperationNotFoundException {
         Operation operation = operationRegisterService.registerActivateBoardAccess(boardId, memberUserId,
                 role,
                 oldRole,
@@ -75,7 +85,9 @@ public class BoardAccessServiceImpl implements BoardAccessService {
     }
 
     @Override
-    public void changeRoleBoardAccess(UUID boardId, UUID memberUserId, Role newRole, Role oldRole, UUID operationId) {
+    public void changeRoleBoardAccess(UUID boardId, UUID memberUserId, Role newRole, Role oldRole, UUID operationId)
+            throws OperationConflictException, OperationNotPendingException, BusinessRuleException,
+            BoardAccessUserActiveNotAllowedException, BoardAccessNotFoundException, OperationNotFoundException {
         Operation operation = operationRegisterService.registerChangeRoleBoardAccess(boardId, memberUserId,
                 newRole,
                 oldRole,
@@ -92,7 +104,9 @@ public class BoardAccessServiceImpl implements BoardAccessService {
     }
 
     @Override
-    public void deactivateBoardAccess(UUID boardId, UUID memberUserId, Role oldRole, UUID operationId) {
+    public void deactivateBoardAccess(UUID boardId, UUID memberUserId, Role oldRole, UUID operationId)
+            throws OperationConflictException, OperationNotPendingException, BusinessRuleException,
+            BoardAccessUserActiveNotAllowedException, BoardAccessNotFoundException, OperationNotFoundException {
         Operation operation = operationRegisterService.registerDeactivateBoardAccess(boardId, memberUserId,
                 oldRole,
                 operationId);

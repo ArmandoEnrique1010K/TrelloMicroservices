@@ -29,7 +29,8 @@ public class OperationDeleteAllBoardsAndBoardAccessAndTasksServiceImpl
 
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public void applyDeleteAllBoardsAndBoardAccessAndTasks(UUID operationId) throws OperationNotFoundException {
+    public void applyDeleteAllBoardsAndBoardAccessAndTasks(UUID operationId)
+            throws OperationNotFoundException {
 
         Operation currentOperation = operationWorkflowService
                 .findOptionalOperationById(operationId)
@@ -46,7 +47,7 @@ public class OperationDeleteAllBoardsAndBoardAccessAndTasksServiceImpl
 
         if (!normalizedBoardsIds.isEmpty()) {
             boardWorkflowService
-                    .disableAllBoardsStatusByIdAndDisableAllBoardAccessesStatus(
+                    .disableAllBoardsStatusByIdAndStatusTrueAndDisableAllBoardAccessesByStatusTrue(
                             normalizedBoardsIds);
         }
     }
@@ -75,7 +76,7 @@ public class OperationDeleteAllBoardsAndBoardAccessAndTasksServiceImpl
         // Restaurar tableros y permisos solamente si existen.
         if (!normalizedBoardsIds.isEmpty()) {
             boardWorkflowService
-                    .enableAllBoardsStatusByIdAndEnableAllBoardAccessesStatus(
+                    .enableAllBoardsStatusByIdAndStatusFalseAndEnableAllBoardAccessesByStatusFalse(
                             normalizedBoardsIds);
         }
 

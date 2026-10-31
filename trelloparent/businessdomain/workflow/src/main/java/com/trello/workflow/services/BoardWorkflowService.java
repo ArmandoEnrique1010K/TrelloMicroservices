@@ -10,37 +10,23 @@ import com.trello.workflow.exception.BoardNotFoundException;
 public interface BoardWorkflowService {
     Board saveAndFlushBoard(Board board);
 
-    boolean existsBoardById(UUID boardId);
+    boolean existsBoardByIdAndStatusTrue(UUID boardId);
 
-    Board findBoardById(UUID boardId)
+    Board findBoardByIdAndStatusTrue(UUID boardId)
             throws BoardNotFoundException;
-
-    // TODO: ELIMINAR ESTE METODO
-    // void deleteBoardById(UUID boardId) throws BoardNotFoundException;
-
-    // void deleteBoardsByIds(List<UUID> boardsIds);
 
     long countBoardsByIds(List<UUID> boardsIds);
 
-    void deleteBoardByIdAndDeleteBoardAccessByBoardIdAndUserId(UUID boardId, UUID userId)
+    void deleteBoardByIdAndStatusTrueAndDeleteBoardAccessByBoardIdAndUserIdAndStatusTrue(UUID boardId, UUID userId)
             throws BoardNotFoundException, BoardAccessNotFoundException;
 
-    // void disableBoardStatusById(UUID boardId) throws BoardNotFoundException;
-
-    // void disableBoardsStatusesByIds(List<UUID> boardsIds);
-
-    // void enableBoardStatusById(UUID boardId)
-    // throws BoardNotFoundException;
-
-    // void enableBoardsStatusesByIds(List<UUID> boardsIds);
-
-    void disableBoardStatusByIdAndDisableAllBoardAccessStatus(UUID boardId)
+    void disableBoardStatusByIdAndStatusTrueAndDisableAllBoardAccessByStatusTrue(UUID boardId)
             throws BoardNotFoundException;
 
-    void enableBoardStatusByIdAndEnableAllBoardAccessStatus(UUID boardId)
+    void enableBoardStatusByIdAndStatusFalseAndEnableAllBoardAccessByStatusFalse(UUID boardId)
             throws BoardNotFoundException;
 
-    void disableAllBoardsStatusByIdAndDisableAllBoardAccessesStatus(List<UUID> boardsIds);
+    void disableAllBoardsStatusByIdAndStatusTrueAndDisableAllBoardAccessesByStatusTrue(List<UUID> boardsIds);
 
-    void enableAllBoardsStatusByIdAndEnableAllBoardAccessesStatus(List<UUID> boardsIds);
+    void enableAllBoardsStatusByIdAndStatusFalseAndEnableAllBoardAccessesByStatusFalse(List<UUID> boardsIds);
 }

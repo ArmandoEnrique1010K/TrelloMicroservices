@@ -16,10 +16,12 @@ import com.trello.workflow.entities.Operation;
 import com.trello.workflow.enums.OperationStatus;
 import com.trello.workflow.enums.OperationType;
 import com.trello.workflow.enums.Role;
+import com.trello.workflow.exception.BoardAccessNotFoundException;
 import com.trello.workflow.exception.BoardNotFoundException;
 import com.trello.workflow.exception.BusinessRuleException;
-import com.trello.workflow.exception.ManyBoardsNotFoundException;
+import com.trello.workflow.operation.exception.ManyBoardsNotFoundException;
 import com.trello.workflow.operation.exception.OperationConflictException;
+import com.trello.workflow.operation.exception.OperationNotFoundException;
 import com.trello.workflow.operation.exception.OperationNotPendingException;
 import com.trello.workflow.services.BoardAccessWorkflowService;
 import com.trello.workflow.services.BoardWorkflowService;
@@ -69,7 +71,7 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
         }
 
         // Comprobar que el usuario todavía no tenga permiso de acceso al tablero.
-        if (boardAccessWorkflowService.existsBoardAccessByBoardIdAndUserId(boardId, userId)) {
+        if (boardAccessWorkflowService.existsBoardAccessByBoardIdAndUserIdAndStatusTrue(boardId, userId)) {
             throw new BoardAccessAlreadyExistsException();
         }
 
@@ -96,7 +98,7 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
     public Operation registerActivateBoardAccess(UUID boardId, UUID userId, Role newRole, Role oldRole,
             UUID operationId)
             throws OperationConflictException, OperationNotPendingException, BusinessRuleException,
-            BoardAccessUserActiveNotAllowedException {
+            BoardAccessUserActiveNotAllowedException, BoardAccessNotFoundException {
 
         Operation existingOperation = validateExistingOperationOrReturnPending(
                 operationId,
@@ -113,9 +115,10 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
         }
 
         // Validar reglas de negocio
-        BoardAccess findedBoardAccess = boardAccessWorkflowService.findBoardAccessByBoardIdAndUserIdAndUserInactive(
-                boardId,
-                userId);
+        BoardAccess findedBoardAccess = boardAccessWorkflowService
+                .findBoardAccessByBoardIdAndUserIdAndUserInactiveAndStatusTrue(
+                        boardId,
+                        userId);
 
         if (findedBoardAccess.getRole().equals(Role.OWNER)) {
             throw new BoardAccessUserActiveNotAllowedException();
@@ -142,7 +145,7 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
     public Operation registerChangeRoleBoardAccess(UUID boardId, UUID userId, Role newRole, Role oldRole,
             UUID operationId)
             throws OperationConflictException, OperationNotPendingException, BusinessRuleException,
-            BoardAccessUserActiveNotAllowedException {
+            BoardAccessUserActiveNotAllowedException, BoardAccessNotFoundException {
 
         Operation existingOperation = validateExistingOperationOrReturnPending(
                 operationId,
@@ -158,9 +161,10 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
             return operationWorkflowService.saveOperation(existingOperation);
         }
 
-        BoardAccess findedBoardAccess = boardAccessWorkflowService.findBoardAccessByBoardIdAndUserIdAndUserActive(
-                boardId,
-                userId);
+        BoardAccess findedBoardAccess = boardAccessWorkflowService
+                .findBoardAccessByBoardIdAndUserIdAndUserActiveAndStatusTrue(
+                        boardId,
+                        userId);
 
         if (findedBoardAccess.getRole().equals(Role.OWNER)) {
             throw new BoardAccessUserActiveNotAllowedException();
@@ -187,7 +191,8 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
     public Operation registerDeactivateBoardAccess(UUID boardId, UUID userId, Role oldRole,
             UUID operationId)
             throws OperationConflictException, OperationNotPendingException, BusinessRuleException,
-            BoardAccessUserActiveNotAllowedException {
+            BoardAccessUserActiveNotAllowedException, BoardAccessNotFoundException, OperationNotFoundException,
+            BoardAccessUserActiveNotAllowedException, BoardAccessNotFoundException {
 
         Operation existingOperation = validateExistingOperationOrReturnPending(
                 operationId,
@@ -202,9 +207,10 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
             return operationWorkflowService.saveOperation(existingOperation);
         }
 
-        BoardAccess findedBoardAccess = boardAccessWorkflowService.findBoardAccessByBoardIdAndUserIdAndUserActive(
-                boardId,
-                userId);
+        BoardAccess findedBoardAccess = boardAccessWorkflowService
+                .findBoardAccessByBoardIdAndUserIdAndUserActiveAndStatusTrue(
+                        boardId,
+                        userId);
 
         if (findedBoardAccess.getRole().equals(Role.OWNER)) {
             throw new BoardAccessUserActiveNotAllowedException();
@@ -244,7 +250,7 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
         }
 
         // Verificar si existe el tablero por ID
-        if (boardWorkflowService.existsBoardById(boardId)) {
+        if (boardWorkflowService.existsBoardByIdAndStatusTrue(boardId)) {
             throw new BoardAlreadyExistsException();
         }
 
@@ -283,7 +289,7 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
         }
 
         // Verificar que no exista el tablero
-        if (!boardWorkflowService.existsBoardById(boardId)) {
+        if (!boardWorkflowService.existsBoardByIdAndStatusTrue(boardId)) {
             throw new BoardNotFoundException();
         }
 
@@ -327,6 +333,8 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
         // Validar existencia de todos los tableros
         if (!normalizedBoardsIds.isEmpty()
                 && boardWorkflowService.countBoardsByIds(normalizedBoardsIds) != normalizedBoardsIds.size()) {
+            // La excepción fue definida dentro del paquete de operation.exception, dado que
+            // solamente se utiliza aqui
             throw new ManyBoardsNotFoundException();
         }
 

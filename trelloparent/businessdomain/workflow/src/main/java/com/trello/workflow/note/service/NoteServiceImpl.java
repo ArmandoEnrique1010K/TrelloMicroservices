@@ -45,8 +45,9 @@ public class NoteServiceImpl implements NoteService {
         Task task = taskWorkflowService.findTaskById(taskId);
         UUID boardId = task.getBoard().getId();
 
-        BoardAccess boardAccess = boardAccessWorkflowService.findBoardAccessByBoardIdAndUserIdAndUserActive(boardId,
-                userId);
+        BoardAccess boardAccess = boardAccessWorkflowService
+                .findBoardAccessByBoardIdAndUserIdAndUserActiveAndStatusTrue(boardId,
+                        userId);
         Role role = boardAccess.getRole();
         if (!BoardAccessRoleUtils.hasAuthorization(role, Role.MEMBER)) {
             throw new ForbiddenOperationException();
@@ -71,8 +72,9 @@ public class NoteServiceImpl implements NoteService {
         Note findedNote = noteWorkflowService.findNoteById(noteId);
         UUID boardId = findedNote.getTask().getBoard().getId();
 
-        BoardAccess boardAccess = boardAccessWorkflowService.findBoardAccessByBoardIdAndUserIdAndUserActive(boardId,
-                userId);
+        BoardAccess boardAccess = boardAccessWorkflowService
+                .findBoardAccessByBoardIdAndUserIdAndUserActiveAndStatusTrue(boardId,
+                        userId);
 
         // Comprueba de que el autor de la nota sea el mismo que el usuario que ha
         // iniciado sesion

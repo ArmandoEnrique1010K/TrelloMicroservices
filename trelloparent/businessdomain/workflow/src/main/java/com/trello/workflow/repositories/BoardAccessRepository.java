@@ -27,8 +27,7 @@ public interface BoardAccessRepository extends JpaRepository<BoardAccess, UUID> 
 
     Optional<BoardAccess> findByBoardIdAndUserIdAndStatusTrue(UUID boardId, UUID userId);
 
-    // Obtener una lista de boardAccess por ID de tablero asociado
-    // Sirve para cambiar el estado de todos ellos
+    // Obtiene una lista de boardAccess por ID de tablero asociado
     List<BoardAccess> findAllByBoardIdAndStatusTrue(UUID boardId);
 
     List<BoardAccess> findAllByBoardIdAndStatusFalse(UUID boardId);

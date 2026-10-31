@@ -28,7 +28,7 @@ public class BoardAccessWorkflowServiceImpl implements BoardAccessWorkflowServic
     }
 
     @Override
-    public BoardAccess findBoardAccessByBoardIdAndUserIdAndUserActive(UUID boardId, UUID userId)
+    public BoardAccess findBoardAccessByBoardIdAndUserIdAndUserActiveAndStatusTrue(UUID boardId, UUID userId)
             throws BoardAccessNotFoundException {
         BoardAccess boardAccess = boardAccessRepository
                 .findByBoardIdAndUserIdAndUserActiveTrueAndStatusTrue(boardId, userId)
@@ -37,12 +37,12 @@ public class BoardAccessWorkflowServiceImpl implements BoardAccessWorkflowServic
     }
 
     @Override
-    public boolean existsBoardAccessByBoardIdAndUserId(UUID boardId, UUID userId) {
+    public boolean existsBoardAccessByBoardIdAndUserIdAndStatusTrue(UUID boardId, UUID userId) {
         return boardAccessRepository.existsByBoardIdAndUserIdAndStatusTrue(boardId, userId);
     }
 
     @Override
-    public BoardAccess findBoardAccessByBoardIdAndUserIdAndUserInactive(UUID boardId, UUID userId)
+    public BoardAccess findBoardAccessByBoardIdAndUserIdAndUserInactiveAndStatusTrue(UUID boardId, UUID userId)
             throws BoardAccessNotFoundException {
         BoardAccess boardAccess = boardAccessRepository
                 .findByBoardIdAndUserIdAndUserActiveFalseAndStatusTrue(boardId, userId)
@@ -51,7 +51,7 @@ public class BoardAccessWorkflowServiceImpl implements BoardAccessWorkflowServic
     }
 
     @Override
-    public void deleteBoardAccessByBoardIdAndUserId(UUID boardId, UUID userId)
+    public void deleteBoardAccessByBoardIdAndUserIdAndStatusTrue(UUID boardId, UUID userId)
             throws BoardAccessNotFoundException {
         BoardAccess boardAccess = boardAccessRepository.findByBoardIdAndUserIdAndStatusTrue(boardId, userId)
                 .orElseThrow(BoardAccessNotFoundException::new);
@@ -59,7 +59,8 @@ public class BoardAccessWorkflowServiceImpl implements BoardAccessWorkflowServic
     }
 
     @Override
-    public void inactivateBoardAccessAndChangeRoleByBoardIdAndUserId(UUID boardId, UUID userId, Role previousRole)
+    public void inactivateBoardAccessAndChangeRoleByBoardIdAndUserIdAndStatusTrue(UUID boardId, UUID userId,
+            Role previousRole)
             throws BoardAccessNotFoundException {
         BoardAccess boardAccess = boardAccessRepository.findByBoardIdAndUserIdAndStatusTrue(
                 boardId, userId).orElseThrow(BoardAccessNotFoundException::new);
@@ -70,7 +71,7 @@ public class BoardAccessWorkflowServiceImpl implements BoardAccessWorkflowServic
     }
 
     @Override
-    public void changeBoardAccessByBoardIdAndUserId(UUID boardId, UUID userId, Role previousRole)
+    public void changeBoardAccessByBoardIdAndUserIdAndStatusTrue(UUID boardId, UUID userId, Role previousRole)
             throws BoardAccessNotFoundException {
         BoardAccess boardAccess = boardAccessRepository.findByBoardIdAndUserIdAndStatusTrue(
                 boardId, userId).orElseThrow(BoardAccessNotFoundException::new);
@@ -80,7 +81,8 @@ public class BoardAccessWorkflowServiceImpl implements BoardAccessWorkflowServic
     }
 
     @Override
-    public void activateBoardAccessAndChangeRoleByBoardIdAndUserId(UUID boardId, UUID userId, Role previousRole)
+    public void activateBoardAccessAndChangeRoleByBoardIdAndUserIdAndStatusTrue(UUID boardId, UUID userId,
+            Role previousRole)
             throws BoardAccessNotFoundException {
         BoardAccess boardAccess = boardAccessRepository.findByBoardIdAndUserIdAndStatusTrue(
                 boardId, userId).orElseThrow(BoardAccessNotFoundException::new);
@@ -88,30 +90,4 @@ public class BoardAccessWorkflowServiceImpl implements BoardAccessWorkflowServic
         boardAccess.setUserActive(true);
         boardAccessRepository.save(boardAccess);
     }
-
-    // @Override
-    // public void disableAllBoardAccessStatusByBoardId(UUID boardId) {
-    // List<BoardAccess> boardAcceses =
-    // boardAccessRepository.findAllByBoardIdAndStatusTrue(boardId);
-
-    // if (boardAcceses.isEmpty()) {
-    // return;
-    // }
-
-    // boardAcceses.forEach(boardAccess -> boardAccess.setStatus(false));
-    // boardAccessRepository.saveAll(boardAcceses);
-    // }
-
-    // @Override
-    // public void enableAllBoardAccessStatusByBoardId(UUID boardId) {
-    // List<BoardAccess> boardAcceses =
-    // boardAccessRepository.findAllByBoardIdAndStatusFalse(boardId);
-
-    // if (boardAcceses.isEmpty()) {
-    // return;
-    // }
-
-    // boardAcceses.forEach(boardAccess -> boardAccess.setStatus(true));
-    // boardAccessRepository.saveAll(boardAcceses);
-    // }
 }
