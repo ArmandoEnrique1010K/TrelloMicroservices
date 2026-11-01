@@ -19,6 +19,7 @@ public interface DetailsTaskResponseMapper {
 
     // Se ignoran esos campos que se encuentran en DetailsTaskResponse
     @Mappings({
+            @Mapping(target = "userDataAvailable", ignore = true),
             @Mapping(target = "createdByUser", ignore = true),
             @Mapping(target = "histories", ignore = true)
     })

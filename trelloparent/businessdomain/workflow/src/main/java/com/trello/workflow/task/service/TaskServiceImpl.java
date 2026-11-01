@@ -17,7 +17,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.trello.workflow.boardaccess.utils.BoardAccessRoleUtils;
+import com.trello.workflow.client.dto.response.UserByIdResponse;
 import com.trello.workflow.client.dto.response.UserResponse;
+import com.trello.workflow.client.dto.response.UsersByIdResponse;
 import com.trello.workflow.client.service.IdentityClientService;
 import com.trello.workflow.entities.BoardAccess;
 import com.trello.workflow.entities.History;
@@ -31,8 +33,9 @@ import com.trello.workflow.exception.BoardAccessNotFoundException;
 import com.trello.workflow.exception.ForbiddenOperationException;
 import com.trello.workflow.exception.LabelNotFoundException;
 import com.trello.workflow.exception.MismatchedAuthorException;
+import com.trello.workflow.exception.ServiceUnavailableException;
 import com.trello.workflow.exception.TaskNotFoundException;
-import com.trello.workflow.history.dto.response.HistoryResponse;
+import com.trello.workflow.history.dto.response.UserHistoryResponse;
 import com.trello.workflow.label.dto.request.LabelRequest;
 import com.trello.workflow.label.exception.LabelAlreadyExistsException;
 import com.trello.workflow.note.dto.response.UserNoteResponse;
@@ -264,6 +267,8 @@ public class TaskServiceImpl implements TaskService {
         taskWorkflowService.deleteTaskById(taskId);
     }
 
+    // Obtiene los detalles de una tarea incluyendo datos del autor, notas e
+    // historial
     @Override
     public DetailsTaskResponse getTaskDetailsById(UUID taskId, UUID userId)
             throws TaskNotFoundException, BoardAccessNotFoundException {
@@ -276,17 +281,7 @@ public class TaskServiceImpl implements TaskService {
                         userId);
         Role role = boardAccess.getRole();
 
-        // 2. Mapear la información propia de Task
-
-        // MapStruct se encarga del mapeo de los campos que pueden ser transformados
-        // directamente desde Task hacia DetailsTaskResponse. Los campos "createdByUser"
-        // e "histories" están ignorados deliberadamente en el mapper
-        // porque necesitan lógica adicional:
-        // - createdByUser: requiere consultar el microservicio Identity
-        // - histories: su contenido depende del rol del usuario
-        DetailsTaskResponse response = detailsTaskResponseMapper.taskToDetailsTaskResponse(findedTask);
-
-        // 3. Obtener los datos necesarios para enriquecer la respuesta
+        // 2. Obtener los datos necesarios para enriquecer la respuesta
 
         // ID del usuario que creó la tarea. Este UUID pertenece al microservicio
         // Identity, por lo que necesitamos realizar una llamada externa para obtener
@@ -301,18 +296,23 @@ public class TaskServiceImpl implements TaskService {
         // suficiente para visualizarlo.
         List<History> histories = findedTask.getHistories();
 
-        // 4. Obtener el usuario creador de la tarea
+        // 3. Mapear la información propia de Task
 
-        // Se realiza una llamada al microservicio Identity para obtener los datos del
-        // usuario a partir de su UUID. Esta operación no pertenece al mapper porque
-        // MapStruct debe encargarse únicamente de transformaciones de objetos y no de
-        // llamadas a otros microservicios.
-        UserResponse createdByUser = identityClientService.findUserById(createdByUserId);
-        response.setCreatedByUser(createdByUser);
+        // MapStruct se encarga del mapeo de los campos que pueden ser transformados
+        // directamente desde Task hacia DetailsTaskResponse. Los campos
+        // "createdByUser", "histories" e "userDataAvailable" están ignorados
+        // deliberadamente en el mapper porque necesitan lógica adicional:
+        // - createdByUser: requiere consultar el microservicio Identity
+        // - histories: su contenido depende del rol del usuario
+        // - userDataAvailable: confirmación si se logro obtener datos del usuario
+        DetailsTaskResponse response = detailsTaskResponseMapper.taskToDetailsTaskResponse(findedTask);
+
+        // 4. Enriquecer al autor con los datos del usuario obtenido
+        enrichAuthorWithUserData(createdByUserId, response);
 
         // 5. Enriquecer las notas con los datos de sus usuarios
 
-        // En este momento, MapStruct ya transformo:
+        // En este momento, MapStruct va a transformar:
         // List<Note> -> List<UserNoteResponse>
 
         // UserNoteResponse también necesita los datos del usuario que creó cada nota
@@ -333,20 +333,17 @@ public class TaskServiceImpl implements TaskService {
             response.setHistories(List.of());
         } else {
             // Este mapeo se realiza aquí y no en DetailsTaskResponseMapper porque el
-            // historial no siempre debe formar parte de la respuesta, sino que depende de
-            // la autorización del usuario.
-            List<HistoryResponse> historiesResponse = mapHistories(histories);
+            // historial va a depender del rol del usuario
+            List<UserHistoryResponse> historiesResponse = mapHistories(histories);
 
             // Una vez creados los HistoryResponse, se obtienen los datos de los usuarios
             // que realizaron cada cambio
             enrichHistoriesWithUserData(histories, historiesResponse);
 
             response.setHistories(historiesResponse);
-
         }
 
         return response;
-
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -508,49 +505,87 @@ public class TaskServiceImpl implements TaskService {
         return response;
     }
 
+    // Método para enriquecer los datos del autor de la tarea
+    private void enrichAuthorWithUserData(
+            UUID createdByUserId,
+            DetailsTaskResponse detailsTaskResponse) {
+
+        // Llama al método para "tratar" de obtener los datos
+        UserByIdResponse result = fetchUserById(createdByUserId);
+        UserResponse userById = result.getUserById();
+
+        detailsTaskResponse.setUserDataAvailable(result.isAvailable());
+        detailsTaskResponse.setCreatedByUser(userById);
+    }
+
     // Enriquece cada nota con los datos del usuario que la creó
-    // Se utiliza getUsersById() para obtener todos los usuarios necesarios en una
+    // Se utiliza fetchUsersById() para obtener todos los usuarios necesarios en una
     // única llamada al microservicio Identity, evitando realizar una petición por
     // cada nota
-
-    // TODO: AÑADIR LOGICA DE TOLERANCIA A FALLOS PARA OBTENER LOS DATOS DE UN
-    // USUARIO POR ID
     private void enrichNotesWithUserData(
             List<Note> notes,
             List<UserNoteResponse> responses) {
+
+        UsersByIdResponse result = fetchUsersById(notes, note -> note.getCreatedByUserId());
+
         // Obtiene un Map<UUID, UserResponse> para poder localizar rápidamente los datos
         // de cada usuario mediante su UUID.
-        Map<UUID, UserResponse> usersById = getUsersById(notes, note -> note.getCreatedByUserId());
+        Map<UUID, UserResponse> usersById = result.getUsersById();
 
         // Las dos listas mantienen el mismo orden porque UserNoteResponse fue generado
         // previamente a partir de List<Note>.
         for (int i = 0; i < notes.size(); i++) {
-            UUID userId = notes.get(i).getCreatedByUserId();
+            Note note = notes.get(i);
 
-            // Agrega al response los datos completos del usuario correspondiente a la nota
-            responses.get(i).setCreatedByUser(
-                    usersById.get(userId));
+            // Agrega al response los datos completos del usuario correspondiente a la
+            // nota
+            UserNoteResponse response = responses.get(i);
+            response.setUserDataAvailable(result.isAvailable());
+            response.setCreatedByUser(
+                    mapUser(usersById.get(note.getCreatedByUserId())));
         }
     }
-    // Enriquece cada HistoryResponse con los datos del usuario que realizó la
+
+    // Enriquece cada UserHistoryResponse con los datos del usuario que realizó la
     // acción registrada en el historial
 
     // Al igual que ocurre con las notas, History solamente contiene el UUID del
     // usuario, por lo que es necesario consultar el microservicio Identity.
     private void enrichHistoriesWithUserData(
             List<History> histories,
-            List<HistoryResponse> responses) {
+            List<UserHistoryResponse> responses) {
 
-        Map<UUID, UserResponse> usersById = getUsersById(
-                histories,
-                history -> history.getUserId());
+        UsersByIdResponse result = fetchUsersById(histories, history -> history.getUserId());
+
+        Map<UUID, UserResponse> usersById = result.getUsersById();
 
         for (int i = 0; i < histories.size(); i++) {
+            History history = histories.get(i);
+            UserHistoryResponse response = responses.get(i);
+            response.setUserDataAvailable(result.isAvailable());
+            response.setCreatedByUser(
+                    mapUser(usersById.get(history.getUserId())));
+        }
+    }
 
-            UUID userId = histories.get(i).getUserId();
+    // Se realiza una llamada al microservicio Identity para obtener los datos del
+    // usuario a partir de su UUID. Esta operación no pertenece al mapper porque
+    // MapStruct debe encargarse únicamente de transformaciones de objetos y no de
+    // llamadas a otros microservicios
+    private UserByIdResponse fetchUserById(
+            UUID userId) {
+        try {
+            UserResponse userById = identityClientService.findUserById(userId);
 
-            responses.get(i).setCreatedByUser(
-                    usersById.get(userId));
+            UserByIdResponse result = new UserByIdResponse();
+            result.setAvailable(true);
+            result.setUserById(userById);
+            return result;
+        } catch (ServiceUnavailableException e) {
+            UserByIdResponse result = new UserByIdResponse();
+            result.setAvailable(false);
+            result.setUserById(null);
+            return result;
         }
     }
 
@@ -562,7 +597,7 @@ public class TaskServiceImpl implements TaskService {
 
     // De esta manera se evita duplicar la lógica para obtener usuarios desde el
     // microservicio Identity
-    private <T> Map<UUID, UserResponse> getUsersById(
+    private <T> UsersByIdResponse fetchUsersById(
             List<T> items,
             Function<T, UUID> userIdExtractor) {
 
@@ -576,22 +611,36 @@ public class TaskServiceImpl implements TaskService {
         // Si ningún objeto tiene un usuario asociado, no es necesario realizar una
         // petición al microservicio Identity.
         if (userIds.isEmpty()) {
-            return Collections.emptyMap();
+            UsersByIdResponse result = new UsersByIdResponse();
+            result.setAvailable(true);
+            result.setUsersById(Map.of());
+            return result;
         }
 
-        // Consulta todos los usuarios mediante una única llamada al microservicio
-        // Identity
-        return identityClientService.findUsersByIds(userIds)
-                .stream()
-                .collect(Collectors.toMap(user -> user.getId(),
-                        Function.identity()));
+        try {
+            // Consulta todos los usuarios mediante una única llamada al microservicio
+            // Identity
+            Map<UUID, UserResponse> usersById = identityClientService.findUsersByIds(userIds).stream()
+                    .collect(Collectors.toMap(u -> u.getId(), Function.identity()));
+
+            UsersByIdResponse result = new UsersByIdResponse();
+            result.setAvailable(true);
+            result.setUsersById(usersById);
+            return result;
+        } catch (ServiceUnavailableException e) {
+
+            UsersByIdResponse result = new UsersByIdResponse();
+            result.setAvailable(false);
+            result.setUsersById(Map.of());
+            return result;
+        }
     }
 
     // Convierte una lista de History en una lista de HistoryResponse
     // Este mapeo se mantiene en el Service porque el historial es condicional,
     // porque solamente debe procesarse cuando el usuario tiene autorización para
     // visualizarlo.
-    private List<HistoryResponse> mapHistories(
+    private List<UserHistoryResponse> mapHistories(
             List<History> histories) {
 
         if (histories == null || histories.isEmpty()) {
@@ -603,10 +652,10 @@ public class TaskServiceImpl implements TaskService {
                 .toList();
     }
 
-    // Convierte una entidad History individual en HistoryResponse
-    private HistoryResponse mapHistory(History history) {
+    // Convierte una entidad History individual en UserHistoryResponse
+    private UserHistoryResponse mapHistory(History history) {
 
-        HistoryResponse response = new HistoryResponse();
+        UserHistoryResponse response = new UserHistoryResponse();
 
         response.setId(history.getId());
         response.setCreatedAt(history.getCreatedAt());
@@ -614,4 +663,23 @@ public class TaskServiceImpl implements TaskService {
 
         return response;
     }
+
+    // Mapea los campos de un
+    private UserResponse mapUser(
+            UserResponse user) {
+
+        if (user == null) {
+            return null;
+        }
+
+        UserResponse response = new UserResponse();
+
+        response.setId(user.getId());
+        response.setFirstName(user.getFirstName());
+        response.setLastName(user.getLastName());
+        // response.setEmail(user.getEmail());
+
+        return response;
+    }
+
 }

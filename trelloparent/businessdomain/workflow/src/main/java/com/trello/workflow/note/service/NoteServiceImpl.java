@@ -1,5 +1,6 @@
 package com.trello.workflow.note.service;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -60,8 +61,10 @@ public class NoteServiceImpl implements NoteService {
 
         // Agrega una nota
         Note noteToNoteRequest = noteRequestMapper.noteRequestToNote(noteRequest);
+        noteToNoteRequest.setCreatedAt(LocalDateTime.now());
         noteToNoteRequest.setCreatedByUserId(userId);
         noteToNoteRequest.setTask(task);
+
         Note savedNote = noteWorkflowService.saveNote(noteToNoteRequest);
 
         NoteResponse noteResponse = noteResponseMapper.noteToNoteResponse(savedNote);

@@ -33,7 +33,7 @@ public class IdentityUserQueryClientFallbackFactory implements FallbackFactory<I
 
             @Override
             public UserResponse findUserById(UUID userId) {
-                log.error("Error relacionado con listAllUsersByEmailAndExcludingIds");
+                log.error("Error relacionado con findUserById");
                 throw new ServiceUnavailableException();
             }
         };

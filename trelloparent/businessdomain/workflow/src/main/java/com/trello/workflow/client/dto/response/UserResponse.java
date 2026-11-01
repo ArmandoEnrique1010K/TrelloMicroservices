@@ -15,6 +15,9 @@ public class UserResponse {
     private String firstName;
     @Schema(name = "lastName", example = "Doe", description = "Apellidos del usuario en la base de datos")
     private String lastName;
-    @Schema(name = "email", example = "example@gmail.com", description = "Correo del usuario en la base de datos")
-    private String email;
+
+    // El email del usuario no sera utilizado en este microservicio
+    // @Schema(name = "email", example = "example@gmail.com", description = "Correo
+    // del usuario en la base de datos")
+    // private String email;
 }

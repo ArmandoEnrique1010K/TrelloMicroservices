@@ -3,8 +3,6 @@ package com.trello.workflow.entities;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-import org.hibernate.annotations.CreationTimestamp;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -34,10 +32,13 @@ public class Note {
     @Column(nullable = false)
     private UUID createdByUserId;
 
-    // En este caso si se va a utilizar la anotación para escribir la fecha de
-    // creación de forma automatica
-    @CreationTimestamp
-    @Column(nullable = false, updatable = false)
+    // En este caso no se va a utilizar la anotación para escribir la fecha de
+    // creación de forma automatica porque solamente lo guarda en la base de datos
+    // en el momento en el que se crea el registro, pero no se puede obtener la
+    // fecha directamente en la respuesta del usuario
+
+    // Por ello se opta por el uso de LocalDateTime.now en el servicio de createNote
+    // @CreationTimestamp
     private LocalDateTime createdAt;
 
     @ManyToOne(fetch = FetchType.LAZY)

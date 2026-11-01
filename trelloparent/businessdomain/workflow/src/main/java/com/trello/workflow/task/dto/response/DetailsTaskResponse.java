@@ -6,7 +6,7 @@ import java.util.UUID;
 
 import com.trello.workflow.client.dto.response.UserResponse;
 import com.trello.workflow.enums.Status;
-import com.trello.workflow.history.dto.response.HistoryResponse;
+import com.trello.workflow.history.dto.response.UserHistoryResponse;
 import com.trello.workflow.label.dto.response.LabelResponse;
 import com.trello.workflow.note.dto.response.UserNoteResponse;
 
@@ -35,6 +35,10 @@ public class DetailsTaskResponse {
     @Schema(name = "status", example = "PENDING", description = "Estado de la tarea en la base de datos")
     private Status status;
 
+    // ¿Se pudieron obtener los datos del usuario?
+    @Schema(name = "userDataAvailable", example = "true", description = "Confirmación si se puede obtener los datos del usuario")
+    private boolean userDataAvailable;
+
     // Información de los datos de usuario
     @Schema(name = "createdByUser", description = "Usuario creador de la tarea")
     private UserResponse createdByUser;
@@ -49,5 +53,5 @@ public class DetailsTaskResponse {
 
     // Historial
     @Schema(name = "histories", description = "Lista de historial de estados de la tarea")
-    private List<HistoryResponse> histories;
+    private List<UserHistoryResponse> histories;
 }

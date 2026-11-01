@@ -20,6 +20,10 @@ public class UserNoteResponse {
     @Schema(name = "createdAt", example = "2025-01-15T10:30:45", description = "Fecha de creación de la nota en la base de datos")
     private LocalDateTime createdAt;
 
+    // ¿Se pudieron obtener los datos del usuario?
+    @Schema(name = "userDataAvailable", example = "true", description = "Confirmación si se puede obtener los datos del usuario")
+    private boolean userDataAvailable;
+
     @Schema(name = "createdByUser", description = "Usuario creador de la nota")
     private UserResponse createdByUser;
 }
