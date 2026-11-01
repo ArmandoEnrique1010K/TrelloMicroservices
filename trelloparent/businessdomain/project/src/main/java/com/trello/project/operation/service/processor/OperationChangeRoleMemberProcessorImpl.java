@@ -13,6 +13,8 @@ import com.trello.project.enums.OperationStatus;
 import com.trello.project.enums.OperationType;
 import com.trello.project.enums.Role;
 import com.trello.project.exception.BusinessRuleException;
+import com.trello.project.exception.MemberInactiveException;
+import com.trello.project.exception.MemberNotFoundException;
 import com.trello.project.exception.ServiceUnavailableException;
 import com.trello.project.member.dto.response.MemberResponse;
 import com.trello.project.member.mapper.MemberResponseMapper;
@@ -55,7 +57,11 @@ public class OperationChangeRoleMemberProcessorImpl implements OperationChangeRo
 
     @Override
     public MemberResponse processChangeRoleMemberOperation(UUID operationId)
-            throws OperationNotFoundException, OperationConflictException {
+            throws OperationNotFoundException, OperationConflictException, MemberNotFoundException,
+            OperationNotPendingException, OperationManualReviewException, MemberInactiveException,
+            OperationCompensatedException, BusinessRuleException
+
+    {
         Operation operation = operationProjectService
                 .findOperationById(operationId)
                 .orElseThrow(OperationNotFoundException::new);
@@ -68,7 +74,10 @@ public class OperationChangeRoleMemberProcessorImpl implements OperationChangeRo
     }
 
     // En lugar de un void se devuelve un MemberResponse
-    private MemberResponse processOriginalOperation(Operation operation) {
+    private MemberResponse processOriginalOperation(Operation operation)
+            throws MemberNotFoundException, OperationNotPendingException, OperationNotFoundException,
+            OperationManualReviewException, MemberInactiveException, OperationCompensatedException,
+            BusinessRuleException {
         operationUtils.markExecuting(operation);
 
         try {
@@ -117,7 +126,8 @@ public class OperationChangeRoleMemberProcessorImpl implements OperationChangeRo
         return memberResponse;
     }
 
-    private void processChangeRoleMember(Operation operation) {
+    private void processChangeRoleMember(Operation operation)
+            throws MemberNotFoundException {
 
         UUID memberId = operation.getMemberId();
         UUID userId = operation.getUserId();
@@ -139,7 +149,9 @@ public class OperationChangeRoleMemberProcessorImpl implements OperationChangeRo
                 operation.getId());
     }
 
-    private void processLocalCompensation(Operation operation) {
+    private void processLocalCompensation(Operation operation)
+            throws OperationNotPendingException, OperationNotFoundException, OperationManualReviewException,
+            MemberNotFoundException, MemberInactiveException {
         if (operation.getStatus() != OperationStatus.COMPENSATION_PENDING) {
             throw new OperationNotPendingException();
         }
@@ -165,7 +177,8 @@ public class OperationChangeRoleMemberProcessorImpl implements OperationChangeRo
         }
     }
 
-    private void processRemoteCompensation(Operation operation) {
+    private void processRemoteCompensation(Operation operation)
+            throws OperationNotPendingException, OperationCompensatedException {
         if (operation.getStatus() != OperationStatus.LOCAL_COMPENSATION_COMPLETED) {
             throw new OperationNotPendingException();
         }

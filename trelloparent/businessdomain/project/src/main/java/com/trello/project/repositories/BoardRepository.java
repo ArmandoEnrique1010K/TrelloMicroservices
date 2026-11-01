@@ -24,10 +24,6 @@ public interface BoardRepository extends JpaRepository<Board, UUID> {
             String name,
             UUID boardId);
 
-    // Optional<Board> findByIdAndWorkspaceId(
-    // UUID boardId,
-    // UUID workspaceId);
-
     // Se utiliza para listar los miembros del tablero
 
     // Verificar si el ID del usuario coincide con el ID del administrador del

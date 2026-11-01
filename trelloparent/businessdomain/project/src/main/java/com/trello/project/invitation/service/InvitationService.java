@@ -4,16 +4,28 @@ import java.util.List;
 import java.util.UUID;
 
 import com.trello.project.client.dto.response.UserResponse;
+import com.trello.project.exception.BoardNotFoundException;
+import com.trello.project.exception.BusinessRuleException;
+import com.trello.project.exception.InvitationNotFoundException;
+import com.trello.project.exception.MemberNotFoundException;
+import com.trello.project.exception.WorkspaceNotFoundException;
 import com.trello.project.invitation.dto.request.InvitationRequest;
 import com.trello.project.invitation.dto.response.BoardInvitationResponse;
 import com.trello.project.invitation.dto.response.InvitationResponse;
 import com.trello.project.invitation.dto.response.ReceivedInvitationResponse;
 import com.trello.project.invitation.exception.InvitationAlreadyExistsException;
+import com.trello.project.invitation.exception.InvitationConfirmedException;
+import com.trello.project.operation.exception.OperationCompensatedException;
+import com.trello.project.operation.exception.OperationConflictException;
+import com.trello.project.operation.exception.OperationManualReviewException;
+import com.trello.project.operation.exception.OperationNotFoundException;
+import com.trello.project.operation.exception.OperationNotPendingException;
 
 public interface InvitationService {
 
     InvitationResponse sendInvitation(UUID boardId, UUID ownerUserId, UUID recipientUserId,
-            InvitationRequest invitationRequest) throws InvitationAlreadyExistsException;
+            InvitationRequest invitationRequest)
+            throws WorkspaceNotFoundException, BoardNotFoundException, InvitationAlreadyExistsException;
 
     // Listar invitaciones por ID de usuario receptor (invitaciones recibidas por
     // usuario autenticado)
@@ -21,33 +33,45 @@ public interface InvitationService {
 
     // Listar invitaciones por ID de tablero (solamente para administrador de
     // tablero)
-    List<BoardInvitationResponse> listAllInvitationsByBoardId(UUID boardId, UUID ownerUserId);
+    List<BoardInvitationResponse> listAllInvitationsByBoardId(UUID boardId, UUID ownerUserId)
+            throws WorkspaceNotFoundException, BoardNotFoundException;
 
     // Editar una invitación existente
-    InvitationResponse editInvitation(UUID invitationId, InvitationRequest invitationRequest, UUID ownerUserId);
+    InvitationResponse editInvitation(UUID invitationId, InvitationRequest invitationRequest, UUID ownerUserId)
+            throws InvitationNotFoundException, InvitationConfirmedException;
 
     // Eliminar invitación
     // Una invitación que aun no ha sido confirmada, si se elimina, se elimina la
     // invitación del sistema
     // Acceso por parte del administrador del tablero
-    void deleteInvitation(UUID invitationId, UUID ownerUserId);
+    void deleteInvitation(UUID invitationId, UUID ownerUserId)
+            throws InvitationNotFoundException;
+
+    // Rechazar invitación
+    // Acceso por parte del usuario receptor
+    void declineInvitation(UUID invitationId, UUID recipientUserId)
+            throws InvitationNotFoundException, InvitationConfirmedException;
+
+    // Reenviar invitación
+    // Cuando un miembro ha sido desactivado y se quiere volver a activar
+    InvitationResponse resendInvitation(UUID boardId, UUID ownerUserId, UUID memberUserId,
+            InvitationRequest invitationRequest)
+            throws WorkspaceNotFoundException, BoardNotFoundException, MemberNotFoundException,
+            InvitationAlreadyExistsException;
+
+    // Listar los usuarios disponibles para ser invitados al tablero
+    List<UserResponse> listAllAvailableUsers(UUID boardId, UUID ownerUserId, String email)
+            throws WorkspaceNotFoundException, BoardNotFoundException;
+
+    // SAGA PATTERN
 
     // Aceptar invitación (por el usuario receptor)
     // Y agregar al usuario receptor como miembro del tablero
 
     // Una invitación aceptada ya puede ser eliminada sin problema porque ya es un
     // miembro del tablero
-    void acceptInvitation(UUID invitationId, UUID recipientUserId);
-
-    // Rechazar invitación
-    // Acceso por parte del usuario receptor
-    void declineInvitation(UUID invitationId, UUID recipientUserId);
-
-    // Reenviar invitación
-    // Cuando un miembro ha sido desactivado y se quiere volver a activar
-    InvitationResponse resendInvitation(UUID boardId, UUID ownerUserId, UUID memberUserId,
-            InvitationRequest invitationRequest) throws InvitationAlreadyExistsException;
-
-    // Listar los usuarios disponibles para ser invitados al tablero
-    List<UserResponse> listAllAvailableUsers(UUID boardId, UUID ownerUserId, String email);
+    void acceptInvitation(UUID invitationId, UUID recipientUserId)
+            throws InvitationNotFoundException, InvitationConfirmedException, OperationNotPendingException,
+            OperationNotFoundException, OperationConflictException, OperationCompensatedException,
+            OperationManualReviewException, BusinessRuleException;
 }

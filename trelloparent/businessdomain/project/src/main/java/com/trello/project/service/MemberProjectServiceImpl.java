@@ -43,7 +43,7 @@ public class MemberProjectServiceImpl implements MemberProjectService {
 
     @Override
     public Member findMemberActiveByIdAndOwnerUserId(UUID memberId, UUID ownerUserId)
-            throws MemberNotFoundException {
+            throws MemberNotFoundException, MemberInactiveException {
 
         Member member = memberRepository.findByIdAndBoardWorkspaceOwnerUserId(memberId,
                 ownerUserId).orElseThrow(
@@ -65,20 +65,23 @@ public class MemberProjectServiceImpl implements MemberProjectService {
     }
 
     @Override
-    public Member findMemberByIdAndUserId(UUID memberId, UUID userId) throws MemberNotFoundException {
+    public Member findMemberByIdAndUserId(UUID memberId, UUID userId)
+            throws MemberNotFoundException {
         Member member = memberRepository.findByIdAndUserId(memberId, userId).orElseThrow(MemberNotFoundException::new);
         return member;
     }
 
     @Override
-    public void deletePermanentlyMember(UUID memberId, UUID userId) {
+    public void deletePermanentlyMember(UUID memberId, UUID userId)
+            throws MemberNotFoundException {
         Member optionalMember = memberRepository.findByIdAndUserId(memberId, userId)
                 .orElseThrow(MemberNotFoundException::new);
         memberRepository.delete(optionalMember);
     }
 
     @Override
-    public Member findMemberByIdAndOwnerUserId(UUID memberId, UUID ownerUserId) throws MemberNotFoundException {
+    public Member findMemberByIdAndOwnerUserId(UUID memberId, UUID ownerUserId)
+            throws MemberNotFoundException {
         Member member = memberRepository.findByIdAndBoardWorkspaceOwnerUserId(memberId,
                 ownerUserId).orElseThrow(
                         MemberNotFoundException::new);

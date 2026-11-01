@@ -11,8 +11,10 @@ import com.trello.project.entities.Board;
 import com.trello.project.entities.Operation;
 import com.trello.project.enums.OperationStatus;
 import com.trello.project.enums.OperationType;
+import com.trello.project.exception.BoardNotFoundException;
 import com.trello.project.exception.BusinessRuleException;
 import com.trello.project.exception.ServiceUnavailableException;
+import com.trello.project.exception.WorkspaceNotFoundException;
 import com.trello.project.operation.exception.OperationCompensatedException;
 import com.trello.project.operation.exception.OperationConflictException;
 import com.trello.project.operation.exception.OperationManualReviewException;
@@ -50,7 +52,9 @@ public class OperationAddBoardAndBoardAccessUserOwnerProcessorImpl
 
     @Override
     public BoardResponse processAddBoardAndBoardAccessUserOwnerOperation(UUID operationId)
-            throws OperationNotFoundException, OperationConflictException {
+            throws WorkspaceNotFoundException, BoardNotFoundException, OperationNotPendingException,
+            OperationNotFoundException, OperationManualReviewException, OperationCompensatedException,
+            OperationConflictException, BusinessRuleException {
 
         Operation operation = operationProjectService
                 .findOperationById(operationId)
@@ -64,9 +68,9 @@ public class OperationAddBoardAndBoardAccessUserOwnerProcessorImpl
     }
 
     private BoardResponse processOriginalOperation(Operation operation)
-            throws BusinessRuleException, OperationNotFoundException,
-            OperationCompensatedException, OperationManualReviewException {
-
+            throws WorkspaceNotFoundException, BoardNotFoundException, OperationNotPendingException,
+            OperationNotFoundException, OperationManualReviewException, OperationCompensatedException,
+            BusinessRuleException {
         operationUtils.markExecuting(operation);
 
         try {
@@ -122,7 +126,8 @@ public class OperationAddBoardAndBoardAccessUserOwnerProcessorImpl
 
     }
 
-    private void processAddBoardAndBoardAccessUserOwner(Operation operation) {
+    private void processAddBoardAndBoardAccessUserOwner(Operation operation)
+            throws WorkspaceNotFoundException, BoardNotFoundException {
         UUID boardId = operation.getBoardId();
         UUID ownerUserId = operation.getOwnerUserId();
 
@@ -132,7 +137,9 @@ public class OperationAddBoardAndBoardAccessUserOwnerProcessorImpl
         workflowClientService.addBoardAndBoardAccessUserOwner(boardId, operation.getId());
     }
 
-    private void processLocalCompensation(Operation operation) {
+    private void processLocalCompensation(Operation operation)
+            throws OperationNotPendingException, OperationNotFoundException, OperationManualReviewException,
+            WorkspaceNotFoundException, BoardNotFoundException {
         if (operation.getStatus() != OperationStatus.COMPENSATION_PENDING) {
             throw new OperationNotPendingException();
         }
@@ -158,7 +165,8 @@ public class OperationAddBoardAndBoardAccessUserOwnerProcessorImpl
         }
     }
 
-    private void processRemoteCompensation(Operation operation) {
+    private void processRemoteCompensation(Operation operation)
+            throws OperationNotPendingException, OperationCompensatedException {
         if (operation.getStatus() != OperationStatus.LOCAL_COMPENSATION_COMPLETED) {
             throw new OperationNotPendingException();
         }

@@ -14,6 +14,7 @@ import com.trello.project.entities.Operation;
 import com.trello.project.enums.OperationStatus;
 import com.trello.project.enums.OperationType;
 import com.trello.project.exception.BusinessRuleException;
+import com.trello.project.exception.InvitationNotFoundException;
 import com.trello.project.exception.ServiceUnavailableException;
 import com.trello.project.operation.exception.OperationCompensatedException;
 import com.trello.project.operation.exception.OperationConflictException;
@@ -51,8 +52,11 @@ public class OperationAcceptInvitationProcessorImpl implements OperationAcceptIn
 
     // Procesa una operación de aceptación de invitación previamente registrada.
     @Override
-    public void processAcceptInvitationOperation(UUID operationId) throws OperationNotFoundException,
-            OperationConflictException {
+    public void processAcceptInvitationOperation(UUID operationId)
+            throws OperationNotFoundException, OperationConflictException, OperationCompensatedException,
+            OperationManualReviewException, BusinessRuleException, OperationNotPendingException,
+            InvitationNotFoundException {
+
         // 1. Recuperar la operación persistida mediante su identificador.
         Operation operation = operationProjectService
                 .findOperationById(operationId)
@@ -67,13 +71,14 @@ public class OperationAcceptInvitationProcessorImpl implements OperationAcceptIn
         // 2. Delegar la ejecución de la operación y la gestión de sus posibles
         // fallos al método encargado de coordinar el flujo de la saga.
         processOriginalOperation(operation);
+
     }
 
     // Coordina la ejecución de la operación original y, ante determinados
     // fallos, inicia el proceso de compensación local y remota.
     private void processOriginalOperation(Operation operation)
-            throws BusinessRuleException, OperationNotFoundException,
-            OperationCompensatedException, OperationManualReviewException {
+            throws InvitationNotFoundException, OperationNotFoundException, OperationCompensatedException,
+            OperationManualReviewException, BusinessRuleException, OperationNotPendingException {
 
         // 1. Marcar la operación como EXECUTING antes de ejecutar la lógica
         // de negocio y comunicarse con el microservicio Workflow.
@@ -154,7 +159,8 @@ public class OperationAcceptInvitationProcessorImpl implements OperationAcceptIn
 
     // Ejecuta la operación de aceptación de invitación mediante el cliente
     // del microservicio Workflow, según el estado previo del miembro.
-    private void processAcceptInvitation(Operation operation) throws BusinessRuleException {
+    private void processAcceptInvitation(Operation operation)
+            throws InvitationNotFoundException, BusinessRuleException {
         // 1. Recuperar la invitación para obtener el tablero asociado
         // y el rol que debe asignarse al usuario.
         Invitation invitation = invitationProjectService
@@ -203,8 +209,8 @@ public class OperationAcceptInvitationProcessorImpl implements OperationAcceptIn
 
     // Revierte los cambios locales realizados en Project como primera
     // etapa de la compensación de la operación.
-    private void processLocalCompensation(Operation operation) throws OperationNotPendingException,
-            OperationNotFoundException, OperationManualReviewException {
+    private void processLocalCompensation(Operation operation)
+            throws OperationNotPendingException, OperationNotFoundException, OperationManualReviewException {
 
         // La compensación local solo puede iniciarse cuando la operación
         // se encuentra en COMPENSATION_PENDING.
@@ -250,8 +256,8 @@ public class OperationAcceptInvitationProcessorImpl implements OperationAcceptIn
 
     // Revierte en Workflow los cambios remotos después de confirmar
     // que la compensación local ya se completó.
-    private void processRemoteCompensation(Operation operation) throws OperationNotPendingException,
-            OperationManualReviewException, OperationCompensatedException {
+    private void processRemoteCompensation(Operation operation)
+            throws OperationNotPendingException, OperationManualReviewException, OperationCompensatedException {
 
         // La compensación remota solo puede ejecutarse cuando los cambios
         // locales ya se han revertido correctamente.

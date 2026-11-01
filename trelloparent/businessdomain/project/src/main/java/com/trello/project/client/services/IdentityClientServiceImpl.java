@@ -6,7 +6,6 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.trello.project.client.IdentityUserQueryClient;
 import com.trello.project.client.dto.response.UserResponse;
@@ -52,7 +51,7 @@ public class IdentityClientServiceImpl implements IdentityClientService {
     // Importante:
     // La anotación @Transactional no controla los reintentos.
     // El encargado de los reintentos es Resilience4j Retry.
-    @Transactional(readOnly = true)
+    // @Transactional(readOnly = true)
     @Override
     public List<UserResponse> findUsersByIds(Set<UUID> usersIds) {
 

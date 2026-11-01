@@ -16,14 +16,16 @@ public interface WorkspaceProjectService {
             String name,
             UUID workspaceId);
 
-    Workspace findWorkspaceByIdAndOwnerUserId(UUID workspaceId, UUID ownerUserId) throws WorkspaceNotFoundException;
+    Workspace saveWorkspace(Workspace workspace);
+
+    Workspace findWorkspaceByIdAndOwnerUserId(UUID workspaceId, UUID ownerUserId)
+            throws WorkspaceNotFoundException;
 
     Workspace findWorkspaceByIdAndOwnerUserIdAndStatusTrue(UUID workspaceId, UUID ownerUserId)
             throws WorkspaceNotFoundException;
 
-    Workspace saveWorkspace(Workspace workspace);
-
-    void deleteWorkspaceByIdAndOwnerUserId(UUID workspaceId, UUID ownerUserId) throws WorkspaceNotFoundException;
+    void deleteWorkspaceByIdAndOwnerUserId(UUID workspaceId, UUID ownerUserId)
+            throws WorkspaceNotFoundException;
 
     void changeStatusWorkspaceById(UUID workspaceId, UUID ownerUserId, boolean status)
             throws WorkspaceNotFoundException;

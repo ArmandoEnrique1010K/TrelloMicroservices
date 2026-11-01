@@ -2,6 +2,8 @@ package com.trello.project.operation.service.handler;
 
 import java.util.UUID;
 
+import com.trello.project.exception.InvitationNotFoundException;
+import com.trello.project.exception.MemberNotFoundException;
 import com.trello.project.invitation.exception.InvitationConfirmedException;
 import com.trello.project.operation.exception.OperationNotFoundException;
 import com.trello.project.operation.exception.OperationNotPendingException;
@@ -16,5 +18,5 @@ public interface OperationAcceptInvitationService {
 
     // Revertir acciones realizadas en la base de datos
     void revertAcceptInvitation(UUID operationId)
-            throws OperationNotFoundException;
+            throws OperationNotFoundException, InvitationNotFoundException, MemberNotFoundException;
 }

@@ -12,6 +12,7 @@ import com.trello.project.enums.OperationStatus;
 import com.trello.project.enums.OperationType;
 import com.trello.project.enums.Role;
 import com.trello.project.exception.BusinessRuleException;
+import com.trello.project.exception.MemberNotFoundException;
 import com.trello.project.exception.ServiceUnavailableException;
 import com.trello.project.operation.exception.OperationCompensatedException;
 import com.trello.project.operation.exception.OperationConflictException;
@@ -50,7 +51,9 @@ public class OperationDeactivateMemberProcessorImpl implements OperationDeactiva
 
     @Override
     public void processDeactivateMemberOperation(UUID operationId)
-            throws OperationNotFoundException, OperationConflictException {
+            throws OperationNotFoundException, OperationConflictException, OperationCompensatedException,
+            BusinessRuleException, MemberNotFoundException, OperationNotPendingException,
+            OperationManualReviewException {
         Operation operation = operationProjectService
                 .findOperationById(operationId)
                 .orElseThrow(OperationNotFoundException::new);
@@ -62,7 +65,9 @@ public class OperationDeactivateMemberProcessorImpl implements OperationDeactiva
         processOriginalOperation(operation);
     }
 
-    private void processOriginalOperation(Operation operation) {
+    private void processOriginalOperation(Operation operation)
+            throws OperationNotFoundException, OperationCompensatedException, BusinessRuleException,
+            MemberNotFoundException, OperationNotPendingException, OperationManualReviewException {
         operationUtils.markExecuting(operation);
 
         try {
@@ -104,7 +109,8 @@ public class OperationDeactivateMemberProcessorImpl implements OperationDeactiva
         }
     }
 
-    private void processDeactivateMember(Operation operation) {
+    private void processDeactivateMember(Operation operation)
+            throws MemberNotFoundException {
 
         UUID memberId = operation.getMemberId();
         UUID userId = operation.getUserId();
@@ -125,7 +131,9 @@ public class OperationDeactivateMemberProcessorImpl implements OperationDeactiva
                 operation.getId());
     }
 
-    private void processLocalCompensation(Operation operation) {
+    private void processLocalCompensation(Operation operation)
+            throws OperationNotPendingException, OperationNotFoundException, MemberNotFoundException,
+            OperationManualReviewException {
         if (operation.getStatus() != OperationStatus.COMPENSATION_PENDING) {
             throw new OperationNotPendingException();
         }
@@ -151,7 +159,8 @@ public class OperationDeactivateMemberProcessorImpl implements OperationDeactiva
         }
     }
 
-    private void processRemoteCompensation(Operation operation) {
+    private void processRemoteCompensation(Operation operation)
+            throws OperationNotFoundException, OperationCompensatedException {
         if (operation.getStatus() != OperationStatus.LOCAL_COMPENSATION_COMPLETED) {
             throw new OperationNotPendingException();
         }

@@ -1,13 +1,11 @@
 package com.trello.project.service;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 
 import com.trello.project.entities.Operation;
-import com.trello.project.enums.OperationStatus;
 import com.trello.project.enums.OperationType;
 import com.trello.project.repositories.OperationRepository;
 
@@ -30,42 +28,6 @@ public class OperationProjectServiceImpl implements OperationProjectService {
     @Override
     public Operation saveOperation(Operation operation) {
         return operationRepository.save(operation);
-    }
-
-    @Override
-    public List<Operation> findAllOperationsByInvitationIdAndTypeAndOrderByCreatedAtDesc(UUID invitationId,
-            OperationType operationType) {
-        // return operationRepository.findByInvitationIdAndType(invitationId,
-        // operationType);
-        return operationRepository.findByInvitationIdAndTypeOrderByCreatedAtDesc(invitationId, operationType);
-    }
-
-    @Override
-    public Optional<Operation> findOperationByMemberIdAndType(UUID memberId, OperationType operationType) {
-        return operationRepository.findByMemberIdAndType(memberId, operationType);
-    }
-
-    @Override
-    public List<Operation> findByMemberIdAndTypeAndStatusInOrderByCreatedAtDesc(UUID memberId, OperationType type,
-            List<OperationStatus> statuses) {
-
-        return operationRepository.findByMemberIdAndTypeAndStatusInOrderByCreatedAtDesc(memberId, type, statuses);
-    }
-
-    @Override
-    public List<Operation> findByInvitationIdAndTypeAndStatusInOrderByCreatedAtDesc(UUID invitationId,
-            OperationType type, List<OperationStatus> statuses) {
-
-        return operationRepository.findByInvitationIdAndTypeAndStatusInOrderByCreatedAtDesc(invitationId, type,
-                statuses);
-    }
-
-    @Override
-    public Optional<Operation> findOperationByInvitationIdAndTypeAndStatus(UUID invitationId, OperationType type,
-            List<OperationStatus> statuses) {
-        return operationRepository.findByInvitationIdAndTypeAndStatusIn(invitationId, type,
-                statuses);
-
     }
 
     @Override

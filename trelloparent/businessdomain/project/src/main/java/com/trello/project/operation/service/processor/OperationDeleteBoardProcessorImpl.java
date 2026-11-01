@@ -9,8 +9,10 @@ import com.trello.project.entities.Board;
 import com.trello.project.entities.Operation;
 import com.trello.project.enums.OperationStatus;
 import com.trello.project.enums.OperationType;
+import com.trello.project.exception.BoardNotFoundException;
 import com.trello.project.exception.BusinessRuleException;
 import com.trello.project.exception.ServiceUnavailableException;
+import com.trello.project.exception.WorkspaceNotFoundException;
 import com.trello.project.operation.exception.OperationCompensatedException;
 import com.trello.project.operation.exception.OperationConflictException;
 import com.trello.project.operation.exception.OperationManualReviewException;
@@ -48,7 +50,9 @@ public class OperationDeleteBoardProcessorImpl implements OperationDeleteBoardPr
 
     @Override
     public void processDeleteBoardOperation(UUID operationId)
-            throws OperationNotFoundException, OperationConflictException {
+            throws OperationNotFoundException, OperationConflictException, OperationCompensatedException,
+            BusinessRuleException, WorkspaceNotFoundException, BoardNotFoundException, OperationNotPendingException,
+            OperationManualReviewException {
         Operation operation = operationProjectService
                 .findOperationById(operationId)
                 .orElseThrow(OperationNotFoundException::new);
@@ -61,7 +65,10 @@ public class OperationDeleteBoardProcessorImpl implements OperationDeleteBoardPr
 
     }
 
-    private void processOriginalOperation(Operation operation) {
+    private void processOriginalOperation(Operation operation)
+            throws OperationNotFoundException, OperationCompensatedException, BusinessRuleException,
+            WorkspaceNotFoundException, BoardNotFoundException, OperationNotPendingException,
+            OperationManualReviewException {
         operationUtils.markExecuting(operation);
         try {
             processDeleteBoard(operation);
@@ -103,7 +110,8 @@ public class OperationDeleteBoardProcessorImpl implements OperationDeleteBoardPr
 
     }
 
-    private void processDeleteBoard(Operation operation) {
+    private void processDeleteBoard(Operation operation)
+            throws WorkspaceNotFoundException, BoardNotFoundException {
         UUID boardId = operation.getBoardId();
         UUID ownerUserId = operation.getOwnerUserId();
 
@@ -114,7 +122,9 @@ public class OperationDeleteBoardProcessorImpl implements OperationDeleteBoardPr
         workflowClientService.deleteBoardByIdAndBoardAccessAndTasks(boardId, operation.getId());
     }
 
-    private void processLocalCompensation(Operation operation) {
+    private void processLocalCompensation(Operation operation)
+            throws OperationNotPendingException, OperationNotFoundException, BoardNotFoundException,
+            OperationManualReviewException {
         if (operation.getStatus() != OperationStatus.COMPENSATION_PENDING) {
             throw new OperationNotPendingException();
         }
@@ -138,7 +148,8 @@ public class OperationDeleteBoardProcessorImpl implements OperationDeleteBoardPr
         }
     }
 
-    private void processRemoteCompensation(Operation operation) {
+    private void processRemoteCompensation(Operation operation)
+            throws OperationNotPendingException, OperationCompensatedException {
         if (operation.getStatus() != OperationStatus.LOCAL_COMPENSATION_COMPLETED) {
             throw new OperationNotPendingException();
         }

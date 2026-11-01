@@ -18,6 +18,11 @@ import com.trello.project.enums.OperationStatus;
 import com.trello.project.enums.OperationType;
 import com.trello.project.enums.Role;
 import com.trello.project.enums.Status;
+import com.trello.project.exception.BoardNotFoundException;
+import com.trello.project.exception.InvitationNotFoundException;
+import com.trello.project.exception.MemberInactiveException;
+import com.trello.project.exception.MemberNotFoundException;
+import com.trello.project.exception.WorkspaceNotFoundException;
 import com.trello.project.invitation.exception.InvitationConfirmedException;
 import com.trello.project.operation.exception.OperationNotPendingException;
 import com.trello.project.service.BoardProjectService;
@@ -67,7 +72,7 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
     @Transactional(rollbackFor = Exception.class)
     @Override
     public Operation registerAcceptInvitation(UUID invitationId, UUID recipientUserId)
-            throws InvitationConfirmedException, OperationNotPendingException {
+            throws InvitationNotFoundException, InvitationConfirmedException, OperationNotPendingException {
 
         // 1. Validar las condiciones de negocio antes de comprobar
         // si existe una operación previa que pueda reutilizarse.
@@ -201,7 +206,8 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
 
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public Operation registerChangeRoleMember(Role role, UUID memberId, UUID ownerUserId) {
+    public Operation registerChangeRoleMember(Role role, UUID memberId, UUID ownerUserId)
+            throws MemberNotFoundException, MemberInactiveException, OperationNotPendingException {
 
         // Validar logica de negocio
         Member findedMember = memberProjectService.findMemberActiveByIdAndOwnerUserId(memberId, ownerUserId);
@@ -275,7 +281,9 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
     // OWNERUSERID
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public Operation registerDeactivateMember(UUID memberId, UUID ownerUserId) {
+    public Operation registerDeactivateMember(UUID memberId, UUID ownerUserId)
+            throws MemberNotFoundException, MemberInactiveException, OperationNotPendingException {
+
         Member findedMember = memberProjectService.findMemberActiveByIdAndOwnerUserId(memberId, ownerUserId);
 
         Optional<Operation> existingOperation = operationProjectService.findLatestOperationByMemberIdAndType(memberId,
@@ -334,7 +342,8 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
     @Override
     public Operation registerAddBoardAndBoardAccessUserOwner(UUID workspaceId, UUID ownerUserId,
             BoardRequest boardRequest,
-            UUID idempotencyKey) {
+            UUID idempotencyKey)
+            throws WorkspaceNotFoundException, OperationNotPendingException {
 
         String name = boardRequest.getName();
         String description = boardRequest.getDescription();
@@ -408,7 +417,8 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
 
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public Operation registerDeleteBoard(UUID ownerUserId, UUID boardId) {
+    public Operation registerDeleteBoard(UUID ownerUserId, UUID boardId)
+            throws WorkspaceNotFoundException, BoardNotFoundException, OperationNotPendingException {
 
         log.info("BoardID: " + boardId);
         log.info("OWNER USER ID: " + ownerUserId);
@@ -458,9 +468,11 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
 
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public Operation registerDeleteWorkspace(UUID ownerUserId, UUID workspaceId) {
+    public Operation registerDeleteWorkspace(UUID ownerUserId, UUID workspaceId)
+            throws WorkspaceNotFoundException, OperationNotPendingException {
 
         workspaceProjectService.findWorkspaceByIdAndOwnerUserIdAndStatusTrue(workspaceId, ownerUserId);
+
         Optional<Operation> existingOperation = operationProjectService
                 .findLatestOperationByWorkspaceIdAndType(
                         workspaceId,

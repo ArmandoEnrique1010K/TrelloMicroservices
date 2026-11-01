@@ -2,8 +2,16 @@ package com.trello.project.operation.service.handler;
 
 import java.util.UUID;
 
-public interface OperationDeactivateMemberService {
-    void applyDeactivateMember(UUID operationId, boolean automatic);
+import com.trello.project.exception.MemberInactiveException;
+import com.trello.project.exception.MemberNotFoundException;
+import com.trello.project.operation.exception.OperationNotFoundException;
+import com.trello.project.operation.exception.OperationNotPendingException;
 
-    void revertDeactivateMember(UUID operationId);
+public interface OperationDeactivateMemberService {
+    void applyDeactivateMember(UUID operationId, boolean automatic)
+            throws OperationNotFoundException, OperationNotPendingException, MemberNotFoundException,
+            MemberInactiveException;
+
+    void revertDeactivateMember(UUID operationId)
+            throws OperationNotFoundException, MemberNotFoundException;
 }

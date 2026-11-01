@@ -10,6 +10,8 @@ import com.trello.project.entities.Member;
 import com.trello.project.entities.Operation;
 import com.trello.project.enums.OperationStatus;
 import com.trello.project.enums.Role;
+import com.trello.project.exception.MemberInactiveException;
+import com.trello.project.exception.MemberNotFoundException;
 import com.trello.project.operation.exception.OperationNotFoundException;
 import com.trello.project.operation.exception.OperationNotPendingException;
 import com.trello.project.service.InvitationProjectService;
@@ -33,7 +35,9 @@ public class OperationChangeRoleMemberServiceImpl implements OperationChangeRole
 
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public void applyChangeRoleMember(UUID operationId, boolean automatic) {
+    public void applyChangeRoleMember(UUID operationId, boolean automatic)
+            throws OperationNotFoundException, OperationNotPendingException, MemberNotFoundException,
+            MemberInactiveException {
         Operation persistedOperation = operationProjectService
                 .findOperationById(operationId)
                 .orElseThrow(OperationNotFoundException::new);
@@ -86,7 +90,8 @@ public class OperationChangeRoleMemberServiceImpl implements OperationChangeRole
     // Solamente revierte los cambios en el rol del miembro
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public void revertChangeRoleMember(UUID operationId) {
+    public void revertChangeRoleMember(UUID operationId)
+            throws OperationNotFoundException, MemberNotFoundException, MemberInactiveException {
         Operation operation = operationProjectService.findOperationById(operationId)
                 .orElseThrow(OperationNotFoundException::new);
         operation.setStatus(OperationStatus.LOCAL_COMPENSATION_IN_PROGRESS);

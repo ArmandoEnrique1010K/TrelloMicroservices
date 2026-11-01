@@ -12,12 +12,14 @@ public interface BoardProjectService {
     List<Board> findAllBoardsByWorkspaceIdAndOwnerUserId(UUID workspaceId, UUID ownerUserId)
             throws WorkspaceNotFoundException;
 
-    boolean existsBoardByWorkspaceIdAndName(UUID workspaceId, String name);
+    boolean existsBoardByWorkspaceIdAndName(UUID workspaceId, String name)
+            throws WorkspaceNotFoundException;
 
     boolean existsBoardByWorkspaceIdAndNameExcludingId(
             UUID workspaceId,
             String name,
-            UUID boardId);
+            UUID boardId)
+            throws WorkspaceNotFoundException;
 
     Board findBoardByIdAndOwnerUserId(UUID boardId, UUID ownerUserId)
             throws WorkspaceNotFoundException, BoardNotFoundException;
@@ -31,7 +33,8 @@ public interface BoardProjectService {
             throws WorkspaceNotFoundException, BoardNotFoundException;
 
     // Encontrar tablero por ID y si es accesible por el ID del usuario
-    Board findBoardAccessibleByUser(UUID boardId, UUID userId) throws BoardNotFoundException;
+    Board findBoardAccessibleByUser(UUID boardId, UUID userId)
+            throws BoardNotFoundException;
 
     Board findBoardByIdAndOwnerUserIdAndInactiveUserId(UUID boardId, UUID ownerUserId, UUID userId)
             throws WorkspaceNotFoundException, BoardNotFoundException, MemberNotFoundException;
@@ -39,8 +42,6 @@ public interface BoardProjectService {
     List<Board> findAllBoardsByMemberActiveTrueAndMemberUserId(UUID memberUserId);
 
     // Cambiar estado del tablero
-    void changeStatusBoardById(UUID boardId, UUID ownerUserId, boolean status) throws BoardNotFoundException;
-
-    void changeStatusManyBoardsByIds(List<UUID> boardsIds, UUID ownerUserId, boolean status);
-
+    void changeStatusBoardById(UUID boardId, UUID ownerUserId, boolean status)
+            throws BoardNotFoundException;
 }

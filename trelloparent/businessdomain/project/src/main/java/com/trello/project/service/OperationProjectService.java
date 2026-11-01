@@ -1,11 +1,9 @@
 package com.trello.project.service;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 import com.trello.project.entities.Operation;
-import com.trello.project.enums.OperationStatus;
 import com.trello.project.enums.OperationType;
 
 public interface OperationProjectService {
@@ -15,25 +13,8 @@ public interface OperationProjectService {
     // por su ID
     Optional<Operation> findOperationById(UUID operationId);
 
-    List<Operation> findAllOperationsByInvitationIdAndTypeAndOrderByCreatedAtDesc(UUID invitationId,
-            OperationType operationType);
-
-    Optional<Operation> findOperationByMemberIdAndType(UUID operationId, OperationType operationType);
-
     // Guardar operación
     Operation saveOperation(Operation operation);
-
-    List<Operation> findByMemberIdAndTypeAndStatusInOrderByCreatedAtDesc(UUID memberId,
-            OperationType type,
-            List<OperationStatus> statuses);
-
-    List<Operation> findByInvitationIdAndTypeAndStatusInOrderByCreatedAtDesc(UUID invitationId,
-            OperationType type,
-            List<OperationStatus> statuses);
-
-    Optional<Operation> findOperationByInvitationIdAndTypeAndStatus(UUID invitationId,
-            OperationType type,
-            List<OperationStatus> statuses);
 
     Optional<Operation> findLatestOperationByInvitationIdAndType(UUID invitationId,
             OperationType type);

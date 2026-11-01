@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.trello.project.entities.Operation;
 import com.trello.project.enums.OperationStatus;
+import com.trello.project.exception.WorkspaceNotFoundException;
 import com.trello.project.operation.exception.OperationNotFoundException;
 import com.trello.project.operation.exception.OperationNotPendingException;
 import com.trello.project.service.OperationProjectService;
@@ -28,7 +29,8 @@ public class OperationDeleteWorkspaceServiceImpl implements OperationDeleteWorks
     @Transactional(rollbackFor = Exception.class)
     @Override
     public void applyDeleteWorkspace(UUID operationId, boolean automatic)
-            throws OperationNotFoundException, OperationNotPendingException {
+            throws OperationNotFoundException, OperationNotPendingException, WorkspaceNotFoundException {
+
         Operation persistedOperation = operationProjectService
                 .findOperationById(operationId)
                 .orElseThrow(OperationNotFoundException::new);
@@ -68,7 +70,8 @@ public class OperationDeleteWorkspaceServiceImpl implements OperationDeleteWorks
 
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public void revertDeleteWorkspace(UUID operationId) throws OperationNotFoundException {
+    public void revertDeleteWorkspace(UUID operationId)
+            throws OperationNotFoundException, WorkspaceNotFoundException {
         Operation operation = operationProjectService.findOperationById(operationId)
                 .orElseThrow(OperationNotFoundException::new);
         operation.setStatus(OperationStatus.LOCAL_COMPENSATION_IN_PROGRESS);

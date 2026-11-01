@@ -14,6 +14,7 @@ import com.trello.project.enums.OperationStatus;
 import com.trello.project.enums.OperationType;
 import com.trello.project.exception.BusinessRuleException;
 import com.trello.project.exception.ServiceUnavailableException;
+import com.trello.project.exception.WorkspaceNotFoundException;
 import com.trello.project.operation.exception.OperationCompensatedException;
 import com.trello.project.operation.exception.OperationConflictException;
 import com.trello.project.operation.exception.OperationManualReviewException;
@@ -48,7 +49,9 @@ public class OperationDeleteWorkspaceProcessorImpl implements OperationDeleteWor
 
     @Override
     public void processDeleteWorkspaceOperation(UUID operationId)
-            throws OperationNotFoundException, OperationConflictException {
+            throws OperationNotFoundException, OperationConflictException, OperationCompensatedException,
+            BusinessRuleException, WorkspaceNotFoundException, OperationNotPendingException,
+            OperationManualReviewException {
         Operation operation = operationProjectService
                 .findOperationById(operationId)
                 .orElseThrow(OperationNotFoundException::new);
@@ -60,7 +63,9 @@ public class OperationDeleteWorkspaceProcessorImpl implements OperationDeleteWor
         processOriginalOperation(operation);
     }
 
-    private void processOriginalOperation(Operation operation) {
+    private void processOriginalOperation(Operation operation)
+            throws OperationCompensatedException, OperationNotFoundException, BusinessRuleException,
+            WorkspaceNotFoundException, OperationNotPendingException, OperationManualReviewException {
         operationUtils.markExecuting(operation);
         try {
             processDeleteWorkspace(operation);
@@ -102,7 +107,8 @@ public class OperationDeleteWorkspaceProcessorImpl implements OperationDeleteWor
 
     }
 
-    private void processDeleteWorkspace(Operation operation) {
+    private void processDeleteWorkspace(Operation operation)
+            throws WorkspaceNotFoundException {
         UUID workspaceId = operation.getWorkspaceId();
         UUID ownerUserId = operation.getOwnerUserId();
 
@@ -122,7 +128,9 @@ public class OperationDeleteWorkspaceProcessorImpl implements OperationDeleteWor
         workflowClientService.deleteManyBoardsByIdsAndBoardAccessAndTasks(boardsIds, operation.getId());
     }
 
-    private void processLocalCompensation(Operation operation) {
+    private void processLocalCompensation(Operation operation)
+            throws OperationNotPendingException, OperationNotFoundException, WorkspaceNotFoundException,
+            OperationManualReviewException {
         if (operation.getStatus() != OperationStatus.COMPENSATION_PENDING) {
             throw new OperationNotPendingException();
         }
@@ -147,7 +155,8 @@ public class OperationDeleteWorkspaceProcessorImpl implements OperationDeleteWor
 
     }
 
-    private void processRemoteCompensation(Operation operation) {
+    private void processRemoteCompensation(Operation operation)
+            throws OperationNotPendingException, OperationCompensatedException {
         if (operation.getStatus() != OperationStatus.LOCAL_COMPENSATION_COMPLETED) {
             throw new OperationNotPendingException();
         }

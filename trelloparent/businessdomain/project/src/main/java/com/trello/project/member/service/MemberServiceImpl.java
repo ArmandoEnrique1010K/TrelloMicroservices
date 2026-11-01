@@ -19,10 +19,19 @@ import com.trello.project.entities.Member;
 import com.trello.project.entities.Operation;
 import com.trello.project.enums.OperationStatus;
 import com.trello.project.enums.Role;
+import com.trello.project.exception.BoardNotFoundException;
+import com.trello.project.exception.BusinessRuleException;
+import com.trello.project.exception.MemberInactiveException;
+import com.trello.project.exception.MemberNotFoundException;
 import com.trello.project.exception.ServiceUnavailableException;
 import com.trello.project.member.dto.response.MemberResponse;
 import com.trello.project.member.dto.response.UserMemberResponse;
 import com.trello.project.member.mapper.UserMemberResponseMapper;
+import com.trello.project.operation.exception.OperationCompensatedException;
+import com.trello.project.operation.exception.OperationConflictException;
+import com.trello.project.operation.exception.OperationManualReviewException;
+import com.trello.project.operation.exception.OperationNotFoundException;
+import com.trello.project.operation.exception.OperationNotPendingException;
 import com.trello.project.operation.service.handler.OperationChangeRoleMemberService;
 import com.trello.project.operation.service.handler.OperationDeactivateMemberService;
 import com.trello.project.operation.service.processor.OperationChangeRoleMemberProcessor;
@@ -64,7 +73,8 @@ public class MemberServiceImpl implements MemberService {
     }
 
     @Override
-    public List<UserMemberResponse> listAllMembersByBoardId(UUID boardId, UUID userId) {
+    public List<UserMemberResponse> listAllMembersByBoardId(UUID boardId, UUID userId)
+            throws BoardNotFoundException {
         // Si se trata de un miembro con el rol de VIEWER, no tendra acceso a la lista
         // de los usuarios
         Board board = boardProjectService.findBoardAccessibleByUser(boardId, userId);
@@ -91,7 +101,10 @@ public class MemberServiceImpl implements MemberService {
     }
 
     @Override
-    public MemberResponse changeRoleMemberById(Role role, UUID memberId, UUID ownerUserId) {
+    public MemberResponse changeRoleMemberById(Role role, UUID memberId, UUID ownerUserId)
+            throws MemberNotFoundException, MemberInactiveException, OperationNotPendingException,
+            OperationNotFoundException, OperationConflictException, OperationManualReviewException,
+            OperationCompensatedException, BusinessRuleException {
 
         Operation operation = operationRegisterService.registerChangeRoleMember(role, memberId, ownerUserId);
 
@@ -111,7 +124,10 @@ public class MemberServiceImpl implements MemberService {
     }
 
     @Override
-    public void deactivateMember(UUID memberId, UUID ownerUserId) {
+    public void deactivateMember(UUID memberId, UUID ownerUserId)
+            throws MemberNotFoundException, MemberInactiveException, OperationNotPendingException,
+            OperationNotFoundException, OperationConflictException, OperationCompensatedException,
+            BusinessRuleException, OperationManualReviewException {
         Operation operation = operationRegisterService.registerDeactivateMember(memberId, ownerUserId);
 
         if (operation.getStatus() == OperationStatus.REGISTERED

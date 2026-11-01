@@ -4,10 +4,18 @@ import java.util.List;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.trello.project.entities.Operation;
 import com.trello.project.entities.Workspace;
 import com.trello.project.enums.OperationStatus;
+import com.trello.project.exception.BusinessRuleException;
+import com.trello.project.exception.WorkspaceNotFoundException;
+import com.trello.project.operation.exception.OperationCompensatedException;
+import com.trello.project.operation.exception.OperationConflictException;
+import com.trello.project.operation.exception.OperationManualReviewException;
+import com.trello.project.operation.exception.OperationNotFoundException;
+import com.trello.project.operation.exception.OperationNotPendingException;
 import com.trello.project.operation.service.handler.OperationDeleteWorkspaceService;
 import com.trello.project.operation.service.processor.OperationDeleteWorkspaceProcessor;
 import com.trello.project.operation.service.register.OperationRegisterService;
@@ -44,6 +52,7 @@ public class WorkspaceServiceImpl implements WorkspaceService {
         this.operationDeleteWorkspaceProcessor = operationDeleteWorkspaceProcessor;
     }
 
+    @Transactional(rollbackFor = Exception.class)
     @Override
     public WorkspaceResponse createWorkspace(UUID ownerUserId, WorkspaceRequest workspaceRequest)
             throws WorkspaceAlreadyExistsException {
@@ -69,10 +78,11 @@ public class WorkspaceServiceImpl implements WorkspaceService {
         return workspaceResponseMapper.workspaceListToWorkspaceResponseList(listWorkspace);
     }
 
+    @Transactional(rollbackFor = Exception.class)
     @Override
     public WorkspaceResponse editWorkspace(UUID ownerUserId, UUID workspaceId,
             WorkspaceRequest workspaceRequest)
-            throws WorkspaceAlreadyExistsException {
+            throws WorkspaceNotFoundException, WorkspaceAlreadyExistsException {
         String name = workspaceRequest.getName();
         String description = workspaceRequest.getDescription();
 
@@ -94,7 +104,10 @@ public class WorkspaceServiceImpl implements WorkspaceService {
     }
 
     @Override
-    public void deleteWorkspace(UUID ownerUserId, UUID workspaceId) {
+    public void deleteWorkspace(UUID ownerUserId, UUID workspaceId)
+            throws WorkspaceNotFoundException, OperationNotPendingException, OperationNotFoundException,
+            OperationConflictException, OperationCompensatedException, BusinessRuleException,
+            OperationManualReviewException {
 
         // Primero se obtiene el Workspace para recuperar los IDs de los Boards que
         // posteriormente deben eliminarse en el microservicio Workflow

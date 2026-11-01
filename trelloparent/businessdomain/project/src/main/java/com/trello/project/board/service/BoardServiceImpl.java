@@ -12,7 +12,15 @@ import com.trello.project.client.services.IdentityClientService;
 import com.trello.project.entities.Board;
 import com.trello.project.entities.Operation;
 import com.trello.project.enums.OperationStatus;
+import com.trello.project.exception.BoardNotFoundException;
+import com.trello.project.exception.BusinessRuleException;
 import com.trello.project.exception.ServiceUnavailableException;
+import com.trello.project.exception.WorkspaceNotFoundException;
+import com.trello.project.operation.exception.OperationCompensatedException;
+import com.trello.project.operation.exception.OperationConflictException;
+import com.trello.project.operation.exception.OperationManualReviewException;
+import com.trello.project.operation.exception.OperationNotFoundException;
+import com.trello.project.operation.exception.OperationNotPendingException;
 import com.trello.project.operation.service.handler.OperationAddBoardAndBoardAccessUserOwnerService;
 import com.trello.project.operation.service.handler.OperationDeleteBoardService;
 import com.trello.project.operation.service.processor.OperationAddBoardAndBoardAccessUserOwnerProcessor;
@@ -26,10 +34,10 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class BoardServiceImpl implements BoardService {
@@ -64,12 +72,12 @@ public class BoardServiceImpl implements BoardService {
         this.operationDeleteBoardProcessor = operationDeleteBoardProcessor;
     }
 
-    // TODO: CONTINUAR AQUI
-    // @Transactional(rollbackFor = Exception.class)
     @Override
     public BoardResponse createBoardByWorkspaceId(UUID workspaceId, UUID ownerUserId, BoardRequest boardRequest,
             UUID idempotencyKey)
-            throws BoardAlreadyExistsException {
+            throws WorkspaceNotFoundException, OperationNotPendingException, OperationNotFoundException,
+            BoardAlreadyExistsException, BoardNotFoundException, OperationManualReviewException,
+            OperationCompensatedException, OperationConflictException, BusinessRuleException {
 
         Operation operation = operationRegisterService.registerAddBoardAndBoardAccessUserOwner(workspaceId, ownerUserId,
                 boardRequest,
@@ -123,15 +131,17 @@ public class BoardServiceImpl implements BoardService {
     }
 
     @Override
-    public List<BoardResponse> listAllBoardsByWorkspaceId(UUID workspaceId, UUID ownerUserId) {
+    public List<BoardResponse> listAllBoardsByWorkspaceId(UUID workspaceId, UUID ownerUserId)
+            throws WorkspaceNotFoundException {
         List<Board> listBoardsByWorkspaceId = boardProjectService.findAllBoardsByWorkspaceIdAndOwnerUserId(workspaceId,
                 ownerUserId);
         return boardResponseMapper.boardListToBoardResponseList(listBoardsByWorkspaceId);
     }
 
+    @Transactional(rollbackFor = Exception.class)
     @Override
     public BoardResponse editBoard(UUID ownerUserId, UUID boardId, BoardRequest boardRequest)
-            throws BoardAlreadyExistsException {
+            throws WorkspaceNotFoundException, BoardNotFoundException, BoardAlreadyExistsException {
 
         String name = boardRequest.getName();
         String description = boardRequest.getDescription();
@@ -156,25 +166,11 @@ public class BoardServiceImpl implements BoardService {
         return boardResponse;
     }
 
-    // @Transactional(rollbackFor = Exception.class)
     @Override
-    public void deleteBoard(UUID ownerUserId, UUID boardId) {
-
-        // Operation operation =
-        // operationRegisterService.registerAddBoardAndBoardAccessUserOwner(workspaceId,
-        // ownerUserId,
-        // boardRequest,
-        // idempotencyKey);
-
-        // if (operation.getStatus() == OperationStatus.REGISTERED
-        // || operation.getStatus() == OperationStatus.LOCAL_COMPENSATION_COMPLETED
-        // || operation.getStatus() == OperationStatus.COMPENSATION_COMPLETED) {
-
-        // operationAddBoardAndBoardAccessUserOwnerService.applyAddBoardAndBoardAccessUserOwner(operation.getId(),
-        // false);
-        // }
-        // operationAddBoardAndBoardAccessUserOwnerProcessor
-        // .processAddBoardAndBoardAccessUserOwnerOperation(operation.getId());
+    public void deleteBoard(UUID ownerUserId, UUID boardId)
+            throws WorkspaceNotFoundException, BoardNotFoundException, OperationNotPendingException,
+            OperationNotFoundException, OperationConflictException, OperationCompensatedException,
+            BusinessRuleException, OperationManualReviewException {
 
         Operation operation = operationRegisterService.registerDeleteBoard(ownerUserId, boardId);
 
@@ -185,30 +181,6 @@ public class BoardServiceImpl implements BoardService {
         }
 
         operationDeleteBoardProcessor.processDeleteBoardOperation(operation.getId());
-
-        // Llamar al endpoint del microservicio Workflow para borrar el tablero
-        // boardProjectService.findBoardByIdAndOwnerUserId(boardId, ownerUserId);
-        // workflowClientService.deleteBoardByIdAndBoardAccessAndTasks(boardId);
-    }
-
-    @Override
-    public List<UUID> listAllMembersIdsAndInvitationsIdsByBoardId(UUID ownerUserId, UUID boardId) {
-
-        Board findedBoard = boardProjectService.findBoardByIdAndOwnerUserIdAndActive(boardId, ownerUserId);
-
-        List<UUID> memberIds = findedBoard.getMembers()
-                .stream()
-                .map(member -> member.getUserId())
-                .toList();
-
-        List<UUID> invitationIds = findedBoard.getInvitations()
-                .stream()
-                .map(invitation -> invitation.getRecipientUserId())
-                .distinct().toList();
-
-        return Stream.concat(
-                memberIds.stream(),
-                invitationIds.stream()).toList();
     }
 
     @Override

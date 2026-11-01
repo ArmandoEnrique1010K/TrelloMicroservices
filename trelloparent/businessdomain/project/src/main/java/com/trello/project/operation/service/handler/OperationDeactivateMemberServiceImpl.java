@@ -10,6 +10,8 @@ import com.trello.project.entities.Member;
 import com.trello.project.entities.Operation;
 import com.trello.project.enums.OperationStatus;
 import com.trello.project.enums.Role;
+import com.trello.project.exception.MemberInactiveException;
+import com.trello.project.exception.MemberNotFoundException;
 import com.trello.project.operation.exception.OperationNotFoundException;
 import com.trello.project.operation.exception.OperationNotPendingException;
 import com.trello.project.service.InvitationProjectService;
@@ -33,7 +35,9 @@ public class OperationDeactivateMemberServiceImpl implements OperationDeactivate
 
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public void applyDeactivateMember(UUID operationId, boolean automatic) {
+    public void applyDeactivateMember(UUID operationId, boolean automatic)
+            throws OperationNotFoundException, OperationNotPendingException, MemberNotFoundException,
+            MemberInactiveException {
         Operation persistedOperation = operationProjectService
                 .findOperationById(operationId)
                 .orElseThrow(OperationNotFoundException::new);
@@ -83,7 +87,8 @@ public class OperationDeactivateMemberServiceImpl implements OperationDeactivate
 
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public void revertDeactivateMember(UUID operationId) {
+    public void revertDeactivateMember(UUID operationId)
+            throws OperationNotFoundException, MemberNotFoundException {
         Operation operation = operationProjectService.findOperationById(operationId)
                 .orElseThrow(OperationNotFoundException::new);
         operation.setStatus(OperationStatus.LOCAL_COMPENSATION_IN_PROGRESS);

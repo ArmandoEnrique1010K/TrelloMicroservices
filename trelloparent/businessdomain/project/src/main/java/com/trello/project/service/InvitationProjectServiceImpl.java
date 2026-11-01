@@ -44,7 +44,8 @@ public class InvitationProjectServiceImpl implements InvitationProjectService {
     }
 
     @Override
-    public List<Invitation> findAllInvitationsByBoardId(UUID boardId) throws BoardNotFoundException {
+    public List<Invitation> findAllInvitationsByBoardId(UUID boardId)
+            throws BoardNotFoundException {
         boardRepository.findById(boardId).orElseThrow(BoardNotFoundException::new);
         return invitationRepository.findByBoardId(boardId);
     }

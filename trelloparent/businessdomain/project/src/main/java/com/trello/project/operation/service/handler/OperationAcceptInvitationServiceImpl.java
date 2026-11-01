@@ -14,6 +14,8 @@ import com.trello.project.entities.Operation;
 import com.trello.project.enums.OperationStatus;
 import com.trello.project.enums.Role;
 import com.trello.project.enums.Status;
+import com.trello.project.exception.InvitationNotFoundException;
+import com.trello.project.exception.MemberNotFoundException;
 import com.trello.project.invitation.exception.InvitationConfirmedException;
 import com.trello.project.operation.exception.OperationNotFoundException;
 import com.trello.project.operation.exception.OperationNotPendingException;
@@ -134,7 +136,7 @@ public class OperationAcceptInvitationServiceImpl implements OperationAcceptInvi
     @Transactional(rollbackFor = Exception.class)
     @Override
     public void revertAcceptInvitation(UUID operationId)
-            throws OperationNotFoundException {
+            throws OperationNotFoundException, InvitationNotFoundException, MemberNotFoundException {
         // 1. Recuperar la operación y registrar el inicio de la compensación
         // local para indicar que se están revirtiendo los cambios en Project.
         Operation operation = operationProjectService.findOperationById(operationId)

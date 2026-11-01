@@ -8,6 +8,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.trello.project.entities.Operation;
 import com.trello.project.enums.OperationStatus;
+import com.trello.project.exception.BoardNotFoundException;
+import com.trello.project.exception.WorkspaceNotFoundException;
 import com.trello.project.operation.exception.OperationNotFoundException;
 import com.trello.project.operation.exception.OperationNotPendingException;
 import com.trello.project.service.BoardProjectService;
@@ -31,7 +33,9 @@ public class OperationDeleteBoardServiceImpl implements OperationDeleteBoardServ
     @Transactional(rollbackFor = Exception.class)
     @Override
     public void applyDeleteBoard(UUID operationId, boolean automatic)
-            throws OperationNotFoundException, OperationNotPendingException {
+            throws OperationNotFoundException, OperationNotPendingException, WorkspaceNotFoundException,
+            BoardNotFoundException {
+
         Operation persistedOperation = operationProjectService
                 .findOperationById(operationId)
                 .orElseThrow(OperationNotFoundException::new);
@@ -75,7 +79,8 @@ public class OperationDeleteBoardServiceImpl implements OperationDeleteBoardServ
 
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public void revertDeleteBoard(UUID operationId) throws OperationNotFoundException {
+    public void revertDeleteBoard(UUID operationId)
+            throws OperationNotFoundException, BoardNotFoundException {
         Operation operation = operationProjectService.findOperationById(operationId)
                 .orElseThrow(OperationNotFoundException::new);
         operation.setStatus(OperationStatus.LOCAL_COMPENSATION_IN_PROGRESS);

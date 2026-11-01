@@ -5,6 +5,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import com.trello.project.entities.Member;
+import com.trello.project.exception.MemberInactiveException;
 import com.trello.project.exception.MemberNotFoundException;
 
 public interface MemberProjectService {
@@ -19,7 +20,7 @@ public interface MemberProjectService {
     List<Member> findAllMembersByBoardIdAndIsOwnerUser(UUID boardId, boolean isOwnerUser);
 
     Member findMemberActiveByIdAndOwnerUserId(UUID memberId, UUID ownerUserId)
-            throws MemberNotFoundException;
+            throws MemberNotFoundException, MemberInactiveException;
 
     // void deleteMemberById(UUID memberId, UUID ownerUserId) throws
     // MemberNotFoundException
@@ -30,7 +31,8 @@ public interface MemberProjectService {
     Member findMemberByIdAndUserId(UUID memberId, UUID userId)
             throws MemberNotFoundException;
 
-    void deletePermanentlyMember(UUID memberId, UUID userId);
+    void deletePermanentlyMember(UUID memberId, UUID userId)
+            throws MemberNotFoundException;
 
     Member findMemberByIdAndOwnerUserId(UUID memberId, UUID ownerUserId)
             throws MemberNotFoundException;

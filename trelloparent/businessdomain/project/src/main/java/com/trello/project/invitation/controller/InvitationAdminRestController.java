@@ -383,6 +383,121 @@ public class InvitationAdminRestController {
         return ResponseEntity.status(HttpStatus.OK).body(successfulResponse);
     }
 
+    @Operation(summary = "Envia una invitación hacia un usuario desactivado", description = "Crea una invitación en la base de datos")
+    @SecurityRequirement(name = "bearerAuth")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Se ha enviado la invitación", content = @Content(mediaType = "application/json", schema = @Schema(implementation = SuccessfulInvitationResponse.class), examples = @ExampleObject(value = """
+                    {
+                        "body": {
+                            "createdAt": "2026-09-12T21:36:30.577825",
+                            "id": "e2bd7845-a8c2-4904-bf8f-c394fa00e6f4",
+                            "message": "Unete al tablero como miembro",
+                            "recipientUserId": "858d7655-6178-458f-b880-3db6aa3beff3",
+                            "role": "ADMIN",
+                            "senderUserId": "af6cf6ea-05c3-4233-a546-f942386f43ad"
+                        },
+                        "message": "Se ha enviado la invitación"
+                    }
+                    """))),
+            @ApiResponse(responseCode = "400", description = "Los datos enviados no son válidos", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
+                    {
+                        "detail": "One or more request fields are invalid",
+                        "fields": {
+                            "role": "El rol es obligatorio"
+                        },
+                        "instance": null,
+                        "message": "Complete los campos indicados",
+                        "status": 400,
+                        "title": "Invalid request",
+                        "type": "/errors/validation"
+                    }
+                    """))),
+            @ApiResponse(responseCode = "401", description = "El usuario no esta autenticado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
+                    {
+                        "detail": "Authentication is required to access this resource",
+                        "fields": null,
+                        "instance": null,
+                        "message": "Ha ocurrido un error inesperado",
+                        "status": 401,
+                        "title": "Unauthorized",
+                        "type": "/errors/authentication/not-authenticated"
+                    }
+                    """))),
+            @ApiResponse(responseCode = "404", description = "No se ha encontrado el recurso solicitado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = {
+                    @ExampleObject(name = "No se ha encontrado el tablero", summary = "No se ha encontrado el tablero", value = """
+                            {
+                                "detail": "The board was not found in the system",
+                                "fields": null,
+                                "instance": null,
+                                "message": "No se ha encontrado el tablero",
+                                "status": 404,
+                                "title": "Board not found",
+                                "type": "/errors/board-not-found"
+                            }
+                            """),
+                    @ExampleObject(name = "No se ha encontrado el espacio de trabajo", summary = "No se ha encontrado el espacio de trabajo", value = """
+                            {
+                                "detail": "The workspace was not found in the system",
+                                "fields": null,
+                                "instance": null,
+                                "message": "No se ha encontrado el espacio de trabajo",
+                                "status": 404,
+                                "title": "Workspace not found",
+                                "type": "/errors/workspace-not-found"
+                            }
+                            """),
+                    @ExampleObject(name = "No se ha encontrado el miembro", summary = "No se ha encontrado el espacio de trabajo", value = """
+                            {
+                                "detail": "The member was not found in the system",
+                                "fields": null,
+                                "instance": null,
+                                "message": "No se ha encontrado el miembro",
+                                "status": 404,
+                                "title": "Member not found",
+                                "type": "/errors/member-not-found"
+                            }
+                            """)
+            })),
+            @ApiResponse(responseCode = "409", description = "La invitación existe", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
+                    {
+                        "detail": "An invitation to the user from this board already exists",
+                        "fields": null,
+                        "instance": null,
+                        "message": "Existe una invitación al usuario que proviene de este tablero",
+                        "status": 409,
+                        "title": "Invitation already exists",
+                        "type": "/errors/invitation/already-exists"
+                    }
+                    """))),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
+                    {
+                      "detail": "An unexpected error occurred while processing the request",
+                      "fields": null,
+                      "instance": null,
+                      "message": "Ha ocurrido un error inesperado",
+                      "status": 500,
+                      "title": "Internal server error",
+                      "type": "/errors/internal-server-error"
+                    }
+                    """))),
+    })
+    @PostMapping("/resend/{recipientUserId}/board/{boardId}")
+    public ResponseEntity<SuccessfulResponse<InvitationResponse>> resendInvitation(@AuthenticationPrincipal Jwt jwt,
+            @Parameter(description = "ID del usuario receptor", required = true, example = "550e8400-e29b-41d4-a716-446655440000") @PathVariable("recipientUserId") UUID recipientUserId,
+            @Parameter(description = "ID del tablero", required = true, example = "550e8400-e29b-41d4-a716-446655440000") @PathVariable("boardId") UUID boardId,
+            @Valid @RequestBody InvitationRequest input) {
+
+        UUID userId = JwtUtils.getUserId(jwt);
+
+        InvitationResponse response = invitationService.sendInvitation(boardId, userId, recipientUserId, input);
+
+        SuccessfulResponse<InvitationResponse> successfulResponse = new SuccessfulResponse<>();
+        successfulResponse.setMessage("Se ha enviado la invitación");
+        successfulResponse.setBody(response);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(successfulResponse);
+    }
+
     @Operation(summary = "Busca usuarios disponibles", description = "Busca usuarios disponibles en el sistema para ser invitados")
     @SecurityRequirement(name = "bearerAuth")
     @ApiResponses(value = {
