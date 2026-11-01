@@ -1,10 +1,12 @@
 package com.trello.workflow.label.service;
 
 import com.trello.workflow.services.LabelWorkflowServiceImpl;
+
 import java.util.List;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.trello.workflow.boardaccess.utils.BoardAccessRoleUtils;
 import com.trello.workflow.entities.Board;
@@ -12,7 +14,9 @@ import com.trello.workflow.entities.BoardAccess;
 import com.trello.workflow.entities.Label;
 import com.trello.workflow.enums.Color;
 import com.trello.workflow.enums.Role;
+import com.trello.workflow.exception.BoardAccessNotFoundException;
 import com.trello.workflow.exception.ForbiddenOperationException;
+import com.trello.workflow.exception.LabelNotFoundException;
 import com.trello.workflow.label.dto.request.LabelRequest;
 import com.trello.workflow.label.dto.response.LabelResponse;
 import com.trello.workflow.label.exception.LabelAlreadyExistsException;
@@ -40,10 +44,11 @@ public class LabelServiceImpl implements LabelService {
         this.labelWorkflowServiceImpl = labelWorkflowServiceImpl;
     }
 
+    @Transactional(rollbackFor = Exception.class)
     @Override
     public LabelResponse createLabel(LabelRequest labelRequest, UUID boardId, Color colorName,
             UUID userId)
-            throws ForbiddenOperationException, LabelAlreadyExistsException {
+            throws BoardAccessNotFoundException, ForbiddenOperationException, LabelAlreadyExistsException {
 
         String content = labelRequest.getContent();
 
@@ -82,7 +87,7 @@ public class LabelServiceImpl implements LabelService {
 
     @Override
     public List<LabelResponse> listAllLabels(UUID boardId, UUID userId)
-            throws ForbiddenOperationException {
+            throws ForbiddenOperationException, BoardAccessNotFoundException {
         BoardAccess boardAccess = boardAccessWorkflowService
                 .findBoardAccessByBoardIdAndUserIdAndUserActiveAndStatusTrue(boardId,
                         userId);
@@ -102,9 +107,11 @@ public class LabelServiceImpl implements LabelService {
 
     // Como se va a modificar la etiqueta, las etiquetas de las tareas tambien se
     // modificaran
+    @Transactional(rollbackFor = Exception.class)
     @Override
     public LabelResponse editLabel(UUID labelId, LabelRequest labelRequest, Color colorName, UUID userId)
-            throws ForbiddenOperationException, LabelAlreadyExistsException {
+            throws LabelNotFoundException, BoardAccessNotFoundException, ForbiddenOperationException,
+            LabelAlreadyExistsException {
 
         String content = labelRequest.getContent();
 
@@ -145,9 +152,10 @@ public class LabelServiceImpl implements LabelService {
     // etiqueta
     // Se tiene en cuenta que si elimina una etiqueta, se va a quitar de todas las
     // tareas que hayan tenido esa etiqueta eliminada
+    @Transactional(rollbackFor = Exception.class)
     @Override
     public void deleteLabel(UUID labelId, UUID userId)
-            throws ForbiddenOperationException {
+            throws LabelNotFoundException, BoardAccessNotFoundException, ForbiddenOperationException {
 
         Label findedLabel = labelWorkflowService.findLabelById(labelId);
         UUID boardId = findedLabel.getBoard().getId();

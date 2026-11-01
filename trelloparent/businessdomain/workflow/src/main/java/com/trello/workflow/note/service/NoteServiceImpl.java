@@ -2,14 +2,18 @@ package com.trello.workflow.note.service;
 
 import java.util.UUID;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.trello.workflow.boardaccess.utils.BoardAccessRoleUtils;
 import com.trello.workflow.entities.BoardAccess;
 import com.trello.workflow.entities.Note;
 import com.trello.workflow.entities.Task;
 import com.trello.workflow.enums.Role;
+import com.trello.workflow.exception.BoardAccessNotFoundException;
 import com.trello.workflow.exception.ForbiddenOperationException;
 import com.trello.workflow.exception.MismatchedAuthorException;
+import com.trello.workflow.exception.NoteNotFoundException;
+import com.trello.workflow.exception.TaskNotFoundException;
 import com.trello.workflow.note.dto.request.NoteRequest;
 import com.trello.workflow.note.dto.response.NoteResponse;
 import com.trello.workflow.note.mapper.NoteRequestMapper;
@@ -37,9 +41,10 @@ public class NoteServiceImpl implements NoteService {
         this.noteWorkflowService = noteWorkflowService;
     }
 
+    @Transactional(rollbackFor = Exception.class)
     @Override
     public NoteResponse createNote(NoteRequest noteRequest, UUID taskId, UUID userId)
-            throws ForbiddenOperationException {
+            throws TaskNotFoundException, BoardAccessNotFoundException, ForbiddenOperationException {
 
         // Obtener el ID del tablero
         Task task = taskWorkflowService.findTaskById(taskId);
@@ -65,9 +70,11 @@ public class NoteServiceImpl implements NoteService {
 
     // Solamente el usuario que ha creado la nota la puede eliminar, además debe
     // tener el rol de MEMBER para eliminarlo (estricto)
+    @Transactional(rollbackFor = Exception.class)
     @Override
     public void deleteNote(UUID noteId, UUID userId)
-            throws MismatchedAuthorException, ForbiddenOperationException {
+            throws NoteNotFoundException, BoardAccessNotFoundException, MismatchedAuthorException,
+            ForbiddenOperationException {
 
         Note findedNote = noteWorkflowService.findNoteById(noteId);
         UUID boardId = findedNote.getTask().getBoard().getId();

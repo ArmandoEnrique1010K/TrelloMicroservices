@@ -342,6 +342,18 @@ public class TaskRestController {
                     }
                     """))),
 
+            @ApiResponse(responseCode = "403", description = "El usuario no tiene el rol requerido para realizar la operación", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
+                    {
+                        "detail": "The user does not have the required role to perform the operation",
+                        "fields": null,
+                        "instance": null,
+                        "message": "Ha ocurrido un error",
+                        "status": 403,
+                        "title": "Forbidden operation",
+                        "type": "/errors/forbidden-operation"
+                    }
+                    """))),
+
             @ApiResponse(responseCode = "404", description = "No se ha encontrado el recurso solicitado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = {
                     @ExampleObject(name = "El permiso de acceso al tablero no existe", summary = "El permiso de acceso al tablero no existe", value = """
                             {
@@ -883,5 +895,4 @@ public class TaskRestController {
 
         return ResponseEntity.status(HttpStatus.CREATED).body(successfulResponse);
     }
-
 }

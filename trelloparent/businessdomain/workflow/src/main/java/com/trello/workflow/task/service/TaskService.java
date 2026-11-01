@@ -5,8 +5,11 @@ import java.util.UUID;
 
 import com.trello.workflow.enums.Color;
 import com.trello.workflow.enums.Status;
+import com.trello.workflow.exception.BoardAccessNotFoundException;
 import com.trello.workflow.exception.ForbiddenOperationException;
+import com.trello.workflow.exception.LabelNotFoundException;
 import com.trello.workflow.exception.MismatchedAuthorException;
+import com.trello.workflow.exception.TaskNotFoundException;
 import com.trello.workflow.label.dto.request.LabelRequest;
 import com.trello.workflow.label.exception.LabelAlreadyExistsException;
 import com.trello.workflow.task.dto.request.TaskRequest;
@@ -20,31 +23,37 @@ import com.trello.workflow.task.exception.LabelNotAssignedToTaskException;
 public interface TaskService {
 
     TaskResponse createTask(TaskRequest taskRequest, UUID boardId, UUID userId)
-            throws ForbiddenOperationException;
+            throws BoardAccessNotFoundException, ForbiddenOperationException;
 
-    List<AuthorTaskResponse> listAllTasksByBoardId(UUID boardId, UUID userId);
+    List<AuthorTaskResponse> listAllTasksByBoardId(UUID boardId, UUID userId)
+            throws BoardAccessNotFoundException;
 
     TaskResponse editTask(UUID taskId, TaskRequest taskRequest, UUID userId)
-            throws MismatchedAuthorException, ForbiddenOperationException;
+            throws TaskNotFoundException, BoardAccessNotFoundException, MismatchedAuthorException,
+            ForbiddenOperationException;
 
     TaskResponse changeStatusTask(UUID taskId, Status status, UUID userId)
-            throws ForbiddenOperationException;
+            throws TaskNotFoundException, BoardAccessNotFoundException, ForbiddenOperationException;
 
     void deleteTask(UUID taskId, UUID userId)
-            throws MismatchedAuthorException, ForbiddenOperationException;
+            throws TaskNotFoundException, BoardAccessNotFoundException, MismatchedAuthorException,
+            ForbiddenOperationException;
 
-    DetailsTaskResponse getTaskDetailsById(UUID taskId, UUID userId);
+    DetailsTaskResponse getTaskDetailsById(UUID taskId, UUID userId)
+            throws TaskNotFoundException, BoardAccessNotFoundException;
 
     // Asocia una etiqueta a una tarea
     LabelTaskResponse addLabelInTask(UUID labelId, UUID taskId, UUID userId)
-            throws MismatchedAuthorException, ForbiddenOperationException, LabelAlreadyAssignedException;
+            throws TaskNotFoundException, BoardAccessNotFoundException, MismatchedAuthorException,
+            ForbiddenOperationException, LabelNotFoundException, LabelAlreadyAssignedException;
 
     // Quita una etiqueta de una tarea
     LabelTaskResponse deleteLabelInTask(UUID labelId, UUID taskId, UUID userId)
-            throws MismatchedAuthorException, ForbiddenOperationException, LabelNotAssignedToTaskException;
+            throws TaskNotFoundException, BoardAccessNotFoundException, MismatchedAuthorException,
+            ForbiddenOperationException, LabelNotFoundException, LabelNotAssignedToTaskException;
 
     // Crea una nueva etiqueta y lo agrega a la tarea
     LabelTaskResponse createLabelAndAddInTask(LabelRequest labelRequest, UUID taskId, Color colorName, UUID userId)
-            throws LabelAlreadyExistsException, MismatchedAuthorException, ForbiddenOperationException;
-
+            throws TaskNotFoundException, BoardAccessNotFoundException, MismatchedAuthorException,
+            ForbiddenOperationException, LabelAlreadyExistsException;
 }

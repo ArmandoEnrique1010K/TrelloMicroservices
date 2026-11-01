@@ -46,7 +46,7 @@ public class BoardServiceImpl implements BoardService {
         operation.setAttempts(operation.getAttempts() + 1);
         operationWorkflowService.saveOperation(operation);
 
-        operationProcessor.processOperation(operation.getId());
+        operationProcessor.processAddBoardAccessOperation(operation.getId());
 
         operation.setStatus(OperationStatus.COMPLETED);
         operation.setCompletedAt(LocalDateTime.now());
@@ -62,7 +62,7 @@ public class BoardServiceImpl implements BoardService {
         operation.setAttempts(operation.getAttempts() + 1);
         operationWorkflowService.saveOperation(operation);
 
-        operationProcessor.processOperation(operation.getId());
+        operationProcessor.processDeleteBoardAndBoardAccessAndTasksOperation(operation.getId());
 
         operation.setStatus(OperationStatus.COMPLETED);
         operation.setCompletedAt(LocalDateTime.now());
@@ -79,7 +79,7 @@ public class BoardServiceImpl implements BoardService {
         operation.setAttempts(operation.getAttempts() + 1);
         operationWorkflowService.saveOperation(operation);
 
-        operationProcessor.processOperation(operation.getId());
+        operationProcessor.processDeleteAllBoardsAndBoardAccessAndTasksOperation(operation.getId());
 
         operation.setStatus(OperationStatus.COMPLETED);
         operation.setCompletedAt(LocalDateTime.now());

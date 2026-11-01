@@ -92,17 +92,31 @@ public class NoteRestController {
                         "type": "/errors/forbidden-operation"
                     }
                     """))),
-            @ApiResponse(responseCode = "404", description = "El permiso de acceso al tablero no existe", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
-                    {
-                        "detail": "The board access was not found in the system",
-                        "fields": null,
-                        "instance": null,
-                        "message": "No se ha encontrado el permiso de acceso al tablero",
-                        "status": 404,
-                        "title": "Board access not found",
-                        "type": "/errors/board-accesses-not-found"
-                    }
-                    """))),
+
+            @ApiResponse(responseCode = "404", description = "No se ha encontrado el recurso solicitado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = {
+                    @ExampleObject(name = "La tarea no existe", summary = "La tarea no existe", value = """
+                            {
+                                "detail": "The task was not found in the system",
+                                "fields": null,
+                                "instance": null,
+                                "message": "No se ha encontrado la tarea",
+                                "status": 404,
+                                "title": "Task not found",
+                                "type": "/errors/task-not-found"
+                            }
+                            """),
+                    @ExampleObject(name = "El permiso de acceso al tablero no existe", summary = "El permiso de acceso al tablero no existe", value = """
+                            {
+                                "detail": "The board access was not found in the system",
+                                "fields": null,
+                                "instance": null,
+                                "message": "No se ha encontrado el permiso de acceso al tablero",
+                                "status": 404,
+                                "title": "Board access not found",
+                                "type": "/errors/board-accesses-not-found"
+                            }
+                            """) })),
+
             @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
                     {
                       "detail": "An unexpected error occurred while processing the request",
@@ -210,9 +224,7 @@ public class NoteRestController {
                       "type": "/errors/internal-server-error"
                     }
                     """))),
-
     })
-
     @DeleteMapping("/{noteId}")
     public ResponseEntity<SuccessfulResponse<Void>> deleteNote(
             @AuthenticationPrincipal Jwt jwt,

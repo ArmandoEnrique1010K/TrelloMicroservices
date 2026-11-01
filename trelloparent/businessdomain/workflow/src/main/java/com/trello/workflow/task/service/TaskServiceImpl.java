@@ -27,8 +27,11 @@ import com.trello.workflow.entities.Task;
 import com.trello.workflow.enums.Color;
 import com.trello.workflow.enums.Role;
 import com.trello.workflow.enums.Status;
+import com.trello.workflow.exception.BoardAccessNotFoundException;
 import com.trello.workflow.exception.ForbiddenOperationException;
+import com.trello.workflow.exception.LabelNotFoundException;
 import com.trello.workflow.exception.MismatchedAuthorException;
+import com.trello.workflow.exception.TaskNotFoundException;
 import com.trello.workflow.history.dto.response.HistoryResponse;
 import com.trello.workflow.label.dto.request.LabelRequest;
 import com.trello.workflow.label.exception.LabelAlreadyExistsException;
@@ -84,7 +87,7 @@ public class TaskServiceImpl implements TaskService {
     @Transactional(rollbackFor = Exception.class)
     @Override
     public TaskResponse createTask(TaskRequest taskRequest, UUID boardId, UUID userId)
-            throws ForbiddenOperationException {
+            throws BoardAccessNotFoundException, ForbiddenOperationException {
 
         // Buscar permiso de acceso al tablero por boardId y userId
         BoardAccess boardAccess = boardAccessWorkflowService
@@ -129,7 +132,8 @@ public class TaskServiceImpl implements TaskService {
     // Sin importar el rol, cualquier usuario tiene acceso a este endpoint
     // Pero se verifica que la tarea corresponda al autor
     @Override
-    public List<AuthorTaskResponse> listAllTasksByBoardId(UUID boardId, UUID userId) {
+    public List<AuthorTaskResponse> listAllTasksByBoardId(UUID boardId, UUID userId)
+            throws BoardAccessNotFoundException {
         // Siempre y cuando sea el usuario administrador del tablero o cualquier miembro
         boardAccessWorkflowService.findBoardAccessByBoardIdAndUserIdAndUserActiveAndStatusTrue(boardId, userId);
 
@@ -150,9 +154,11 @@ public class TaskServiceImpl implements TaskService {
         return responses;
     }
 
+    @Transactional(rollbackFor = Exception.class)
     @Override
     public TaskResponse editTask(UUID taskId, TaskRequest taskRequest, UUID userId)
-            throws MismatchedAuthorException, ForbiddenOperationException {
+            throws TaskNotFoundException, BoardAccessNotFoundException, MismatchedAuthorException,
+            ForbiddenOperationException {
 
         String name = taskRequest.getName();
         String description = taskRequest.getDescription();
@@ -196,7 +202,8 @@ public class TaskServiceImpl implements TaskService {
 
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public TaskResponse changeStatusTask(UUID taskId, Status status, UUID userId) throws ForbiddenOperationException {
+    public TaskResponse changeStatusTask(UUID taskId, Status status, UUID userId)
+            throws TaskNotFoundException, BoardAccessNotFoundException, ForbiddenOperationException {
 
         Task findedTask = taskWorkflowService.findTaskById(taskId);
         UUID boardId = findedTask.getBoard().getId();
@@ -228,8 +235,12 @@ public class TaskServiceImpl implements TaskService {
         return taskResponse;
     }
 
+    @Transactional(rollbackFor = Exception.class)
     @Override
-    public void deleteTask(UUID taskId, UUID userId) throws MismatchedAuthorException, ForbiddenOperationException {
+    public void deleteTask(UUID taskId, UUID userId)
+            throws TaskNotFoundException, BoardAccessNotFoundException, MismatchedAuthorException,
+            ForbiddenOperationException {
+
         Task findedTask = taskWorkflowService.findTaskById(taskId);
         UUID boardId = findedTask.getBoard().getId();
         BoardAccess boardAccess = boardAccessWorkflowService
@@ -254,7 +265,8 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
-    public DetailsTaskResponse getTaskDetailsById(UUID taskId, UUID userId) {
+    public DetailsTaskResponse getTaskDetailsById(UUID taskId, UUID userId)
+            throws TaskNotFoundException, BoardAccessNotFoundException {
 
         // 1. Obtener la tarea y validar el acceso del usuario al tablero
         Task findedTask = taskWorkflowService.findTaskById(taskId);
@@ -337,116 +349,11 @@ public class TaskServiceImpl implements TaskService {
 
     }
 
-    // Enriquece cada nota con los datos del usuario que la creó
-    // Se utiliza getUsersById() para obtener todos los usuarios necesarios en una
-    // única llamada al microservicio Identity, evitando realizar una petición por
-    // cada nota
-    private void enrichNotesWithUserData(
-            List<Note> notes,
-            List<UserNoteResponse> responses) {
-        // Obtiene un Map<UUID, UserResponse> para poder localizar rápidamente los datos
-        // de cada usuario mediante su UUID.
-        Map<UUID, UserResponse> usersById = getUsersById(notes, note -> note.getCreatedByUserId());
-
-        // Las dos listas mantienen el mismo orden porque UserNoteResponse fue generado
-        // previamente a partir de List<Note>.
-        for (int i = 0; i < notes.size(); i++) {
-            UUID userId = notes.get(i).getCreatedByUserId();
-
-            // Agrega al response los datos completos del usuario correspondiente a la nota
-            responses.get(i).setCreatedByUser(
-                    usersById.get(userId));
-        }
-    }
-
-    // Convierte una lista de History en una lista de HistoryResponse
-    // Este mapeo se mantiene en el Service porque el historial es condicional,
-    // porque solamente debe procesarse cuando el usuario tiene autorización para
-    // visualizarlo.
-    private List<HistoryResponse> mapHistories(
-            List<History> histories) {
-
-        if (histories == null || histories.isEmpty()) {
-            return Collections.emptyList();
-        }
-
-        return histories.stream()
-                .map(this::mapHistory)
-                .toList();
-    }
-
-    // Convierte una entidad History individual en HistoryResponse
-    private HistoryResponse mapHistory(History history) {
-
-        HistoryResponse response = new HistoryResponse();
-
-        response.setId(history.getId());
-        response.setCreatedAt(history.getCreatedAt());
-        response.setStatus(history.getStatus());
-
-        return response;
-    }
-
-    // Enriquece cada HistoryResponse con los datos del usuario que realizó la
-    // acción registrada en el historial
-
-    // Al igual que ocurre con las notas, History solamente contiene el UUID del
-    // usuario, por lo que es necesario consultar el microservicio Identity.
-    private void enrichHistoriesWithUserData(
-            List<History> histories,
-            List<HistoryResponse> responses) {
-
-        Map<UUID, UserResponse> usersById = getUsersById(
-                histories,
-                history -> history.getUserId());
-
-        for (int i = 0; i < histories.size(); i++) {
-
-            UUID userId = histories.get(i).getUserId();
-
-            responses.get(i).setCreatedByUser(
-                    usersById.get(userId));
-        }
-    }
-
-    // Obtiene los usuarios asociados a una colección de objetos
-
-    // Este método es genérico porque puede trabajar con:
-    // - List<Note> -> note.getCreatedByUserId()
-    // - List<History> -> history.getUserId()
-
-    // De esta manera se evita duplicar la lógica para obtener usuarios desde el
-    // microservicio Identity
-    private <T> Map<UUID, UserResponse> getUsersById(
-            List<T> items,
-            Function<T, UUID> userIdExtractor) {
-
-        // Set se utiliza para eliminar IDs duplicados. Si varias notas fueron creadas
-        // por el mismo usuario, solamente se consulta ese usuario una vez
-        Set<UUID> userIds = items.stream()
-                .map(userIdExtractor)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toSet());
-
-        // Si ningún objeto tiene un usuario asociado, no es necesario realizar una
-        // petición al microservicio Identity.
-        if (userIds.isEmpty()) {
-            return Collections.emptyMap();
-        }
-
-        // Consulta todos los usuarios mediante una única llamada al microservicio
-        // Identity
-        return identityClientService
-                .findUsersByIds(userIds)
-                .stream()
-                .collect(Collectors.toMap(user -> user.getId(),
-                        Function.identity()));
-    }
-
     @Transactional(rollbackFor = Exception.class)
     @Override
     public LabelTaskResponse addLabelInTask(UUID labelId, UUID taskId, UUID userId)
-            throws MismatchedAuthorException, ForbiddenOperationException, LabelAlreadyAssignedException {
+            throws TaskNotFoundException, BoardAccessNotFoundException, MismatchedAuthorException,
+            ForbiddenOperationException, LabelNotFoundException, LabelAlreadyAssignedException {
         Task findedTask = taskWorkflowService.findTaskById(taskId);
         UUID boardId = findedTask.getBoard().getId();
 
@@ -496,7 +403,8 @@ public class TaskServiceImpl implements TaskService {
     @Transactional(rollbackFor = Exception.class)
     @Override
     public LabelTaskResponse deleteLabelInTask(UUID labelId, UUID taskId, UUID userId)
-            throws MismatchedAuthorException, ForbiddenOperationException, LabelNotAssignedToTaskException {
+            throws TaskNotFoundException, BoardAccessNotFoundException, MismatchedAuthorException,
+            ForbiddenOperationException, LabelNotFoundException, LabelNotAssignedToTaskException {
 
         Task findedTask = taskWorkflowService.findTaskById(taskId);
         UUID boardId = findedTask.getBoard().getId();
@@ -547,7 +455,8 @@ public class TaskServiceImpl implements TaskService {
     @Override
     public LabelTaskResponse createLabelAndAddInTask(LabelRequest labelRequest, UUID taskId, Color colorName,
             UUID userId)
-            throws LabelAlreadyExistsException, MismatchedAuthorException, ForbiddenOperationException {
+            throws TaskNotFoundException, BoardAccessNotFoundException, MismatchedAuthorException,
+            ForbiddenOperationException, LabelAlreadyExistsException {
 
         String content = labelRequest.getContent();
 
@@ -596,6 +505,113 @@ public class TaskServiceImpl implements TaskService {
         taskWorkflowService.saveTask(findedTask);
 
         LabelTaskResponse response = labelTaskResponseMapper.taskToLabelTaskResponse(findedTask);
+        return response;
+    }
+
+    // Enriquece cada nota con los datos del usuario que la creó
+    // Se utiliza getUsersById() para obtener todos los usuarios necesarios en una
+    // única llamada al microservicio Identity, evitando realizar una petición por
+    // cada nota
+
+    // TODO: AÑADIR LOGICA DE TOLERANCIA A FALLOS PARA OBTENER LOS DATOS DE UN
+    // USUARIO POR ID
+    private void enrichNotesWithUserData(
+            List<Note> notes,
+            List<UserNoteResponse> responses) {
+        // Obtiene un Map<UUID, UserResponse> para poder localizar rápidamente los datos
+        // de cada usuario mediante su UUID.
+        Map<UUID, UserResponse> usersById = getUsersById(notes, note -> note.getCreatedByUserId());
+
+        // Las dos listas mantienen el mismo orden porque UserNoteResponse fue generado
+        // previamente a partir de List<Note>.
+        for (int i = 0; i < notes.size(); i++) {
+            UUID userId = notes.get(i).getCreatedByUserId();
+
+            // Agrega al response los datos completos del usuario correspondiente a la nota
+            responses.get(i).setCreatedByUser(
+                    usersById.get(userId));
+        }
+    }
+    // Enriquece cada HistoryResponse con los datos del usuario que realizó la
+    // acción registrada en el historial
+
+    // Al igual que ocurre con las notas, History solamente contiene el UUID del
+    // usuario, por lo que es necesario consultar el microservicio Identity.
+    private void enrichHistoriesWithUserData(
+            List<History> histories,
+            List<HistoryResponse> responses) {
+
+        Map<UUID, UserResponse> usersById = getUsersById(
+                histories,
+                history -> history.getUserId());
+
+        for (int i = 0; i < histories.size(); i++) {
+
+            UUID userId = histories.get(i).getUserId();
+
+            responses.get(i).setCreatedByUser(
+                    usersById.get(userId));
+        }
+    }
+
+    // Obtiene los usuarios asociados a una colección de objetos
+
+    // Este método es genérico porque puede trabajar con:
+    // - List<Note> -> note.getCreatedByUserId()
+    // - List<History> -> history.getUserId()
+
+    // De esta manera se evita duplicar la lógica para obtener usuarios desde el
+    // microservicio Identity
+    private <T> Map<UUID, UserResponse> getUsersById(
+            List<T> items,
+            Function<T, UUID> userIdExtractor) {
+
+        // Set se utiliza para eliminar IDs duplicados. Si varias notas fueron creadas
+        // por el mismo usuario, solamente se consulta ese usuario una vez
+        Set<UUID> userIds = items.stream()
+                .map(userIdExtractor)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+
+        // Si ningún objeto tiene un usuario asociado, no es necesario realizar una
+        // petición al microservicio Identity.
+        if (userIds.isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        // Consulta todos los usuarios mediante una única llamada al microservicio
+        // Identity
+        return identityClientService.findUsersByIds(userIds)
+                .stream()
+                .collect(Collectors.toMap(user -> user.getId(),
+                        Function.identity()));
+    }
+
+    // Convierte una lista de History en una lista de HistoryResponse
+    // Este mapeo se mantiene en el Service porque el historial es condicional,
+    // porque solamente debe procesarse cuando el usuario tiene autorización para
+    // visualizarlo.
+    private List<HistoryResponse> mapHistories(
+            List<History> histories) {
+
+        if (histories == null || histories.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        return histories.stream()
+                .map(this::mapHistory)
+                .toList();
+    }
+
+    // Convierte una entidad History individual en HistoryResponse
+    private HistoryResponse mapHistory(History history) {
+
+        HistoryResponse response = new HistoryResponse();
+
+        response.setId(history.getId());
+        response.setCreatedAt(history.getCreatedAt());
+        response.setStatus(history.getStatus());
+
         return response;
     }
 }

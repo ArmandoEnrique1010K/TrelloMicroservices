@@ -55,7 +55,7 @@ public class BoardAccessServiceImpl implements BoardAccessService {
         operationWorkflowService.saveOperation(operation);
 
         // Ejecutar la operación registrada.
-        operationProcessor.processOperation(operation.getId());
+        operationProcessor.processAddBoardAccessOperation(operation.getId());
 
         // Registrar la finalización de la operación.
         operation.setStatus(OperationStatus.COMPLETED);
@@ -77,7 +77,7 @@ public class BoardAccessServiceImpl implements BoardAccessService {
         operation.setAttempts(operation.getAttempts() + 1);
         operationWorkflowService.saveOperation(operation);
 
-        operationProcessor.processOperation(operation.getId());
+        operationProcessor.processActivateBoardAccessOperation(operation.getId());
 
         operation.setStatus(OperationStatus.COMPLETED);
         operation.setCompletedAt(LocalDateTime.now());
@@ -96,7 +96,7 @@ public class BoardAccessServiceImpl implements BoardAccessService {
         operation.setAttempts(operation.getAttempts() + 1);
         operationWorkflowService.saveOperation(operation);
 
-        operationProcessor.processOperation(operation.getId());
+        operationProcessor.processChangeRoleBoardAccessOperation(operation.getId());
 
         operation.setStatus(OperationStatus.COMPLETED);
         operation.setCompletedAt(LocalDateTime.now());
@@ -114,7 +114,7 @@ public class BoardAccessServiceImpl implements BoardAccessService {
         operation.setAttempts(operation.getAttempts() + 1);
         operationWorkflowService.saveOperation(operation);
 
-        operationProcessor.processOperation(operation.getId());
+        operationProcessor.processDeactivateBoardAccessOperation(operation.getId());
 
         operation.setStatus(OperationStatus.COMPLETED);
         operation.setCompletedAt(LocalDateTime.now());
