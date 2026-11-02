@@ -194,6 +194,22 @@ public class ApiExceptionHandler {
     // -----------------------------------------------
     // Excepciones relacionadas a invitación
     // -----------------------------------------------
+    // Excepción de invitación no encontrada
+    @ExceptionHandler(InvitationNotFoundException.class)
+    public ResponseEntity<StandarizedApiExceptionResponse> handleInvitationNotFoundException(
+            InvitationNotFoundException ex) {
+        HttpStatus status = HttpStatus.NOT_FOUND;
+
+        StandarizedApiExceptionResponse standarizedApiExceptionResponse = new StandarizedApiExceptionResponse(
+                "/errors/invitation-not-found",
+                "Invitation not found",
+                status.value(),
+                "The invitation was not found in the system",
+                null,
+                "No se ha encontrado la invitación");
+
+        return ResponseEntity.status(status).body(standarizedApiExceptionResponse);
+    }
 
     // Excepción de invitación existente
     @ExceptionHandler(InvitationAlreadyExistsException.class)
@@ -212,23 +228,6 @@ public class ApiExceptionHandler {
         return ResponseEntity
                 .status(status)
                 .body(response);
-    }
-
-    // Excepción de invitación no encontrada
-    @ExceptionHandler(InvitationNotFoundException.class)
-    public ResponseEntity<StandarizedApiExceptionResponse> handleInvitationNotFoundException(
-            InvitationNotFoundException ex) {
-        HttpStatus status = HttpStatus.NOT_FOUND;
-
-        StandarizedApiExceptionResponse standarizedApiExceptionResponse = new StandarizedApiExceptionResponse(
-                "/errors/invitation-not-found",
-                "Invitation not found",
-                status.value(),
-                "The invitation was not found in the system",
-                null,
-                "No se ha encontrado la invitación");
-
-        return ResponseEntity.status(status).body(standarizedApiExceptionResponse);
     }
 
     // Excepción de invitación que ya fue confirmada
@@ -312,26 +311,6 @@ public class ApiExceptionHandler {
         return ResponseEntity.status(status).body(standarizedApiExceptionResponse);
     }
 
-    // Excepción de operación no realizada
-    @ExceptionHandler(OperationManualReviewException.class)
-    public ResponseEntity<StandarizedApiExceptionResponse> handleOperationManualReviewException(
-            OperationManualReviewException ex) {
-
-        // Estado 500 - Error interno del servidor, ponganse en contacto
-        HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
-
-        StandarizedApiExceptionResponse standarizedApiExceptionResponse = new StandarizedApiExceptionResponse(
-                "/errors/operation/manual-review",
-                "Operation manual review",
-                status.value(),
-                "The operation requires careful review by the app administrator; please get in touch by sending an email to example@gmail.com",
-                null,
-                // Este mensaje no se va a mostrar al usuario
-                "Ha ocurrido un error, pongase en contacto con el administrador");
-
-        return ResponseEntity.status(status).body(standarizedApiExceptionResponse);
-    }
-
     // Excepción de operación no encontrada
     @ExceptionHandler(OperationNotFoundException.class)
     public ResponseEntity<StandarizedApiExceptionResponse> handleOperationNotFoundException(
@@ -385,4 +364,23 @@ public class ApiExceptionHandler {
         return ResponseEntity.status(status).body(standarizedApiExceptionResponse);
     }
 
+    // Excepción de operación no realizada
+    @ExceptionHandler(OperationManualReviewException.class)
+    public ResponseEntity<StandarizedApiExceptionResponse> handleOperationManualReviewException(
+            OperationManualReviewException ex) {
+
+        // Estado 500 - Error interno del servidor, ponganse en contacto
+        HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
+
+        StandarizedApiExceptionResponse standarizedApiExceptionResponse = new StandarizedApiExceptionResponse(
+                "/errors/operation/manual-review",
+                "Operation manual review",
+                status.value(),
+                "The operation requires careful review by the app administrator; please get in touch by sending an email to example@gmail.com",
+                null,
+                // Este mensaje no se va a mostrar al usuario
+                "Ha ocurrido un error, pongase en contacto con el administrador");
+
+        return ResponseEntity.status(status).body(standarizedApiExceptionResponse);
+    }
 }

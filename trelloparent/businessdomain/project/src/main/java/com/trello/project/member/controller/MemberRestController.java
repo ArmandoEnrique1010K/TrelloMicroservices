@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.trello.project.board.dto.response.common.SuccessfulBoardResponse;
 import com.trello.project.common.StandarizedApiExceptionResponse;
 import com.trello.project.common.SuccessfulResponse;
 import com.trello.project.common.SuccessfulVoidResponse;
@@ -78,6 +79,19 @@ public class MemberRestController {
                         "type": "/errors/authentication/not-authenticated"
                     }
                     """))),
+
+            @ApiResponse(responseCode = "404", description = "No se ha encontrado el tablero", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
+                    {
+                        "detail": "The board was not found in the system",
+                        "fields": null,
+                        "instance": null,
+                        "message": "No se ha encontrado el tablero",
+                        "status": 404,
+                        "title": "Board not found",
+                        "type": "/errors/board-not-found"
+                    }
+                    """))),
+
             @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
                     {
                       "detail": "An unexpected error occurred while processing the request",
@@ -111,52 +125,117 @@ public class MemberRestController {
                         },
                         "message": "Se ha cambiado el rol del miembro"
                     }
-                    """)))
+                    """))),
 
-    // @ApiResponse(responseCode = "401", description = "El usuario no esta
-    // autenticado", content = @Content(mediaType = "application/json", schema =
-    // @Schema(implementation = StandarizedApiExceptionResponse.class), examples =
-    // @ExampleObject(value = """
-    // {
-    // "detail": "Authentication is required to access this resource",
-    // "fields": null,
-    // "instance": null,
-    // "message": "Ha ocurrido un error inesperado",
-    // "status": 401,
-    // "title": "Unauthorized",
-    // "type": "/errors/authentication/not-authenticated"
-    // }
-    // """))),
-    // @ApiResponse(responseCode = "404", description = "No se ha encontrado la
-    // invitación", content = @Content(mediaType = "application/json", schema =
-    // @Schema(implementation = StandarizedApiExceptionResponse.class), examples =
-    // @ExampleObject(value = """
-    // {
-    // "detail": "The member was not found in the system",
-    // "fields": null,
-    // "instance": null,
-    // "message": "No se ha encontrado el miembro",
-    // "status": 404,
-    // "title": "Member not found",
-    // "type": "/errors/member-not-found"
-    // }
-    // """))),
-    // @ApiResponse(responseCode = "500", description = "Error interno del
-    // servidor", content = @Content(mediaType = "application/json", schema =
-    // @Schema(implementation = StandarizedApiExceptionResponse.class), examples =
-    // @ExampleObject(value = """
-    // {
-    // "detail": "An unexpected error occurred while processing the request",
-    // "fields": null,
-    // "instance": null,
-    // "message": "Ha ocurrido un error inesperado",
-    // "status": 500,
-    // "title": "Internal server error",
-    // "type": "/errors/internal-server-error"
-    // }
-    // """))),
+            @ApiResponse(responseCode = "202", description = "La operación quedo en un estado pendiente en el sistema", content = @Content(mediaType = "application/json", schema = @Schema(implementation = SuccessfulBoardResponse.class), examples = @ExampleObject(value = """
+                    {
+                        "detail": "The operation has been left in a pending state because one of the services has gone down",
+                        "fields": null,
+                        "instance": null,
+                        "message": "La operación quedo en un estado pendiente, vuelva a intentarlo en un momento",
+                        "status": 202,
+                        "title": "Operation compensated",
+                        "type": "/errors/operation/compensated"
+                    }
+                    """))),
+
+            @ApiResponse(responseCode = "404", description = "No se ha encontrado el recurso solicitado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = {
+                    @ExampleObject(name = "No se ha encontrado el miembro", summary = "No se ha encontrado el espacio de trabajo", value = """
+                            {
+                                "detail": "The member was not found in the system",
+                                "fields": null,
+                                "instance": null,
+                                "message": "No se ha encontrado el miembro",
+                                "status": 404,
+                                "title": "Member not found",
+                                "type": "/errors/member-not-found"
+                            }
+                            """),
+                    @ExampleObject(name = "La operación no existe", summary = "La operación no existe", value = """
+                            {
+                                    "detail": "The operation was not found in the system",
+                                    "fields": null,
+                                    "instance": null,
+                                    "message": "Ha ocurrido un error",
+                                    "status": 404,
+                                    "title": "Operation not found",
+                                    "type": "/errors/operation/not-found"
+                            }
+                            """)
+            })),
+
+            @ApiResponse(responseCode = "409", description = "Error de lógica de negocio", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = {
+                    @ExampleObject(name = "El estado del miembro se encuentra inactivo", summary = "El estado del miembro se encuentra inactivo", value = """
+                            {
+                                "detail": "The member has been removed",
+                                "fields": null,
+                                "instance": null,
+                                "message": "Ha ocurrido un error",
+                                "status": 409,
+                                "title": "Member inactive",
+                                "type": "/errors/member-inactive"
+                            }
+                            """),
+                    @ExampleObject(name = "Los datos enviados no coinciden con los datos de la operación", summary = "Los datos enviados no coinciden con los datos de la operación", value = """
+                            {
+                                    "detail": "The data related to the operation do not match the requested data",
+                                    "fields": null,
+                                    "instance": null,
+                                    "message": "Ha ocurrido un error",
+                                    "status": 409,
+                                    "title": "Operation in conflict",
+                                    "type": "/errors/operation/conflict"
+                            }
+                            """),
+                    @ExampleObject(name = "La operación no tiene un estado pendiente", summary = "La operación no tiene un estado pendiente", value = """
+                            {
+                                    "detail": "The operation does not have a 'PENDING' or relationated status",
+                                    "fields": null,
+                                    "instance": null,
+                                    "message": "Ha ocurrido un error",
+                                    "status": 409,
+                                    "title": "Operation not pending",
+                                    "type": "/errors/operation/not-pending"
+                            }
+                            """),
+                    @ExampleObject(name = "Error de lógica de negocio", summary = "Error de lógica de negocio", value = """
+                            {
+                                    "detail": "The operation cannot be completed because it violates a business rule",
+                                    "fields": null,
+                                    "instance": null,
+                                    "message": "Ha ocurrido un error inesperado",
+                                    "status": 409,
+                                    "title": "Business rule violation",
+                                    "type": "/errors/business-rule-violation"
+                            }
+                            """),
+            })),
+
+            @ApiResponse(responseCode = "500", description = "Error relacionado al servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = {
+                    @ExampleObject(name = "Error interno del servidor", summary = "Error interno del servidor", value = """
+                            {
+                              "detail": "An unexpected error occurred while processing the request",
+                              "fields": null,
+                              "instance": null,
+                              "message": "Ha ocurrido un error inesperado",
+                              "status": 500,
+                              "title": "Internal server error",
+                              "type": "/errors/internal-server-error"
+                            }
+                            """),
+                    @ExampleObject(name = "Se requiere de una revisión manual en la operación realizada", summary = "Se requiere de una revisión manual en la operación realizada", value = """
+                            {
+                              "detail": "The operation requires careful review by the app administrator; please get in touch by sending an email to example@gmail.com",
+                              "fields": null,
+                              "instance": null,
+                              "message": "Ha ocurrido un error, pongase en contacto con el administrador",
+                              "status": 500,
+                              "title": "Operation manual review",
+                              "type": "/errors/operation/manual-review"
+                            }
+                            """),
+            })),
     })
-
     @PutMapping("/{memberId}/role/{roleName}")
     public ResponseEntity<SuccessfulResponse<MemberResponse>> changeRoleMemberById(
             @AuthenticationPrincipal Jwt jwt,
@@ -192,28 +271,114 @@ public class MemberRestController {
                         "type": "/errors/authentication/not-authenticated"
                     }
                     """))),
-            @ApiResponse(responseCode = "404", description = "No se ha encontrado el miembro", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
+            @ApiResponse(responseCode = "202", description = "La operación quedo en un estado pendiente en el sistema", content = @Content(mediaType = "application/json", schema = @Schema(implementation = SuccessfulBoardResponse.class), examples = @ExampleObject(value = """
                     {
-                        "detail": "The member was not found in the system",
+                        "detail": "The operation has been left in a pending state because one of the services has gone down",
                         "fields": null,
                         "instance": null,
-                        "message": "No se ha encontrado el miembro",
-                        "status": 404,
-                        "title": "Member not found",
-                        "type": "/errors/member-not-found"
+                        "message": "La operación quedo en un estado pendiente, vuelva a intentarlo en un momento",
+                        "status": 202,
+                        "title": "Operation compensated",
+                        "type": "/errors/operation/compensated"
                     }
                     """))),
-            @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
-                    {
-                      "detail": "An unexpected error occurred while processing the request",
-                      "fields": null,
-                      "instance": null,
-                      "message": "Ha ocurrido un error inesperado",
-                      "status": 500,
-                      "title": "Internal server error",
-                      "type": "/errors/internal-server-error"
-                    }
-                    """))),
+
+            @ApiResponse(responseCode = "404", description = "No se ha encontrado el recurso solicitado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = {
+                    @ExampleObject(name = "No se ha encontrado el miembro", summary = "No se ha encontrado el espacio de trabajo", value = """
+                            {
+                                "detail": "The member was not found in the system",
+                                "fields": null,
+                                "instance": null,
+                                "message": "No se ha encontrado el miembro",
+                                "status": 404,
+                                "title": "Member not found",
+                                "type": "/errors/member-not-found"
+                            }
+                            """),
+                    @ExampleObject(name = "La operación no existe", summary = "La operación no existe", value = """
+                            {
+                                    "detail": "The operation was not found in the system",
+                                    "fields": null,
+                                    "instance": null,
+                                    "message": "Ha ocurrido un error",
+                                    "status": 404,
+                                    "title": "Operation not found",
+                                    "type": "/errors/operation/not-found"
+                            }
+                            """)
+            })),
+
+            @ApiResponse(responseCode = "409", description = "Error de lógica de negocio", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = {
+                    @ExampleObject(name = "El estado del miembro se encuentra inactivo", summary = "El estado del miembro se encuentra inactivo", value = """
+                            {
+                                "detail": "The member has been removed",
+                                "fields": null,
+                                "instance": null,
+                                "message": "Ha ocurrido un error",
+                                "status": 409,
+                                "title": "Member inactive",
+                                "type": "/errors/member-inactive"
+                            }
+                            """),
+                    @ExampleObject(name = "Los datos enviados no coinciden con los datos de la operación", summary = "Los datos enviados no coinciden con los datos de la operación", value = """
+                            {
+                                    "detail": "The data related to the operation do not match the requested data",
+                                    "fields": null,
+                                    "instance": null,
+                                    "message": "Ha ocurrido un error",
+                                    "status": 409,
+                                    "title": "Operation in conflict",
+                                    "type": "/errors/operation/conflict"
+                            }
+                            """),
+                    @ExampleObject(name = "La operación no tiene un estado pendiente", summary = "La operación no tiene un estado pendiente", value = """
+                            {
+                                    "detail": "The operation does not have a 'PENDING' or relationated status",
+                                    "fields": null,
+                                    "instance": null,
+                                    "message": "Ha ocurrido un error",
+                                    "status": 409,
+                                    "title": "Operation not pending",
+                                    "type": "/errors/operation/not-pending"
+                            }
+                            """),
+                    @ExampleObject(name = "Error de lógica de negocio", summary = "Error de lógica de negocio", value = """
+                            {
+                                    "detail": "The operation cannot be completed because it violates a business rule",
+                                    "fields": null,
+                                    "instance": null,
+                                    "message": "Ha ocurrido un error inesperado",
+                                    "status": 409,
+                                    "title": "Business rule violation",
+                                    "type": "/errors/business-rule-violation"
+                            }
+                            """),
+            })),
+
+            @ApiResponse(responseCode = "500", description = "Error relacionado al servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = {
+                    @ExampleObject(name = "Error interno del servidor", summary = "Error interno del servidor", value = """
+                            {
+                              "detail": "An unexpected error occurred while processing the request",
+                              "fields": null,
+                              "instance": null,
+                              "message": "Ha ocurrido un error inesperado",
+                              "status": 500,
+                              "title": "Internal server error",
+                              "type": "/errors/internal-server-error"
+                            }
+                            """),
+                    @ExampleObject(name = "Se requiere de una revisión manual en la operación realizada", summary = "Se requiere de una revisión manual en la operación realizada", value = """
+                            {
+                              "detail": "The operation requires careful review by the app administrator; please get in touch by sending an email to example@gmail.com",
+                              "fields": null,
+                              "instance": null,
+                              "message": "Ha ocurrido un error, pongase en contacto con el administrador",
+                              "status": 500,
+                              "title": "Operation manual review",
+                              "type": "/errors/operation/manual-review"
+                            }
+                            """),
+            })),
     })
     @PatchMapping("/{memberId}")
     public ResponseEntity<SuccessfulResponse<SuccessfulVoidResponse>> deactivateMember(
@@ -227,6 +392,5 @@ public class MemberRestController {
         successfulResponse.setBody(null);
 
         return ResponseEntity.status(HttpStatus.OK).body(successfulResponse);
-
     }
 }

@@ -95,39 +95,6 @@ public class BoardServiceImpl implements BoardService {
                 .processAddBoardAndBoardAccessUserOwnerOperation(operation.getId());
 
         return response;
-
-        // String name = boardRequest.getName();
-
-        // Workspace workspace =
-        // workspaceProjectService.findWorkspaceByIdAndOwnerUserId(
-        // workspaceId,
-        // ownerUserId);
-
-        // if (boardProjectService.existsBoardByWorkspaceIdAndName(workspaceId, name)) {
-        // throw new BoardAlreadyExistsException();
-        // }
-
-        // Board boardToBoardRequest =
-        // boardRequestMapper.boardRequestToBoard(boardRequest);
-        // boardToBoardRequest.setWorkspace(workspace);
-
-        // Board savedBoard = boardProjectService.saveBoard(boardToBoardRequest);
-        // BoardResponse boardResponse =
-        // boardResponseMapper.boardToBoardResponse(savedBoard);
-
-        // // // Guarda los datos en la base de datos del microservicio Workflow
-        // // // Solamente los datos necesarios: ID de tablero, Rol (WorkflowRole) e ID
-        // de
-        // // // usuario
-        // // // workflowClientService.addBoardAccess(boardResponse.getId(),
-        // // // WorkflowRole.OWNER);
-
-        // // Guardar un tablero
-        // // TODO: INVESTIGAR COMO MANEJAR PETICIONES CUANDO EL MICROSERVICIO ESTA
-        // CAIDO
-        // workflowClientService.addBoardAndBoardAccessUserOwner(savedBoard.getId());
-
-        // return boardResponse;
     }
 
     @Override
@@ -196,6 +163,28 @@ public class BoardServiceImpl implements BoardService {
         return responses;
     }
 
+    private void enrichBoardMembershipWithUserData(
+            List<Board> boards,
+            List<BoardMembershipResponse> responses) {
+
+        UsersByIdResponse result = getUsersById(
+                boards, board -> board.getWorkspace().getOwnerUserId());
+
+        Map<UUID, UserResponse> usersById = result.getUsersById();
+
+        for (int i = 0; i < boards.size(); i++) {
+            Board board = boards.get(i);
+
+            BoardMembershipResponse response = responses.get(i);
+            UUID ownerUserId = board.getWorkspace().getOwnerUserId();
+
+            // Establece la disponibilidad de la data y el usuario propietario del espacio
+            // de trabajo
+            response.setUserDataAvailable(result.isAvailable());
+            response.setOwnerUser(mapUser(usersById.get(ownerUserId)));
+        }
+    }
+
     // Método para tener los datos de los usuarios por ID
     private UsersByIdResponse getUsersById(
             List<Board> boards,
@@ -229,28 +218,6 @@ public class BoardServiceImpl implements BoardService {
         }
 
         return result;
-    }
-
-    private void enrichBoardMembershipWithUserData(
-            List<Board> boards,
-            List<BoardMembershipResponse> responses) {
-
-        UsersByIdResponse result = getUsersById(
-                boards, board -> board.getWorkspace().getOwnerUserId());
-
-        Map<UUID, UserResponse> usersById = result.getUsersById();
-
-        for (int i = 0; i < boards.size(); i++) {
-            Board board = boards.get(i);
-
-            BoardMembershipResponse response = responses.get(i);
-            UUID ownerUserId = board.getWorkspace().getOwnerUserId();
-
-            // Establece la disponibilidad de la data y el usuario propietario del espacio
-            // de trabajo
-            response.setUserDataAvailable(result.isAvailable());
-            response.setOwnerUser(mapUser(usersById.get(ownerUserId)));
-        }
     }
 
     private UserResponse mapUser(

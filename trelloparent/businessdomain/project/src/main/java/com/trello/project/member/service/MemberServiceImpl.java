@@ -140,28 +140,24 @@ public class MemberServiceImpl implements MemberService {
 
         operationDeactivateMemberProcessor
                 .processDeactivateMemberOperation(operation.getId());
+    }
 
-        // Member findedMember =
-        // memberProjectService.findMemberByIdAndOwnerUserId(memberId, ownerUserId);
+    private void enrichUserMemberWithUserData(List<Member> members, List<UserMemberResponse> responses) {
 
-        // // Debe desactivar el campo active
-        // findedMember.setActive(false);
+        UsersByIdResponse result = getUsersById(
+                members, member -> member.getUserId());
 
-        // // En el caso de que exista alguna invitación relacionada al usuario que se
-        // va a
-        // // eliminar se tiene que eliminar la invitación
-        // Board board = findedMember.getBoard();
+        Map<UUID, UserResponse> usersById = result.getUsersById();
 
-        // invitationProjectService.deleteInvitationIfExistsByBoardIdAndRecipientUserId(
-        // board.getId(),
-        // findedMember.getUserId(),
-        // ownerUserId);
+        for (int i = 0; i < members.size(); i++) {
+            Member member = members.get(i);
+            UserMemberResponse response = responses.get(i);
 
-        // Member saveMember = memberProjectService.saveMember(findedMember);
-
-        // MemberResponse memberResponse =
-        // memberResponseMapper.memberToMemberResponse(saveMember);
-        // return memberResponse;
+            // Se establece si hay datos de usuario disponible
+            response.setUserDataAvailable(result.isAvailable());
+            response.setMemberUser(
+                    mapUser(usersById.get(member.getUserId())));
+        }
     }
 
     private UsersByIdResponse getUsersById(
@@ -194,24 +190,6 @@ public class MemberServiceImpl implements MemberService {
             // No puede ser null
             result.setUsersById(Map.of());
             return result;
-        }
-    }
-
-    private void enrichUserMemberWithUserData(List<Member> members, List<UserMemberResponse> responses) {
-
-        UsersByIdResponse result = getUsersById(
-                members, member -> member.getUserId());
-
-        Map<UUID, UserResponse> usersById = result.getUsersById();
-
-        for (int i = 0; i < members.size(); i++) {
-            Member member = members.get(i);
-            UserMemberResponse response = responses.get(i);
-
-            // Se establece si hay datos de usuario disponible
-            response.setUserDataAvailable(result.isAvailable());
-            response.setMemberUser(
-                    mapUser(usersById.get(member.getUserId())));
         }
     }
 

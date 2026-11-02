@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.trello.project.client.dto.response.UserResponse;
+import com.trello.project.client.dto.response.UsersListResponse;
 import com.trello.project.common.StandarizedApiExceptionResponse;
 import com.trello.project.common.SuccessfulResponse;
 import com.trello.project.common.SuccessfulVoidResponse;
@@ -501,21 +501,24 @@ public class InvitationAdminRestController {
     @Operation(summary = "Busca usuarios disponibles", description = "Busca usuarios disponibles en el sistema para ser invitados")
     @SecurityRequirement(name = "bearerAuth")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Usuarios disponibles encontrados", content = @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = UserResponse.class)), examples = @ExampleObject(value = """
-                    [
-                        {
-                            "email": "opiddington8@moonfruit.com",
-                            "firstName": "spiddington8",
-                            "id": "cbdd2b41-09b4-4e9b-adeb-79ce7dc0abb0",
-                            "lastName": "Piddington"
-                        },
-                        {
-                            "email": "opiddington9@desdev.cn",
-                            "firstName": "ygully3",
-                            "id": "26b430c5-37ef-499d-9a31-7369cc7a572f",
-                            "lastName": "Gully"
-                        }
-                    ]
+            @ApiResponse(responseCode = "200", description = "Usuarios disponibles encontrados", content = @Content(mediaType = "application/json", schema = @Schema(implementation = UsersListResponse.class), examples = @ExampleObject(value = """
+                    {
+                        "available": true,
+                        "users": [
+                            {
+                                "email": "opiddington8@moonfruit.com",
+                                "firstName": "spiddington8",
+                                "id": "cbdd2b41-09b4-4e9b-adeb-79ce7dc0abb0",
+                                "lastName": "Piddington"
+                            },
+                            {
+                                "email": "opiddington9@desdev.cn",
+                                "firstName": "ygully3",
+                                "id": "26b430c5-37ef-499d-9a31-7369cc7a572f",
+                                "lastName": "Gully"
+                            }
+                        ]
+                    }
                     """))),
             @ApiResponse(responseCode = "401", description = "El usuario no esta autenticado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
                     {
@@ -528,6 +531,32 @@ public class InvitationAdminRestController {
                         "type": "/errors/authentication/not-authenticated"
                     }
                     """))),
+
+            @ApiResponse(responseCode = "404", description = "No se ha encontrado el recurso solicitado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = {
+                    @ExampleObject(name = "No se ha encontrado el tablero", summary = "No se ha encontrado el tablero", value = """
+                            {
+                                "detail": "The board was not found in the system",
+                                "fields": null,
+                                "instance": null,
+                                "message": "No se ha encontrado el tablero",
+                                "status": 404,
+                                "title": "Board not found",
+                                "type": "/errors/board-not-found"
+                            }
+                            """),
+                    @ExampleObject(name = "No se ha encontrado el espacio de trabajo", summary = "No se ha encontrado el espacio de trabajo", value = """
+                            {
+                                "detail": "The workspace was not found in the system",
+                                "fields": null,
+                                "instance": null,
+                                "message": "No se ha encontrado el espacio de trabajo",
+                                "status": 404,
+                                "title": "Workspace not found",
+                                "type": "/errors/workspace-not-found"
+                            }
+                            """)
+            })),
+
             @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
                     {
                       "detail": "An unexpected error occurred while processing the request",
@@ -541,14 +570,14 @@ public class InvitationAdminRestController {
                     """))),
     })
     @GetMapping("/search/availableUsers/board/{boardId}")
-    public ResponseEntity<List<UserResponse>> listAllAvailableUsers(
+    public ResponseEntity<UsersListResponse> listAllAvailableUsers(
             @AuthenticationPrincipal Jwt jwt,
             @Parameter(description = "ID del tablero", required = true, example = "550e8400-e29b-41d4-a716-446655440000") @PathVariable("boardId") UUID boardId,
             // Recordar que el correo es obligatorio y debe tener minimo 6 caracteres
             @Parameter(description = "Email del usuario", required = false, example = "enrique@gmail.com") @RequestParam(value = "email", required = false) String email) {
 
         UUID userId = JwtUtils.getUserId(jwt);
-        List<UserResponse> availableUsers = invitationService.listAllAvailableUsers(boardId, userId, email);
+        UsersListResponse availableUsers = invitationService.listAllAvailableUsers(boardId, userId, email);
 
         return ResponseEntity.status(HttpStatus.OK).body(availableUsers);
     }

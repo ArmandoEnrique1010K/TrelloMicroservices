@@ -22,10 +22,6 @@ public interface MemberProjectService {
     Member findMemberActiveByIdAndOwnerUserId(UUID memberId, UUID ownerUserId)
             throws MemberNotFoundException, MemberInactiveException;
 
-    // void deleteMemberById(UUID memberId, UUID ownerUserId) throws
-    // MemberNotFoundException
-    // ;
-
     Optional<Member> findOptionalMemberByBoardIdAndUserId(UUID memberId, UUID userId);
 
     Member findMemberByIdAndUserId(UUID memberId, UUID userId)

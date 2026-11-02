@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.trello.project.client.dto.response.UserResponse;
 import com.trello.project.client.dto.response.UsersByIdResponse;
+import com.trello.project.client.dto.response.UsersListResponse;
 import com.trello.project.client.services.IdentityClientService;
 import com.trello.project.entities.Board;
 import com.trello.project.entities.Invitation;
@@ -233,33 +234,35 @@ public class InvitationServiceImpl implements InvitationService {
     }
 
     @Override
-    public List<UserResponse> listAllAvailableUsers(UUID boardId, UUID ownerUserId, String email) {
+    public UsersListResponse listAllAvailableUsers(UUID boardId, UUID ownerUserId, String email)
+            throws WorkspaceNotFoundException, BoardNotFoundException {
         // Buscar el tablero por ID y usuario administrador del espacio de trabajo
         // Recordar que el administrador del espacio de trabajo es el unico en buscar
         // usuarios disponibles para invitarlos
 
-        // Se excluye de la lista desde el controlador del microservicio Identity
+        // 1. Buscar el tablero
         Board findedBoard = boardProjectService.findBoardByIdAndOwnerUserIdAndActive(boardId, ownerUserId);
 
         // Se tiene en cuenta que toma la lista de todos los miembros, incluyendo los
         // miembros inactivos
+
+        // 2. Obtener los IDs de los miembros, incluyendo los inactivos
         List<UUID> memberIds = findedBoard.getMembers()
                 .stream()
                 .map(member -> member.getUserId())
                 .toList();
 
+        // 3. Obtener los IDs de los destinatarios de invitaciones
         List<UUID> invitationIds = findedBoard.getInvitations()
                 .stream()
                 .map(invitation -> invitation.getRecipientUserId())
                 .distinct().toList();
 
+        // 4. Unificar los IDs que deben excluirse
         List<UUID> excludedUsersIds = Stream.concat(memberIds.stream(), invitationIds.stream()).toList();
 
-        // Llamado al servicio del cliente
-        List<UserResponse> response = identityClientService.listAllUsersByEmailAndExcludingIds(email,
-                excludedUsersIds);
-
-        return response;
+        // 5. Consultar Identity con tolerancia a fallos
+        return fetchAvailableUsers(email, excludedUsersIds);
     }
 
     // --------------------------------------------------
@@ -272,7 +275,7 @@ public class InvitationServiceImpl implements InvitationService {
     // modificaciones de negocio que se realicen posteriormente; dicho de otro modo,
     // no va a llevar la anotación @Transactional en este método
 
-    // TODO: IMPLEMENTAR
+    // TODO: FALTA IMPLEMENTAR
     // Flujo de ejecución para el procesamiento en segundo plano:
     // 1. REGISTER: registrar la operación en la base de datos.
     // 2. HANDLER (modo AUTOMATIC): ejecutar el procesamiento automático.
@@ -309,6 +312,29 @@ public class InvitationServiceImpl implements InvitationService {
     // --------------------------------------
     // Metodos auxiliares
     // --------------------------------------
+
+    // Método auxiliar para hacer una consulta al microservicio Identity
+    private UsersListResponse fetchAvailableUsers(
+            String email,
+            List<UUID> excludedUsersIds) {
+
+        UsersListResponse result = new UsersListResponse();
+
+        try {
+            List<UserResponse> users = identityClientService
+                    .listAllUsersByEmailAndExcludingIds(email, excludedUsersIds);
+
+            result.setAvailable(true);
+            result.setUsers(users);
+
+        } catch (ServiceUnavailableException e) {
+
+            result.setAvailable(false);
+            result.setUsers(List.of());
+        }
+
+        return result;
+    }
 
     // Método privado para mapear los datos del usuario obtenido
     // Cuando se tiene las invitaciones enviadas a los distintos usuarios desde un

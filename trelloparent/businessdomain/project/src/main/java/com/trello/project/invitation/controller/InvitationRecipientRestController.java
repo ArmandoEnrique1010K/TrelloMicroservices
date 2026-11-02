@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.trello.project.board.dto.response.common.SuccessfulBoardResponse;
 import com.trello.project.common.StandarizedApiExceptionResponse;
 import com.trello.project.common.SuccessfulResponse;
 import com.trello.project.common.SuccessfulVoidResponse;
@@ -108,7 +109,8 @@ public class InvitationRecipientRestController {
                         "message": "Aceptastes la invitación"
                     }
                     """))),
-            @ApiResponse(responseCode = "202", description = "La operación quedo en un estado pendiente", content = @Content(mediaType = "application/json", schema = @Schema(implementation = SuccessfulVoidResponse.class), examples = @ExampleObject(value = """
+
+            @ApiResponse(responseCode = "202", description = "La operación quedo en un estado pendiente en el sistema", content = @Content(mediaType = "application/json", schema = @Schema(implementation = SuccessfulBoardResponse.class), examples = @ExampleObject(value = """
                     {
                         "detail": "The operation has been left in a pending state because one of the services has gone down",
                         "fields": null,
@@ -180,6 +182,17 @@ public class InvitationRecipientRestController {
                                     "type": "/errors/operation/not-pending"
                             }
                             """),
+                    @ExampleObject(name = "La operación no tiene un estado pendiente", summary = "La operación no tiene un estado pendiente", value = """
+                            {
+                                    "detail": "The operation does not have a 'PENDING' or relationated status",
+                                    "fields": null,
+                                    "instance": null,
+                                    "message": "Ha ocurrido un error",
+                                    "status": 409,
+                                    "title": "Operation not pending",
+                                    "type": "/errors/operation/not-pending"
+                            }
+                            """),
                     @ExampleObject(name = "Error de lógica de negocio", summary = "Error de lógica de negocio", value = """
                             {
                                     "detail": "The operation cannot be completed because it violates a business rule",
@@ -187,7 +200,8 @@ public class InvitationRecipientRestController {
                                     "instance": null,
                                     "message": "Ha ocurrido un error inesperado",
                                     "status": 409,
-                                    "title": "Business rule violation"
+                                    "title": "Business rule violation",
+                                    "type": "/errors/business-rule-violation"
                             }
                             """),
             })),
@@ -215,18 +229,6 @@ public class InvitationRecipientRestController {
                             }
                             """),
             })),
-            @ApiResponse(responseCode = "503", description = "Servicio no disponible", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
-                    {
-                      "detail": "One o more services has fallen",
-                      "fields": null,
-                      "instance": null,
-                      "message": "Ha ocurrido un error inesperado",
-                      "status": 503,
-                      "title": "Service unavailable",
-                      "type": "/errors/service-unavailable"
-                    }
-                    """))),
-
     })
     @PutMapping("/accept/{invitationId}")
     public ResponseEntity<SuccessfulResponse<SuccessfulVoidResponse>> acceptInvitation(
@@ -311,5 +313,4 @@ public class InvitationRecipientRestController {
 
         return ResponseEntity.status(HttpStatus.OK).body(successfulResponse);
     }
-
 }

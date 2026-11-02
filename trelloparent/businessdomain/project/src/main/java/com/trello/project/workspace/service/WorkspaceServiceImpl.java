@@ -109,31 +109,6 @@ public class WorkspaceServiceImpl implements WorkspaceService {
             OperationConflictException, OperationCompensatedException, BusinessRuleException,
             OperationManualReviewException {
 
-        // Primero se obtiene el Workspace para recuperar los IDs de los Boards que
-        // posteriormente deben eliminarse en el microservicio Workflow
-        // Workspace findedWorkspace =
-        // workspaceProjectService.findWorkspaceByIdAndOwnerUserId(workspaceId,
-        // ownerUserId);
-        // List<UUID> boardsIds = findedWorkspace.getBoards()
-        // .stream()
-        // .map(board -> board.getId())
-        // .toList();
-
-        // Elimina el Workspace y sus Boards pertenecientes al dominio del microservicio
-        // Project
-        // workspaceProjectService.deleteWorkspaceByIdAndOwnerUserId(workspaceId,
-        // ownerUserId);
-
-        // Workflow es responsable de eliminar los recursos
-        // pertenecientes a sus propios dominios:
-        //
-        // Board
-        // BoardAccess
-        // Task
-        //
-        // Solamente se envían los IDs, no las entidades completas
-        // workflowClientService.deleteManyBoardsByIdsAndBoardAccessAndTasks(boardsIds);
-
         Operation operation = operationRegisterService.registerDeleteWorkspace(ownerUserId, workspaceId);
 
         if (operation.getStatus() == OperationStatus.REGISTERED
@@ -144,5 +119,4 @@ public class WorkspaceServiceImpl implements WorkspaceService {
 
         operationDeleteWorkspaceProcessor.processDeleteWorkspaceOperation(operation.getId());
     }
-
 }

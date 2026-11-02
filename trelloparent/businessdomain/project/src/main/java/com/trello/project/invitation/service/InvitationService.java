@@ -3,7 +3,7 @@ package com.trello.project.invitation.service;
 import java.util.List;
 import java.util.UUID;
 
-import com.trello.project.client.dto.response.UserResponse;
+import com.trello.project.client.dto.response.UsersListResponse;
 import com.trello.project.exception.BoardNotFoundException;
 import com.trello.project.exception.BusinessRuleException;
 import com.trello.project.exception.InvitationNotFoundException;
@@ -60,7 +60,7 @@ public interface InvitationService {
             InvitationAlreadyExistsException;
 
     // Listar los usuarios disponibles para ser invitados al tablero
-    List<UserResponse> listAllAvailableUsers(UUID boardId, UUID ownerUserId, String email)
+    UsersListResponse listAllAvailableUsers(UUID boardId, UUID ownerUserId, String email)
             throws WorkspaceNotFoundException, BoardNotFoundException;
 
     // SAGA PATTERN
