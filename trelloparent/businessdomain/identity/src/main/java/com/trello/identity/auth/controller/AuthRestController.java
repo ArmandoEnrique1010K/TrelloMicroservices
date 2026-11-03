@@ -207,6 +207,17 @@ public class AuthRestController {
                         "type": "/errors/authentication/invalid-refresh-token"
                     }
                     """))),
+            @ApiResponse(responseCode = "404", description = "El usuario no se encuentra en el sistema", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
+                    {
+                        "detail": "The user was not found in the system",
+                        "fields": null,
+                        "instance": null,
+                        "message": "Ha ocurrido un error inesperado",
+                        "status": 404,
+                        "title": "User not found",
+                        "type": "/errors/user-not-found"
+                    }
+                    """))),
             @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
                     {
                         "detail": "An unexpected error occurred while processing the request",

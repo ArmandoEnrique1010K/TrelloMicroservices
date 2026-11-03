@@ -9,6 +9,7 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 
 import com.trello.identity.entities.User;
+import com.trello.identity.exception.UserNotFoundException;
 import com.trello.identity.service.UserIdentityService;
 
 @Service
@@ -57,7 +58,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserResponse findUserById(UUID id) {
+    public UserResponse findUserById(UUID id)
+            throws UserNotFoundException {
         User user = userIdentityService.findUserById(id);
         return userResponseMapper.userToUserResponse(user);
     }

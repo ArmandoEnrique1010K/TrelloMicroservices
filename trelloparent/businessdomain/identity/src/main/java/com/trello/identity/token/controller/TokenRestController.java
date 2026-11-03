@@ -12,16 +12,10 @@ import org.springframework.web.bind.annotation.RestController;
 import com.trello.identity.common.StandarizedApiExceptionResponse;
 import com.trello.identity.common.SuccessfulResponse;
 import com.trello.identity.common.SuccessfulVoidResponse;
-import com.trello.identity.exception.MismatchSameOldPasswordException;
-import com.trello.identity.exception.MismatchUpdatePasswordException;
-import com.trello.identity.exception.UserNotFoundException;
 import com.trello.identity.token.dto.request.ResetPasswordRequest;
 import com.trello.identity.token.dto.request.SendTokenRequest;
 import com.trello.identity.token.dto.request.ValidateTokenRequest;
 import com.trello.identity.token.dto.response.ValidatePasswordResetTokenResponse;
-import com.trello.identity.token.exception.ConfirmedAccountException;
-import com.trello.identity.token.exception.InvalidTokenException;
-import com.trello.identity.token.exception.UnconfirmedAccountException;
 import com.trello.identity.token.service.TokenService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -92,8 +86,7 @@ public class TokenRestController {
     })
     @PostMapping("/send/confirm-account")
     public ResponseEntity<SuccessfulResponse<SuccessfulVoidResponse>> sendConfirmAccountToken(
-            @Valid @RequestBody SendTokenRequest input)
-            throws UserNotFoundException, ConfirmedAccountException {
+            @Valid @RequestBody SendTokenRequest input) {
 
         SuccessfulResponse<SuccessfulVoidResponse> successfulResponse = new SuccessfulResponse<>();
         successfulResponse.setMessage("Se ha enviado un token de validación a su correo");
@@ -175,8 +168,7 @@ public class TokenRestController {
     @PostMapping("/validate/confirm-account")
     public ResponseEntity<SuccessfulResponse<SuccessfulVoidResponse>> validateConfirmAccountToken(
             @AuthenticationPrincipal Jwt jwt,
-            @Valid @RequestBody ValidateTokenRequest input)
-            throws InvalidTokenException, UserNotFoundException, ConfirmedAccountException {
+            @Valid @RequestBody ValidateTokenRequest input) {
 
         SuccessfulResponse<SuccessfulVoidResponse> successfulResponse = new SuccessfulResponse<>();
         successfulResponse.setMessage("Token válido, su cuenta ha sido activada");
@@ -243,8 +235,7 @@ public class TokenRestController {
     })
     @PostMapping("/send/password-reset")
     public ResponseEntity<SuccessfulResponse<SuccessfulVoidResponse>> sendPasswordResetToken(
-            @Valid @RequestBody SendTokenRequest input)
-            throws UserNotFoundException, UnconfirmedAccountException {
+            @Valid @RequestBody SendTokenRequest input) {
 
         SuccessfulResponse<SuccessfulVoidResponse> successfulResponse = new SuccessfulResponse<>();
         successfulResponse.setMessage("Se ha enviado un token de validación a su correo");
@@ -326,8 +317,7 @@ public class TokenRestController {
     })
     @PostMapping("/validate/password-reset")
     public ResponseEntity<SuccessfulResponse<ValidatePasswordResetTokenResponse>> validatePasswordResetToken(
-            @Valid @RequestBody ValidateTokenRequest input)
-            throws InvalidTokenException, UserNotFoundException, UnconfirmedAccountException {
+            @Valid @RequestBody ValidateTokenRequest input) {
 
         ValidatePasswordResetTokenResponse response = tokenService.validatePasswordResetToken(input);
 
@@ -396,6 +386,17 @@ public class TokenRestController {
                         "type": "/errors/account/unconfirmed"
                     }
                     """))),
+            @ApiResponse(responseCode = "404", description = "El usuario no se encuentra en el sistema", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
+                    {
+                        "detail": "The user was not found in the system",
+                        "fields": null,
+                        "instance": null,
+                        "message": "Ha ocurrido un error inesperado",
+                        "status": 404,
+                        "title": "User not found",
+                        "type": "/errors/user-not-found"
+                    }
+                    """))),
             @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
                     {
                       "detail": "An unexpected error occurred while processing the request",
@@ -410,8 +411,7 @@ public class TokenRestController {
     })
     @PutMapping("/reset-password")
     public ResponseEntity<SuccessfulResponse<SuccessfulVoidResponse>> resetPassword(
-            @Valid @RequestBody ResetPasswordRequest input) throws UserNotFoundException,
-            UnconfirmedAccountException, MismatchUpdatePasswordException, MismatchSameOldPasswordException {
+            @Valid @RequestBody ResetPasswordRequest input) {
 
         tokenService.resetPassword(input);
 
@@ -420,6 +420,5 @@ public class TokenRestController {
         successfulResponse.setBody(null);
 
         return ResponseEntity.status(HttpStatus.OK).body(successfulResponse);
-
     }
 }

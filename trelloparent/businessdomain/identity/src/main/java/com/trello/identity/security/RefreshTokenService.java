@@ -14,7 +14,6 @@ import com.trello.identity.auth.dto.response.AuthenticationResponse;
 import com.trello.identity.auth.exception.InvalidRefreshTokenException;
 import com.trello.identity.entities.RefreshToken;
 import com.trello.identity.entities.User;
-import com.trello.identity.exception.BusinessRuleException;
 import com.trello.identity.exception.UserNotFoundException;
 import com.trello.identity.repositories.RefreshTokenRepository;
 import com.trello.identity.service.UserIdentityService;
@@ -41,7 +40,7 @@ public class RefreshTokenService {
     @Transactional
     public AuthenticationResponse refreshAccessToken(
             String refreshTokenValue)
-            throws BusinessRuleException, UserNotFoundException {
+            throws InvalidRefreshTokenException, UserNotFoundException {
 
         // 1. Obtener el hash del refresh token recibido
         String tokenHash = hashRefreshToken(refreshTokenValue);
@@ -114,7 +113,8 @@ public class RefreshTokenService {
 
     public void saveRefreshToken(
             String refreshToken,
-            UUID userId) {
+            UUID userId)
+            throws UserNotFoundException {
 
         RefreshToken entity = new RefreshToken();
 

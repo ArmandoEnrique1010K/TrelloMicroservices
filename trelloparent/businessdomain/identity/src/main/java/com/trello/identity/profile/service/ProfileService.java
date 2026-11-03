@@ -20,7 +20,6 @@ public interface ProfileService {
 
     void updatePassword(UUID userId,
             UpdatePasswordRequest updatePasswordRequest)
-            throws UserNotFoundException, MismatchCheckPasswordException,
-            MismatchUpdatePasswordException,
+            throws UserNotFoundException, MismatchCheckPasswordException, MismatchUpdatePasswordException,
             MismatchSameOldPasswordException;
 }

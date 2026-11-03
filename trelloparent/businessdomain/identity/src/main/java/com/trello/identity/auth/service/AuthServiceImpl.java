@@ -51,8 +51,7 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public AccountResponse createAccount(AccountRequest accountRequest)
-            throws MismatchPasswordException,
-            UserAlreadyExistsException {
+            throws MismatchPasswordException, UserAlreadyExistsException {
 
         if (!accountRequest.getPassword().equals(accountRequest.getPasswordConfirmation())) {
             throw new MismatchPasswordException();
@@ -134,14 +133,15 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public void logout() {
-        // TODO: IMPLEMENTAR CIERRE DE SESION POR MEDIO DE COOKIE
-
-    }
-
-    @Override
-    public AuthenticationResponse refreshToken(RefreshTokenRequest request) throws InvalidRefreshTokenException {
+    public AuthenticationResponse refreshToken(RefreshTokenRequest request)
+            throws InvalidRefreshTokenException, UserNotFoundException {
         return refreshTokenService.refreshAccessToken(
                 request.getRefreshToken());
     }
+
+    // TODO: IMPLEMENTAR CIERRE DE SESION POR MEDIO DE COOKIE
+    // @Override
+    // public void logout() {
+
+    // }
 }

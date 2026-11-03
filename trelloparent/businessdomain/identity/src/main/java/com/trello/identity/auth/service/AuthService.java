@@ -9,6 +9,7 @@ import com.trello.identity.auth.exception.CustomBadCredentialsException;
 import com.trello.identity.auth.exception.InvalidRefreshTokenException;
 import com.trello.identity.auth.exception.MismatchPasswordException;
 import com.trello.identity.auth.exception.UserAlreadyExistsException;
+import com.trello.identity.exception.UserNotFoundException;
 
 public interface AuthService {
     AccountResponse createAccount(AccountRequest accountRequest)
@@ -17,9 +18,9 @@ public interface AuthService {
     AuthenticationResponse login(AuthenticationRequest authenticationRequest)
             throws CustomBadCredentialsException;
 
-    void logout();
-
     AuthenticationResponse refreshToken(
             RefreshTokenRequest request)
-            throws InvalidRefreshTokenException;
+            throws InvalidRefreshTokenException, UserNotFoundException;
+
+    // void logout();
 }

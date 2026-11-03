@@ -103,7 +103,7 @@ public class TokenServiceImpl implements TokenService {
     @Override
     public void validateConfirmAccountToken(
             ValidateTokenRequest validateTokenRequest)
-            throws InvalidTokenException, UserNotFoundException, ConfirmedAccountException {
+            throws UserNotFoundException, ConfirmedAccountException, InvalidTokenException {
         // Solamente va a tener 3 intentos de validacion del token
         final int maxAttempts = 3;
 
@@ -223,7 +223,7 @@ public class TokenServiceImpl implements TokenService {
     @Override
     public ValidatePasswordResetTokenResponse validatePasswordResetToken(
             ValidateTokenRequest validateTokenRequest)
-            throws InvalidTokenException, UserNotFoundException, UnconfirmedAccountException {
+            throws UserNotFoundException, InvalidTokenException, UnconfirmedAccountException {
         // Solamente va a tener 3 intentos de validacion del token
         final int maxAttempts = 3;
 

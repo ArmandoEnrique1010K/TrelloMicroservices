@@ -18,14 +18,14 @@ public interface TokenService {
 
     void validateConfirmAccountToken(
             ValidateTokenRequest validateTokenRequest)
-            throws InvalidTokenException, UserNotFoundException, ConfirmedAccountException;
+            throws UserNotFoundException, ConfirmedAccountException, InvalidTokenException;
 
     void sendPasswordResetToken(SendTokenRequest sendTokenRequest)
             throws UserNotFoundException, UnconfirmedAccountException;
 
     ValidatePasswordResetTokenResponse validatePasswordResetToken(
             ValidateTokenRequest validateTokenRequest)
-            throws InvalidTokenException, UserNotFoundException, UnconfirmedAccountException;
+            throws UserNotFoundException, InvalidTokenException, UnconfirmedAccountException;
 
     // Reestablece la contraseña si no recuerda su contraseña anterior
     void resetPassword(ResetPasswordRequest resetPasswordRequest)
