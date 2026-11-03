@@ -94,7 +94,6 @@ public class TokenRestController {
 
         tokenService.sendConfirmAccountToken(input);
         return ResponseEntity.status(HttpStatus.CREATED).body(successfulResponse);
-
     }
 
     @Operation(summary = "Valida el token para activar la cuenta", description = "Luego de validar el token, la cuenta del usuario será activada y podra realizar las operaciones")

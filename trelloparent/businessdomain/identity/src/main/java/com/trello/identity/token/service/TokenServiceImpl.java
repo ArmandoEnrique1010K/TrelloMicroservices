@@ -7,6 +7,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.trello.identity.auth.resend.EmailService;
 import com.trello.identity.entities.OtpToken;
 import com.trello.identity.entities.User;
 import com.trello.identity.enums.OtpPurpose;
@@ -33,13 +34,17 @@ public class TokenServiceImpl implements TokenService {
     private final UserIdentityService userIdentityService;
     private final OtpTokenIdentityService otpTokenIdentityService;
     private final PasswordEncoder passwordEncoder;
+    private final EmailService emailService;
 
     public TokenServiceImpl(
             UserIdentityService userIdentityService,
-            OtpTokenIdentityService otpTokenIdentityService, PasswordEncoder passwordEncoder) {
+            OtpTokenIdentityService otpTokenIdentityService,
+            PasswordEncoder passwordEncoder,
+            EmailService emailService) {
         this.userIdentityService = userIdentityService;
         this.otpTokenIdentityService = otpTokenIdentityService;
         this.passwordEncoder = passwordEncoder;
+        this.emailService = emailService;
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -58,13 +63,6 @@ public class TokenServiceImpl implements TokenService {
 
         // Recordar que hay una relacion de uno a uno entre User y OtpToken
         // Si no hay un OtpToken, debe crear uno, si lo hay debe modificar sus campos
-        // OtpToken otpToken = otpTokenIdentityService
-        // .findOptionalOtpTokenByUserId(userId)
-        // .orElseGet(() -> {
-        // OtpToken newOtpToken = new OtpToken();
-        // newOtpToken.setUser(existingUser);
-        // return newOtpToken;
-        // });
         UUID userId = existingUser.getId();
 
         OtpToken otpToken = otpTokenIdentityService
@@ -81,10 +79,16 @@ public class TokenServiceImpl implements TokenService {
         otpToken.setResetToken(null);
         otpToken.setOtpPurpose(OtpPurpose.ACCOUNT_CONFIRMATION);
         otpTokenIdentityService.saveOtpToken(otpToken);
-        // TODO: IMPLEMENTAR UN SERVICIO DE ENVIO DE CORREO REAL
-        // En este caso se imprimira en consola el token de 6 digitos
+
+        // Imprime en consola el token de 6 digitos
         log.info("EL TOKEN DE 6 DIGITOS PARA ACTIVAR LA CUENTA ES: " + token);
 
+        String email = existingUser.getEmail();
+
+        // Llamada al servicio para enviar un correo al email real del usuario
+        // mailerSendUtils.sendConfirmAccountEmail(email, token);
+
+        sendAccountConfirmation(email, token);
     }
 
     // Es necesario el uso de transactional
@@ -207,12 +211,12 @@ public class TokenServiceImpl implements TokenService {
         otpToken.setExpiresAt(LocalDateTime.now().plusMinutes(10));
         otpToken.setResetToken(null);
         otpToken.setOtpPurpose(OtpPurpose.PASSWORD_RESET);
-
         otpTokenIdentityService.saveOtpToken(otpToken);
-        // TODO: IMPLEMENTAR UN SERVICIO DE ENVIO DE CORREO REAL
-        // En este caso se imprimira en consola el token de 6 digitos
+
         log.info("EL TOKEN DE 6 DIGITOS PARA ACTIVAR LA CUENTA ES: " + token);
 
+        // mailerSendUtils.sendPasswordResetEmail(email, token);
+        sendPasswordRecovery(email, token);
     }
 
     // No hara un rollback si cae en InvalidTokenException
@@ -317,6 +321,41 @@ public class TokenServiceImpl implements TokenService {
 
         // Borrar el token
         otpTokenIdentityService.deleteOtpTokenById(existingOtpToken.getId());
+    }
+
+    // Envía un correo electrónico con el código de confirmación de cuenta
+    public void sendAccountConfirmation(
+            String email,
+            String token) {
+
+        // Construye el contenido HTML del correo utilizando el token generado.
+        String html = """
+                <h2>Confirma tu cuenta</h2>
+                <p>Utiliza el siguiente código para verificar tu cuenta:</p>
+                <h1>%s</h1>
+                """.formatted(token);
+
+        // Delega el envío al servicio encargado de comunicarse con Resend.
+        emailService.sendEmail(
+                email,
+                "Confirmación de cuenta",
+                html);
+    }
+
+    public void sendPasswordRecovery(
+            String email,
+            String token) {
+
+        String html = """
+                <h2>Recuperación de contraseña</h2>
+                <p>Tu código de recuperación es:</p>
+                <h1>%s</h1>
+                """.formatted(token);
+
+        emailService.sendEmail(
+                email,
+                "Recuperación de contraseña",
+                html);
     }
 
 }

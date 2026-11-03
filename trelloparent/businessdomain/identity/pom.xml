@@ -62,6 +62,13 @@
             <artifactId>spring-security-oauth2-jose</artifactId>
             <version>${org.spring.security.version}</version>
         </dependency>
+
+        <!-- Resend -->
+         <dependency>
+            <groupId>com.resend</groupId>
+            <artifactId>resend-java</artifactId>
+            <version>4.11.0</version>
+        </dependency>
     </dependencies>
 
 
