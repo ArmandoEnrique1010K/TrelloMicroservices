@@ -221,7 +221,7 @@
   "modalBehavior": "never",
   "singleImageModalSettings": {
     "conversionPresetName": "WEBP (75, no resizing)",
-    "outputFormat": "JPEG",
+    "outputFormat": "PNG",
     "quality": 100,
     "colorDepth": 1,
     "resizeMode": "None",

@@ -5,10 +5,10 @@
 ---
 # Índice
 - [Introducción](#Introducción)
-	- [Descripción del proyecto](#Descripción del proyecto)
+	- [Descripción del proyecto](#Descripción-del-proyecto)
 	- [Objetivos](#Objetivos)
-	- [Tecnologías utilizadas](#Tecnologías%20utilizadas)
-	- [Características principales](#Características%20principales)
+	- [Tecnologías utilizadas](#Tecnologías-utilizadas)
+	- [Características principales](#Características-principales)
 - Arquitectura del proyecto
 - Diseño funcional y modelo de datos
 - Configuración y ejecución del proyecto
@@ -80,8 +80,7 @@ Las siguientes son las principales tecnologías, frameworks y librerías utiliza
 | Spring Boot      | Simplifica la configuración, desarrollo y ejecución independiente de cada microservicio.                    |
 | Spring Cloud     | Ecosistema de herramientas para implementar funcionalidades relacionadas con arquitecturas distribuidas.    |
 
-![303](assets/Pasted%20image%2020261103211041.jpeg)
-
+![](assets/spring-boot-logo.png)
 
 ### Persistencia y datos
 
@@ -90,7 +89,7 @@ Las siguientes son las principales tecnologías, frameworks y librerías utiliza
 | Spring Data JPA | Abstracción para la persistencia y acceso a bases de datos mediante repositorios y consultas JPA.              |
 | PostgreSQL      | Sistema de gestión de bases de datos relacional utilizado para almacenar la información de cada microservicio. |
 
-![a|147](assets/Pasted%20image%2020261103205938.png)
+![](assets/postgres-logo.png)
 
 ### Desarrollo web y APIs
 
@@ -101,17 +100,16 @@ Las siguientes son las principales tecnologías, frameworks y librerías utiliza
 |Spring Boot Starter Validation|Validación de datos de entrada mediante anotaciones de Bean Validation.|
 |Resend|Servicio de envío de correos electrónicos transaccionales, utilizado para la activación de cuentas.|
 
-![275](assets/Pasted%20image%2020261103211151.png)
-
+![](assets/swagger-logo.png)
 
 ### Mapeo y generación de código
 
-|Tecnología|Descripción|
-|---|---|
-|MapStruct|Generación de código para realizar conversiones entre entidades, DTOs y otros objetos Java.|
-|Lombok|Reducción de código repetitivo mediante anotaciones para generar constructores, getters, setters y otros métodos.|
+| Tecnología | Descripción                                                                                                       |
+| ---------- | ----------------------------------------------------------------------------------------------------------------- |
+| MapStruct  | Generación de código para realizar conversiones entre entidades, DTOs y otros objetos Java.                       |
+| Lombok     | Reducción de código repetitivo mediante anotaciones para generar constructores, getters, setters y otros métodos. |
 
-![[README-1793759012822.webp|311]]
+![](assets/mapstruct-logo.png)
 
 ### Seguridad y autenticación
 
@@ -120,17 +118,18 @@ Las siguientes son las principales tecnologías, frameworks y librerías utiliza
 | Spring Security        | Gestión de autenticación, autorización y protección de endpoints.         |
 | OAuth2 Resource Server | Validación de tokens JWT utilizados para autenticar las solicitudes HTTP. |
 
-![[README-1793759107965.webp|143]]
+![](assets/oauth-2-logo.png)
 
 ### Comunicación entre microservicios y resiliencia
 
-|Tecnología|Descripción|
-|---|---|
-|Spring Cloud OpenFeign|Cliente HTTP declarativo utilizado para la comunicación síncrona entre microservicios.|
-|Apache HttpClient|Cliente HTTP utilizado para configurar y ejecutar peticiones que requieren métodos como PATCH.|
-|Resilience4j Circuit Breaker|Aislamiento de fallos en las comunicaciones entre microservicios mediante el patrón Circuit Breaker.|
-|Resilience4j Retry|Gestión de reintentos automáticos ante determinados errores en las comunicaciones.|
-![[README-1793759171414.webp|267]]
+| Tecnología                   | Descripción                                                                                          |
+| ---------------------------- | ---------------------------------------------------------------------------------------------------- |
+| Spring Cloud OpenFeign       | Cliente HTTP declarativo utilizado para la comunicación síncrona entre microservicios.               |
+| Apache HttpClient            | Cliente HTTP utilizado para configurar y ejecutar peticiones que requieren métodos como PATCH.       |
+| Resilience4j Circuit Breaker | Aislamiento de fallos en las comunicaciones entre microservicios mediante el patrón Circuit Breaker. |
+| Resilience4j Retry           | Gestión de reintentos automáticos ante determinados errores en las comunicaciones.                   |
+
+![](assets/resilence4j-logo.png)
 
 ### Observabilidad e infraestructura
 
@@ -139,7 +138,7 @@ Las siguientes son las principales tecnologías, frameworks y librerías utiliza
 | Spring Boot Actuator | Supervisión de los microservicios y consulta de información operativa, incluyendo estados y eventos de los Circuit Breakers. |
 | Docker               | Contenedorización y configuración de la infraestructura necesaria para ejecutar el entorno de desarrollo local.              |
 
-![[README-1793759308068.webp|306]]
+![](assets/docker-logo.png)
 
 ## Características principales
 

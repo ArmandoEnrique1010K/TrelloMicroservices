@@ -4,11 +4,11 @@
     "type": "split",
     "children": [
       {
-        "id": "59b2817551077c2a",
+        "id": "bd81bc8f7753387c",
         "type": "tabs",
         "children": [
           {
-            "id": "7fdcc1aab8d781ca",
+            "id": "69e9dc870a15f4f4",
             "type": "leaf",
             "state": {
               "type": "markdown",
@@ -203,19 +203,20 @@
       "html-font-toolbar:Toggle HTML font toolbar": false
     }
   },
-  "active": "7fdcc1aab8d781ca",
+  "active": "69e9dc870a15f4f4",
   "lastOpenFiles": [
-    "assets/Pasted image 20261103211041.jpeg",
-    "assets/Pasted image 20261103211151.png",
-    "assets/Pasted image 20261103205938.png",
+    "assets/docker-logo.png",
+    "assets/README-1793763089551.png",
+    "assets/README-1793763075746.webp",
+    "assets/resilence4j-logo.png",
+    "assets/oauth-2-logo.png",
+    "assets/mapstruct-logo.png",
+    "assets/README-1793762828705.webp",
+    "assets/swagger-logo.png",
+    "assets/README-1793762786722.webp",
+    "assets/postgres-logo.png",
+    "assets/spring-boot-logo.webp",
     "README.md",
-    "assets/solucion_entorno_desarrollo.png",
-    "assets/README-1793759308068.webp",
-    "assets/README-1793759171414.webp",
-    "assets/README-1793759107965.webp",
-    "assets/README-1793759012822.webp",
-    "assets/diagrama_workflow_2.png",
-    "assets/estructura_carpeta.png",
     "().md",
     "trelloparent/businessdomain/workflow/target/classes/application.properties",
     "trelloparent/businessdomain/workflow/target/test-classes/com/trello/workflow/WorkflowApplicationTests.class",
