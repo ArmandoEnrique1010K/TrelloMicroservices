@@ -1,0 +1,124 @@
+{
+  "visible": true,
+  "customText": "#e0313a",
+  "customHighlight": "#ffd500",
+  "textColors": [
+    {
+      "name": "Red",
+      "value": "#e0313a"
+    },
+    {
+      "name": "Orange",
+      "value": "#f76707"
+    },
+    {
+      "name": "Gold",
+      "value": "#b58900"
+    },
+    {
+      "name": "Green",
+      "value": "#2f9e44"
+    },
+    {
+      "name": "Blue",
+      "value": "#1c7ed6"
+    },
+    {
+      "name": "Purple",
+      "value": "#9c36b5"
+    }
+  ],
+  "highlights": [
+    {
+      "name": "Yellow",
+      "value": "rgba(255, 213, 0, 0.4)"
+    },
+    {
+      "name": "Green",
+      "value": "rgba(64, 192, 87, 0.35)"
+    },
+    {
+      "name": "Blue",
+      "value": "rgba(51, 154, 240, 0.35)"
+    },
+    {
+      "name": "Pink",
+      "value": "rgba(246, 89, 171, 0.35)"
+    },
+    {
+      "name": "Orange",
+      "value": "rgba(255, 146, 43, 0.4)"
+    },
+    {
+      "name": "Purple",
+      "value": "rgba(151, 117, 250, 0.35)"
+    }
+  ],
+  "sizes": [
+    {
+      "name": "Small",
+      "value": "0.85em"
+    },
+    {
+      "name": "Normal",
+      "value": ""
+    },
+    {
+      "name": "Large",
+      "value": "1.25em"
+    },
+    {
+      "name": "XL",
+      "value": "1.6em"
+    },
+    {
+      "name": "XXL",
+      "value": "2em"
+    }
+  ],
+  "fonts": [
+    {
+      "name": "Default",
+      "value": ""
+    },
+    {
+      "name": "Serif",
+      "value": "Georgia, serif"
+    },
+    {
+      "name": "Mono",
+      "value": "Consolas, monospace"
+    },
+    {
+      "name": "Hand",
+      "value": "'Segoe Script', 'Comic Sans MS', cursive"
+    }
+  ],
+  "symbols": [
+    {
+      "name": "Math",
+      "value": "± × ÷ ≈ ≠ ≤ ≥ ° ∞ ∑ √ ∫ ∂ ∆ ½ ¼ ¾"
+    },
+    {
+      "name": "Greek",
+      "value": "α β γ δ ε θ λ μ π ρ σ τ φ ψ ω Ω Σ Δ Φ"
+    },
+    {
+      "name": "Arrows",
+      "value": "→ ← ↑ ↓ ↔ ⇒ ⇐ ⇔ ↳ ⇧"
+    },
+    {
+      "name": "Punctuation",
+      "value": "— – … « » “ ” ‘ ’ † ‡ § ¶ • ·"
+    },
+    {
+      "name": "Currency",
+      "value": "€ £ ¥ ¢ ₹ ₽ ¤"
+    },
+    {
+      "name": "Marks",
+      "value": "✓ ✗ ★ ☆ ☐ ☑ ♥ ⚠ © ® ™"
+    }
+  ],
+  "recentSymbols": []
+}
