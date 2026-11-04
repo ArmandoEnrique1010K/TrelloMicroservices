@@ -80,7 +80,8 @@ Las siguientes son las principales tecnologías, frameworks y librerías utiliza
 | Spring Boot      | Simplifica la configuración, desarrollo y ejecución independiente de cada microservicio.                    |
 | Spring Cloud     | Ecosistema de herramientas para implementar funcionalidades relacionadas con arquitecturas distribuidas.    |
 
-![205](assets/Pasted%20image%2020261103211041.png)
+![303](assets/Pasted%20image%2020261103211041.jpeg)
+
 
 ### Persistencia y datos
 

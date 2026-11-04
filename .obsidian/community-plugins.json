@@ -8,5 +8,7 @@
   "obsidian-linter",
   "table-editor-obsidian",
   "html-font-toolbar",
-  "image-converter"
+  "image-converter",
+  "obsidian-paste-image-rename",
+  "resizer"
 ]
