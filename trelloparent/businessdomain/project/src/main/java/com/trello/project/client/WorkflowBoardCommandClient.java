@@ -23,12 +23,12 @@ public interface WorkflowBoardCommandClient {
             @RequestHeader("X-Operation-Id") UUID operationId);
 
     @DeleteMapping("/boards/{boardId}")
-    ResponseEntity<Void> deleteBoardByIdAndBoardAccessAndTasks(
+    ResponseEntity<Void> deleteBoardAndBoardAccesses(
             @PathVariable("boardId") UUID boardId,
             @RequestHeader("X-Operation-Id") UUID operationId);
 
     @DeleteMapping("/boards/batch")
-    ResponseEntity<Void> deleteManyBoardsByIdsAndBoardAccessAndTasks(
+    ResponseEntity<Void> deleteAllBoardsByIdsAndMultipleBoardAccesses(
             @RequestParam(required = false) List<UUID> boardIds,
             @RequestHeader("X-Operation-Id") UUID operationId);
 }

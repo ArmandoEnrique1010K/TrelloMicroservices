@@ -7,7 +7,7 @@ import java.util.UUID;
 import com.trello.project.client.dto.response.UserResponse;
 
 public interface IdentityClientService {
-    List<UserResponse> findUsersByIds(Set<UUID> usersIds);
+    List<UserResponse> listAllUsersByIds(Set<UUID> usersIds);
 
     List<UserResponse> listAllUsersByEmailAndExcludingIds(
             String email,

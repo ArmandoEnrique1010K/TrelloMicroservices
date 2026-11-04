@@ -12,8 +12,8 @@ import com.trello.project.operation.exception.OperationManualReviewException;
 import com.trello.project.operation.exception.OperationNotFoundException;
 import com.trello.project.operation.exception.OperationNotPendingException;
 
-public interface OperationAddBoardAndBoardAccessUserOwnerProcessor {
-    BoardResponse processAddBoardAndBoardAccessUserOwnerOperation(UUID operationId)
+public interface OperationCreateBoardProcessor {
+    BoardResponse processCreateBoardOperation(UUID operationId)
             throws WorkspaceNotFoundException, BoardNotFoundException, OperationNotPendingException,
             OperationNotFoundException, OperationManualReviewException, OperationCompensatedException,
             OperationConflictException, BusinessRuleException;

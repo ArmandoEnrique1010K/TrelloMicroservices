@@ -53,14 +53,14 @@ public class WorkflowOperationCommandClientFallbackFactory implements FallbackFa
             }
 
             @Override
-            public ResponseEntity<Void> revertDeleteBoardAndBoardAccessAndTasks(UUID operationId) {
-                log.error("Error relacionado con revertDeleteBoardAndBoardAccessAndTasks");
+            public ResponseEntity<Void> revertDeleteBoardAndBoardAccesses(UUID operationId) {
+                log.error("Error relacionado con revertDeleteBoardAndBoardAccesses");
                 throw new ServiceUnavailableException();
             }
 
             @Override
-            public ResponseEntity<Void> revertDeleteAllBoardsAndBoardAccessAndTasks(UUID operationId) {
-                log.error("Error relacionado con revertDeleteAllBoardsAndBoardAccessAndTasks");
+            public ResponseEntity<Void> revertDeleteAllBoardsAndMultipleBoardAccesses(UUID operationId) {
+                log.error("Error relacionado con revertDeleteAllBoardsAndMultipleBoardAccesses");
                 throw new ServiceUnavailableException();
             }
         };

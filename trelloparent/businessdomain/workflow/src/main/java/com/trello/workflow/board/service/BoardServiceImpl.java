@@ -54,15 +54,15 @@ public class BoardServiceImpl implements BoardService {
     }
 
     @Override
-    public void deleteBoardAndBoardAccessAndTasks(UUID boardId, UUID operationId)
+    public void deleteBoardAndBoardAccesses(UUID boardId, UUID operationId)
             throws OperationConflictException, OperationNotPendingException, BusinessRuleException,
             BoardNotFoundException, OperationNotFoundException {
-        Operation operation = operationRegisterService.registerDeleteBoardAndBoardAccessAndTasks(boardId, operationId);
+        Operation operation = operationRegisterService.registerDeleteBoardAndBoardAccesses(boardId, operationId);
 
         operation.setAttempts(operation.getAttempts() + 1);
         operationWorkflowService.saveOperation(operation);
 
-        operationProcessor.processDeleteBoardAndBoardAccessAndTasksOperation(operation.getId());
+        operationProcessor.processDeleteBoardAndBoardAccessesOperation(operation.getId());
 
         operation.setStatus(OperationStatus.COMPLETED);
         operation.setCompletedAt(LocalDateTime.now());
@@ -70,16 +70,16 @@ public class BoardServiceImpl implements BoardService {
     }
 
     @Override
-    public void deleteAllBoardsByIdsAndBoardAccessAndTasks(List<UUID> boardsIds, UUID operationId)
+    public void deleteAllBoardsByIdsAndMultipleBoardAccesses(List<UUID> boardsIds, UUID operationId)
             throws OperationConflictException, OperationNotPendingException, BusinessRuleException,
             ManyBoardsNotFoundException, OperationNotFoundException {
-        Operation operation = operationRegisterService.registerDeleteAllBoardsAndBoardAccessAndTasks(boardsIds,
+        Operation operation = operationRegisterService.registerDeleteAllBoardsAndMultipleBoardAccesses(boardsIds,
                 operationId);
 
         operation.setAttempts(operation.getAttempts() + 1);
         operationWorkflowService.saveOperation(operation);
 
-        operationProcessor.processDeleteAllBoardsAndBoardAccessAndTasksOperation(operation.getId());
+        operationProcessor.processDeleteAllBoardsAndMultipleBoardAccessesOperation(operation.getId());
 
         operation.setStatus(OperationStatus.COMPLETED);
         operation.setCompletedAt(LocalDateTime.now());

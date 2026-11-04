@@ -242,11 +242,11 @@ public class BoardRestController {
                     """))),
     })
     @DeleteMapping("/{boardId}")
-    public ResponseEntity<Void> deleteBoardAndBoardAccessAndTasks(
+    public ResponseEntity<Void> deleteBoardAndBoardAccesses(
             @Parameter(description = "ID del tablero", required = true, example = "550e8400-e29b-41d4-a716-446655440000") @PathVariable UUID boardId,
             @RequestHeader("X-Operation-Id") UUID operationId) {
 
-        boardService.deleteBoardAndBoardAccessAndTasks(boardId, operationId);
+        boardService.deleteBoardAndBoardAccesses(boardId, operationId);
         // Prueba de rendimiento
         // Retrasar la respuesta después del commit del servicio.
         // try {
@@ -351,10 +351,10 @@ public class BoardRestController {
                     """))),
     })
     @DeleteMapping("/batch")
-    public ResponseEntity<Void> deleteManyBoardsByIdsAndBoardAccessAndTasks(
+    public ResponseEntity<Void> deleteAllBoardsByIdsAndMultipleBoardAccesses(
             @Parameter(description = "Lista de IDs del tablero", required = false, example = "550e8400-e29b-41d4-a716-446655440000") @RequestParam(required = false) List<UUID> boardIds,
             @RequestHeader("X-Operation-Id") UUID operationId) {
-        boardService.deleteAllBoardsByIdsAndBoardAccessAndTasks(boardIds, operationId);
+        boardService.deleteAllBoardsByIdsAndMultipleBoardAccesses(boardIds, operationId);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).body(null);
     }
 }

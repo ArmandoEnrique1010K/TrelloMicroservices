@@ -20,38 +20,38 @@ import com.trello.project.operation.exception.OperationConflictException;
 import com.trello.project.operation.exception.OperationManualReviewException;
 import com.trello.project.operation.exception.OperationNotFoundException;
 import com.trello.project.operation.exception.OperationNotPendingException;
-import com.trello.project.operation.service.handler.OperationAddBoardAndBoardAccessUserOwnerService;
+import com.trello.project.operation.service.handler.OperationCreateBoardService;
 import com.trello.project.operation.service.utils.OperationUtils;
 import com.trello.project.service.BoardProjectService;
 import com.trello.project.service.OperationProjectService;
 
 @Service
-public class OperationAddBoardAndBoardAccessUserOwnerProcessorImpl
-        implements OperationAddBoardAndBoardAccessUserOwnerProcessor {
+public class OperationCreateBoardProcessorImpl
+        implements OperationCreateBoardProcessor {
     private final OperationProjectService operationProjectService;
     private final WorkflowClientService workflowClientService;
     private final OperationUtils operationUtils;
     private final BoardProjectService boardProjectService;
     private final BoardResponseMapper boardResponseMapper;
-    private final OperationAddBoardAndBoardAccessUserOwnerService operationAddBoardAndBoardAccessUserOwnerService;
+    private final OperationCreateBoardService operationCreateBoardService;
 
-    public OperationAddBoardAndBoardAccessUserOwnerProcessorImpl(
+    public OperationCreateBoardProcessorImpl(
             OperationProjectService operationProjectService,
             WorkflowClientService workflowClientService,
             OperationUtils operationUtils,
             BoardProjectService boardProjectService,
             BoardResponseMapper boardResponseMapper,
-            OperationAddBoardAndBoardAccessUserOwnerService operationAddBoardAndBoardAccessUserOwnerService) {
+            OperationCreateBoardService operationCreateBoardService) {
         this.operationProjectService = operationProjectService;
         this.workflowClientService = workflowClientService;
         this.operationUtils = operationUtils;
         this.boardProjectService = boardProjectService;
         this.boardResponseMapper = boardResponseMapper;
-        this.operationAddBoardAndBoardAccessUserOwnerService = operationAddBoardAndBoardAccessUserOwnerService;
+        this.operationCreateBoardService = operationCreateBoardService;
     }
 
     @Override
-    public BoardResponse processAddBoardAndBoardAccessUserOwnerOperation(UUID operationId)
+    public BoardResponse processCreateBoardOperation(UUID operationId)
             throws WorkspaceNotFoundException, BoardNotFoundException, OperationNotPendingException,
             OperationNotFoundException, OperationManualReviewException, OperationCompensatedException,
             OperationConflictException, BusinessRuleException {
@@ -74,7 +74,7 @@ public class OperationAddBoardAndBoardAccessUserOwnerProcessorImpl
         operationUtils.markExecuting(operation);
 
         try {
-            processAddBoardAndBoardAccessUserOwner(operation);
+            processCreateBoard(operation);
             operationUtils.markCompleted(operation);
 
         } catch (ServiceUnavailableException e) {
@@ -126,7 +126,7 @@ public class OperationAddBoardAndBoardAccessUserOwnerProcessorImpl
 
     }
 
-    private void processAddBoardAndBoardAccessUserOwner(Operation operation)
+    private void processCreateBoard(Operation operation)
             throws WorkspaceNotFoundException, BoardNotFoundException {
         UUID boardId = operation.getBoardId();
         UUID ownerUserId = operation.getOwnerUserId();
@@ -134,6 +134,8 @@ public class OperationAddBoardAndBoardAccessUserOwnerProcessorImpl
         // Verificar que exista el tablero
         boardProjectService.findBoardByIdAndOwnerUserIdAndActive(boardId, ownerUserId);
 
+        // Llama al metodo para añadir tablero y permiso de acceso del usuario
+        // propietario administrador
         workflowClientService.addBoardAndBoardAccessUserOwner(boardId, operation.getId());
     }
 
@@ -146,7 +148,7 @@ public class OperationAddBoardAndBoardAccessUserOwnerProcessorImpl
 
         try {
             operationUtils.markLocalCompensationCompleted(operation);
-            operationAddBoardAndBoardAccessUserOwnerService.revertAddBoardAndBoardAccessUserOwner(operation.getId());
+            operationCreateBoardService.revertCreateBoard(operation.getId());
 
             Operation updatedOperation = operationProjectService
                     .findOperationById(operation.getId())

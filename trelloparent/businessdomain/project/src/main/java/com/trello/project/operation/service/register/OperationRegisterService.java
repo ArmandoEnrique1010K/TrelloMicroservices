@@ -26,8 +26,9 @@ public interface OperationRegisterService {
     Operation registerDeactivateMember(UUID memberId, UUID ownerUserId)
             throws MemberNotFoundException, MemberInactiveException, OperationNotPendingException;
 
-    // Crear tablero y permiso de acceso del usuario administrador
-    Operation registerAddBoardAndBoardAccessUserOwner(UUID workspaceId, UUID ownerUserId,
+    // Crear tablero y permiso de acceso del usuario administrador en el
+    // microservicio Workflow
+    Operation registerCreateBoard(UUID workspaceId, UUID ownerUserId,
             BoardRequest boardRequest,
             UUID idempotencyKey)
             throws WorkspaceNotFoundException, OperationNotPendingException;

@@ -200,7 +200,7 @@ public class UserRestController {
     })
     @SecurityRequirement(name = "bearerAuth")
     @GetMapping("/batch")
-    public ResponseEntity<List<UserResponse>> findUsersByIds(
+    public ResponseEntity<List<UserResponse>> listAllUsersByIds(
             @RequestParam(required = false) List<UUID> usersIds) {
         List<UserResponse> response = userService.listAllUsersByIds(usersIds);
         return ResponseEntity.status(HttpStatus.OK).body(response);

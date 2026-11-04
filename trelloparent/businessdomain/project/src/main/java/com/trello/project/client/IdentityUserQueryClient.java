@@ -36,7 +36,7 @@ import com.trello.project.client.fallback.IdentityUserQueryClientFallbackFactory
 public interface IdentityUserQueryClient {
 
     @GetMapping("/users/batch")
-    List<UserResponse> findUsersByIds(@RequestParam(required = false) List<UUID> usersIds);
+    List<UserResponse> listAllUsersByIds(@RequestParam(required = false) List<UUID> usersIds);
 
     // No se pasa el @AuthenticationPrincipal Jwt jwt porque el token
     // es agregado automáticamente mediante el interceptor definido

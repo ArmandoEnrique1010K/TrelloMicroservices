@@ -272,7 +272,7 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
 
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public Operation registerDeleteBoardAndBoardAccessAndTasks(UUID boardId, UUID operationId)
+    public Operation registerDeleteBoardAndBoardAccesses(UUID boardId, UUID operationId)
             throws OperationConflictException, OperationNotPendingException, BusinessRuleException,
             BoardNotFoundException {
 
@@ -282,7 +282,7 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
                 null,
                 null,
                 null,
-                OperationType.DELETE_BOARD_AND_BOARD_ACCESS_AND_TASKS);
+                OperationType.DELETE_BOARD_AND_BOARD_ACCESSES);
 
         if (existingOperation != null) {
             return operationWorkflowService.saveOperation(existingOperation);
@@ -295,7 +295,7 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
 
         Operation operation = new Operation();
         operation.setId(operationId);
-        operation.setType(OperationType.DELETE_BOARD_AND_BOARD_ACCESS_AND_TASKS);
+        operation.setType(OperationType.DELETE_BOARD_AND_BOARD_ACCESSES);
         operation.setStatus(OperationStatus.CREATED);
         operation.setBoardId(boardId);
         operation.setAttempts(0);
@@ -307,7 +307,7 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
 
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public Operation registerDeleteAllBoardsAndBoardAccessAndTasks(List<UUID> boardsIds, UUID operationId)
+    public Operation registerDeleteAllBoardsAndMultipleBoardAccesses(List<UUID> boardsIds, UUID operationId)
             throws OperationConflictException, OperationNotPendingException, BusinessRuleException,
             ManyBoardsNotFoundException {
         // Normalizar lista de IDs de tableros
@@ -322,7 +322,7 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
                 null,
                 null,
                 null,
-                normalizedBoardsIds, OperationType.DELETE_ALL_BOARDS_AND_BOARD_ACCESS_AND_TASKS);
+                normalizedBoardsIds, OperationType.DELETE_ALL_BOARDS_AND_MULTIPLE_BOARD_ACCESSES);
 
         if (existingOperation != null) {
             // Aqui cambia la lista de IDs de tableros
@@ -340,7 +340,7 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
 
         Operation operation = new Operation();
         operation.setId(operationId);
-        operation.setType(OperationType.DELETE_ALL_BOARDS_AND_BOARD_ACCESS_AND_TASKS);
+        operation.setType(OperationType.DELETE_ALL_BOARDS_AND_MULTIPLE_BOARD_ACCESSES);
         operation.setStatus(OperationStatus.CREATED);
         operation.setBoardIds(normalizedBoardsIds);
         operation.setAttempts(0);

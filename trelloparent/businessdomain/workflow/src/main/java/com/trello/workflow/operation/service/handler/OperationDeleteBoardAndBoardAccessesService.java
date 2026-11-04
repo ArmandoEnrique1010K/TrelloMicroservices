@@ -6,10 +6,10 @@ import com.trello.workflow.exception.BoardNotFoundException;
 import com.trello.workflow.operation.exception.OperationConflictException;
 import com.trello.workflow.operation.exception.OperationNotFoundException;
 
-public interface OperationDeleteBoardAndBoardAccessAndTasksService {
-    void applyDeleteBoardAndBoardAccessAndTasks(UUID operationId)
+public interface OperationDeleteBoardAndBoardAccessesService {
+    void applyDeleteBoardAndBoardAccesses(UUID operationId)
             throws OperationNotFoundException, BoardNotFoundException;
 
-    void revertDeleteBoardAndBoardAccessAndTasks(UUID operationId)
+    void revertDeleteBoardAndBoardAccesses(UUID operationId)
             throws OperationNotFoundException, OperationConflictException, BoardNotFoundException;
 }

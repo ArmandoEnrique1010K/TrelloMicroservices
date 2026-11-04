@@ -60,12 +60,12 @@ public class WorkflowClientServiceImpl implements WorkflowClientService {
     }
 
     @Override
-    public void deleteBoardByIdAndBoardAccessAndTasks(UUID boardId, UUID operationId) {
-        workflowBoardCommandClient.deleteBoardByIdAndBoardAccessAndTasks(boardId, operationId);
+    public void deleteBoardAndBoardAccesses(UUID boardId, UUID operationId) {
+        workflowBoardCommandClient.deleteBoardAndBoardAccesses(boardId, operationId);
     }
 
     @Override
-    public void deleteManyBoardsByIdsAndBoardAccessAndTasks(List<UUID> boardIds, UUID operationId) {
+    public void deleteAllBoardsByIdsAndMultipleBoardAccesses(List<UUID> boardIds, UUID operationId) {
 
         // List<UUID> normalizedBoardsIds = boardIds == null
         // ? List.of()
@@ -73,7 +73,7 @@ public class WorkflowClientServiceImpl implements WorkflowClientService {
 
         // if (!normalizedBoardsIds.isEmpty()) {
         // log.info("LA LISTA DE BOARDS IDS NO ESTA VACIA");
-        workflowBoardCommandClient.deleteManyBoardsByIdsAndBoardAccessAndTasks(
+        workflowBoardCommandClient.deleteAllBoardsByIdsAndMultipleBoardAccesses(
                 // normalizedBoardsIds,
                 boardIds,
                 operationId);
@@ -107,12 +107,12 @@ public class WorkflowClientServiceImpl implements WorkflowClientService {
     }
 
     @Override
-    public void revertDeleteBoardByIdAndBoardAccessAndTasks(UUID operationId) {
-        workflowOperationCommandClient.revertDeleteBoardAndBoardAccessAndTasks(operationId);
+    public void revertDeleteBoardAndBoardAccesses(UUID operationId) {
+        workflowOperationCommandClient.revertDeleteBoardAndBoardAccesses(operationId);
     }
 
     @Override
-    public void revertDeleteManyBoardsByIdsAndBoardAccessAndTasks(UUID operationId) {
-        workflowOperationCommandClient.revertDeleteAllBoardsAndBoardAccessAndTasks(operationId);
+    public void revertDeleteAllBoardsByIdsAndMultipleBoardAccesses(UUID operationId) {
+        workflowOperationCommandClient.revertDeleteAllBoardsAndMultipleBoardAccesses(operationId);
     }
 }

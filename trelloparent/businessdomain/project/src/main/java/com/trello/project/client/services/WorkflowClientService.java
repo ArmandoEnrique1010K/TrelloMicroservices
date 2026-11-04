@@ -34,9 +34,9 @@ public interface WorkflowClientService {
 
     void addBoardAndBoardAccessUserOwner(UUID boardId, UUID operationId);
 
-    void deleteBoardByIdAndBoardAccessAndTasks(UUID boardId, UUID operationId);
+    void deleteBoardAndBoardAccesses(UUID boardId, UUID operationId);
 
-    void deleteManyBoardsByIdsAndBoardAccessAndTasks(List<UUID> boardIds, UUID operationId);
+    void deleteAllBoardsByIdsAndMultipleBoardAccesses(List<UUID> boardIds, UUID operationId);
 
     void revertAddBoardAccess(UUID operationId);
 
@@ -48,7 +48,7 @@ public interface WorkflowClientService {
 
     void revertAddBoardAndBoardAccessUserOwner(UUID operationId);
 
-    void revertDeleteBoardByIdAndBoardAccessAndTasks(UUID operationId);
+    void revertDeleteBoardAndBoardAccesses(UUID operationId);
 
-    void revertDeleteManyBoardsByIdsAndBoardAccessAndTasks(UUID operationId);
+    void revertDeleteAllBoardsByIdsAndMultipleBoardAccesses(UUID operationId);
 }

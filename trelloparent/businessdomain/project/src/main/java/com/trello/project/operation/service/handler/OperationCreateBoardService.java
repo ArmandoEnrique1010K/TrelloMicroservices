@@ -8,11 +8,11 @@ import com.trello.project.exception.WorkspaceNotFoundException;
 import com.trello.project.operation.exception.OperationNotFoundException;
 import com.trello.project.operation.exception.OperationNotPendingException;
 
-public interface OperationAddBoardAndBoardAccessUserOwnerService {
-    void applyAddBoardAndBoardAccessUserOwner(UUID operationId, boolean automatic)
+public interface OperationCreateBoardService {
+    void applyCreateBoard(UUID operationId, boolean automatic)
             throws OperationNotFoundException, OperationNotPendingException, BoardAlreadyExistsException,
             WorkspaceNotFoundException;
 
-    void revertAddBoardAndBoardAccessUserOwner(UUID operationId)
+    void revertCreateBoard(UUID operationId)
             throws OperationNotFoundException, WorkspaceNotFoundException, BoardNotFoundException;
 }

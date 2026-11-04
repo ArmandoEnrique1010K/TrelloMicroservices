@@ -20,14 +20,14 @@ import com.trello.project.service.OperationProjectService;
 import com.trello.project.service.WorkspaceProjectService;
 
 @Service
-public class OperationAddBoardAndBoardAccessUserOwnerServiceImpl
-        implements OperationAddBoardAndBoardAccessUserOwnerService {
+public class OperationCreateBoardServiceImpl
+        implements OperationCreateBoardService {
 
     private final OperationProjectService operationProjectService;
     private final BoardProjectService boardProjectService;
     private final WorkspaceProjectService workspaceProjectService;
 
-    public OperationAddBoardAndBoardAccessUserOwnerServiceImpl(
+    public OperationCreateBoardServiceImpl(
             OperationProjectService operationProjectService,
             BoardProjectService boardProjectService,
             WorkspaceProjectService workspaceProjectService) {
@@ -38,7 +38,7 @@ public class OperationAddBoardAndBoardAccessUserOwnerServiceImpl
 
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public void applyAddBoardAndBoardAccessUserOwner(UUID operationId, boolean automatic)
+    public void applyCreateBoard(UUID operationId, boolean automatic)
             throws OperationNotFoundException, OperationNotPendingException, BoardAlreadyExistsException,
             WorkspaceNotFoundException {
         Operation persistedOperation = operationProjectService
@@ -98,7 +98,7 @@ public class OperationAddBoardAndBoardAccessUserOwnerServiceImpl
 
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public void revertAddBoardAndBoardAccessUserOwner(UUID operationId)
+    public void revertCreateBoard(UUID operationId)
             throws OperationNotFoundException, WorkspaceNotFoundException, BoardNotFoundException {
         Operation operation = operationProjectService.findOperationById(operationId)
                 .orElseThrow(OperationNotFoundException::new);

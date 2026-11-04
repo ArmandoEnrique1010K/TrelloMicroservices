@@ -340,7 +340,7 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
 
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public Operation registerAddBoardAndBoardAccessUserOwner(UUID workspaceId, UUID ownerUserId,
+    public Operation registerCreateBoard(UUID workspaceId, UUID ownerUserId,
             BoardRequest boardRequest,
             UUID idempotencyKey)
             throws WorkspaceNotFoundException, OperationNotPendingException {

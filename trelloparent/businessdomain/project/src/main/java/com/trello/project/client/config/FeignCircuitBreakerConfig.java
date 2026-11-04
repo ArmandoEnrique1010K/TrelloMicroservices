@@ -32,7 +32,7 @@ public class FeignCircuitBreakerConfig {
         // Por ejemplo:
         //
         // @FeignClient(name = "businessdomain-identity-user-query")
-        // List<UserResponse> findUsersByIds(...)
+        // List<UserResponse> listAllUsersByIds(...)
         //
         // genera:
         //

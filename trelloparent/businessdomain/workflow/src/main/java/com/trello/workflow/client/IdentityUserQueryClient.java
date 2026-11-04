@@ -16,7 +16,7 @@ import com.trello.workflow.client.fallback.IdentityUserQueryClientFallbackFactor
 public interface IdentityUserQueryClient {
 
     @GetMapping("/users/batch")
-    List<UserResponse> findUsersByIds(@RequestParam(required = false) List<UUID> usersIds);
+    List<UserResponse> listAllUsersByIds(@RequestParam(required = false) List<UUID> usersIds);
 
     @GetMapping("/users/{userId}")
     UserResponse findUserById(@PathVariable("userId") UUID userId);

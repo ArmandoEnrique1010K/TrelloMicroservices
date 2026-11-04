@@ -26,8 +26,8 @@ public class IdentityUserQueryClientFallbackFactory implements FallbackFactory<I
         return new IdentityUserQueryClient() {
 
             @Override
-            public List<UserResponse> findUsersByIds(List<UUID> usersIds) {
-                log.error("Error relacionado con findUsersByIds");
+            public List<UserResponse> listAllUsersByIds(List<UUID> usersIds) {
+                log.error("Error relacionado con listAllUsersByIds");
                 throw new ServiceUnavailableException();
             }
 

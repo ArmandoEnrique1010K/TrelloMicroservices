@@ -32,11 +32,11 @@ public interface WorkflowOperationCommandClient {
     ResponseEntity<Void> revertAddBoardAndBoardAccessUserOwner(
             @RequestHeader("X-Operation-Id") UUID operationId);
 
-    @PostMapping("/operations/revert-delete-board-and-board-access-and-tasks")
-    ResponseEntity<Void> revertDeleteBoardAndBoardAccessAndTasks(
+    @PostMapping("/operations/revert-delete-board-and-board-accesses")
+    ResponseEntity<Void> revertDeleteBoardAndBoardAccesses(
             @RequestHeader("X-Operation-Id") UUID operationId);
 
-    @PostMapping("/operations/revert-delete-all-boards-and-board-access-and-tasks")
-    ResponseEntity<Void> revertDeleteAllBoardsAndBoardAccessAndTasks(
+    @PostMapping("/revert-delete-all-boards-and-multiple-board-accesses")
+    ResponseEntity<Void> revertDeleteAllBoardsAndMultipleBoardAccesses(
             @RequestHeader("X-Operation-Id") UUID operationId);
 }

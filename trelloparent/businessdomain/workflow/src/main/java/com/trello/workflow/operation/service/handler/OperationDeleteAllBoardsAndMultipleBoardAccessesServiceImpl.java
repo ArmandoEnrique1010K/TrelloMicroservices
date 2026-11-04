@@ -16,12 +16,13 @@ import com.trello.workflow.services.BoardWorkflowService;
 import com.trello.workflow.services.OperationWorkflowService;
 
 @Service
-public class OperationDeleteAllBoardsAndBoardAccessAndTasksServiceImpl
-        implements OperationDeleteAllBoardsAndBoardAccessAndTasksService {
+public class OperationDeleteAllBoardsAndMultipleBoardAccessesServiceImpl
+        implements OperationDeleteAllBoardsAndMultipleBoardAccessesService {
     private final OperationWorkflowService operationWorkflowService;
     private final BoardWorkflowService boardWorkflowService;
 
-    public OperationDeleteAllBoardsAndBoardAccessAndTasksServiceImpl(OperationWorkflowService operationWorkflowService,
+    public OperationDeleteAllBoardsAndMultipleBoardAccessesServiceImpl(
+            OperationWorkflowService operationWorkflowService,
             BoardWorkflowService boardWorkflowService) {
         this.operationWorkflowService = operationWorkflowService;
         this.boardWorkflowService = boardWorkflowService;
@@ -29,7 +30,7 @@ public class OperationDeleteAllBoardsAndBoardAccessAndTasksServiceImpl
 
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public void applyDeleteAllBoardsAndBoardAccessAndTasks(UUID operationId)
+    public void applyDeleteAllBoardsAndMultipleBoardAccesses(UUID operationId)
             throws OperationNotFoundException {
 
         Operation currentOperation = operationWorkflowService
@@ -54,14 +55,14 @@ public class OperationDeleteAllBoardsAndBoardAccessAndTasksServiceImpl
 
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public void revertDeleteAllBoardsAndBoardAccessAndTasks(UUID operationId)
+    public void revertDeleteAllBoardsAndMultipleBoardAccesses(UUID operationId)
             throws OperationNotFoundException, OperationConflictException {
 
         Operation operation = operationWorkflowService
                 .findOptionalOperationById(operationId)
                 .orElseThrow(OperationNotFoundException::new);
 
-        if (operation.getType() != OperationType.DELETE_ALL_BOARDS_AND_BOARD_ACCESS_AND_TASKS) {
+        if (operation.getType() != OperationType.DELETE_ALL_BOARDS_AND_MULTIPLE_BOARD_ACCESSES) {
             throw new OperationConflictException();
         }
 

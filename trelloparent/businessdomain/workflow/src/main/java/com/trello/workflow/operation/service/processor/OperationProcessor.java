@@ -25,9 +25,9 @@ public interface OperationProcessor {
     void processAddBoardAndBoardAccessUserOwnerOperation(UUID operationId)
             throws OperationNotFoundException, OperationNotPendingException, OperationConflictException;
 
-    void processDeleteBoardAndBoardAccessAndTasksOperation(UUID operationId)
+    void processDeleteBoardAndBoardAccessesOperation(UUID operationId)
             throws OperationNotFoundException, OperationNotPendingException, OperationConflictException;
 
-    void processDeleteAllBoardsAndBoardAccessAndTasksOperation(UUID operationId)
+    void processDeleteAllBoardsAndMultipleBoardAccessesOperation(UUID operationId)
             throws OperationNotFoundException, OperationNotPendingException, OperationConflictException;
 }

@@ -119,7 +119,7 @@ public class OperationDeleteBoardProcessorImpl implements OperationDeleteBoardPr
         // El estado del tablero no importa
         Board board = boardProjectService.findBoardByIdAndOwnerUserId(boardId, ownerUserId);
         log.info("TABLERO ID: " + board.getId());
-        workflowClientService.deleteBoardByIdAndBoardAccessAndTasks(boardId, operation.getId());
+        workflowClientService.deleteBoardAndBoardAccesses(boardId, operation.getId());
     }
 
     private void processLocalCompensation(Operation operation)
@@ -155,7 +155,7 @@ public class OperationDeleteBoardProcessorImpl implements OperationDeleteBoardPr
         }
 
         try {
-            workflowClientService.revertDeleteBoardByIdAndBoardAccessAndTasks(operation.getId());
+            workflowClientService.revertDeleteBoardAndBoardAccesses(operation.getId());
             operationUtils.markCompensationCompleted(operation);
         } catch (ServiceUnavailableException e) {
             operationUtils.markLocalCompensationCompleted(operation);

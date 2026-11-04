@@ -53,7 +53,7 @@ public class IdentityClientServiceImpl implements IdentityClientService {
     // El encargado de los reintentos es Resilience4j Retry.
     // @Transactional(readOnly = true)
     @Override
-    public List<UserResponse> findUsersByIds(Set<UUID> usersIds) {
+    public List<UserResponse> listAllUsersByIds(Set<UUID> usersIds) {
 
         // No es necesario utilizar try/catch aquí.
         //
@@ -83,7 +83,7 @@ public class IdentityClientServiceImpl implements IdentityClientService {
         //
         // Se alcanzó max-attempts=3
         // -> no se realizan más intentos
-        return identityUserQueryClient.findUsersByIds(
+        return identityUserQueryClient.listAllUsersByIds(
                 new ArrayList<>(usersIds));
 
     }

@@ -172,7 +172,7 @@ public class MemberServiceImpl implements MemberService {
         // Si al llamar al endpoint del microservicio, se obtiene una excepción
         // ServiceUnavailableException, se devuelve una lista vacia
         try {
-            Map<UUID, UserResponse> usersById = identityClientService.findUsersByIds(userIds)
+            Map<UUID, UserResponse> usersById = identityClientService.listAllUsersByIds(userIds)
                     .stream()
                     .collect(Collectors.toMap(
                             user -> user.getId(),

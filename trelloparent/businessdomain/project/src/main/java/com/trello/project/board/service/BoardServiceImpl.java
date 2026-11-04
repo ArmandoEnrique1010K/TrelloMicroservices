@@ -21,9 +21,9 @@ import com.trello.project.operation.exception.OperationConflictException;
 import com.trello.project.operation.exception.OperationManualReviewException;
 import com.trello.project.operation.exception.OperationNotFoundException;
 import com.trello.project.operation.exception.OperationNotPendingException;
-import com.trello.project.operation.service.handler.OperationAddBoardAndBoardAccessUserOwnerService;
+import com.trello.project.operation.service.handler.OperationCreateBoardService;
 import com.trello.project.operation.service.handler.OperationDeleteBoardService;
-import com.trello.project.operation.service.processor.OperationAddBoardAndBoardAccessUserOwnerProcessor;
+import com.trello.project.operation.service.processor.OperationCreateBoardProcessor;
 import com.trello.project.operation.service.processor.OperationDeleteBoardProcessor;
 import com.trello.project.operation.service.register.OperationRegisterService;
 import com.trello.project.service.BoardProjectService;
@@ -47,8 +47,8 @@ public class BoardServiceImpl implements BoardService {
     private final BoardMembershipResponseMapper boardMembershipResponseMapper;
     private final IdentityClientService identityClientService;
     private final OperationRegisterService operationRegisterService;
-    private final OperationAddBoardAndBoardAccessUserOwnerService operationAddBoardAndBoardAccessUserOwnerService;
-    private final OperationAddBoardAndBoardAccessUserOwnerProcessor operationAddBoardAndBoardAccessUserOwnerProcessor;
+    private final OperationCreateBoardService operationAddBoardAndBoardAccessUserOwnerService;
+    private final OperationCreateBoardProcessor operationAddBoardAndBoardAccessUserOwnerProcessor;
     private final OperationDeleteBoardService operationDeleteBoardService;
     private final OperationDeleteBoardProcessor operationDeleteBoardProcessor;
 
@@ -57,8 +57,8 @@ public class BoardServiceImpl implements BoardService {
             BoardMembershipResponseMapper boardMembershipResponseMapper,
             IdentityClientService identityClientService,
             OperationRegisterService operationRegisterService,
-            OperationAddBoardAndBoardAccessUserOwnerService operationAddBoardAndBoardAccessUserOwnerService,
-            OperationAddBoardAndBoardAccessUserOwnerProcessor operationAddBoardAndBoardAccessUserOwnerProcessor,
+            OperationCreateBoardService operationAddBoardAndBoardAccessUserOwnerService,
+            OperationCreateBoardProcessor operationAddBoardAndBoardAccessUserOwnerProcessor,
             OperationDeleteBoardService operationDeleteBoardService,
             OperationDeleteBoardProcessor operationDeleteBoardProcessor) {
         this.boardProjectService = boardProjectService;
@@ -79,7 +79,7 @@ public class BoardServiceImpl implements BoardService {
             BoardAlreadyExistsException, BoardNotFoundException, OperationManualReviewException,
             OperationCompensatedException, OperationConflictException, BusinessRuleException {
 
-        Operation operation = operationRegisterService.registerAddBoardAndBoardAccessUserOwner(workspaceId, ownerUserId,
+        Operation operation = operationRegisterService.registerCreateBoard(workspaceId, ownerUserId,
                 boardRequest,
                 idempotencyKey);
 
@@ -87,12 +87,12 @@ public class BoardServiceImpl implements BoardService {
                 || operation.getStatus() == OperationStatus.LOCAL_COMPENSATION_COMPLETED
                 || operation.getStatus() == OperationStatus.COMPENSATION_COMPLETED) {
 
-            operationAddBoardAndBoardAccessUserOwnerService.applyAddBoardAndBoardAccessUserOwner(operation.getId(),
+            operationAddBoardAndBoardAccessUserOwnerService.applyCreateBoard(operation.getId(),
                     false);
         }
 
         BoardResponse response = operationAddBoardAndBoardAccessUserOwnerProcessor
-                .processAddBoardAndBoardAccessUserOwnerOperation(operation.getId());
+                .processCreateBoardOperation(operation.getId());
 
         return response;
     }
@@ -204,7 +204,7 @@ public class BoardServiceImpl implements BoardService {
         }
 
         try {
-            Map<UUID, UserResponse> usersById = identityClientService.findUsersByIds(userIds)
+            Map<UUID, UserResponse> usersById = identityClientService.listAllUsersByIds(userIds)
                     .stream()
                     .collect(Collectors.toMap(
                             user -> user.getId(),

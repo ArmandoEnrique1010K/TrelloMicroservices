@@ -19,12 +19,12 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service
-public class OperationDeleteBoardAndBoardAccessAndTasksServiceImpl
-        implements OperationDeleteBoardAndBoardAccessAndTasksService {
+public class OperationDeleteBoardAndBoardAccessesServiceImpl
+        implements OperationDeleteBoardAndBoardAccessesService {
     private final OperationWorkflowService operationWorkflowService;
     private final BoardWorkflowService boardWorkflowService;
 
-    public OperationDeleteBoardAndBoardAccessAndTasksServiceImpl(OperationWorkflowService operationWorkflowService,
+    public OperationDeleteBoardAndBoardAccessesServiceImpl(OperationWorkflowService operationWorkflowService,
             BoardWorkflowService boardWorkflowService) {
         this.operationWorkflowService = operationWorkflowService;
         this.boardWorkflowService = boardWorkflowService;
@@ -34,7 +34,7 @@ public class OperationDeleteBoardAndBoardAccessAndTasksServiceImpl
     // ESTADO FALSE
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public void applyDeleteBoardAndBoardAccessAndTasks(UUID operationId)
+    public void applyDeleteBoardAndBoardAccesses(UUID operationId)
             throws OperationNotFoundException, BoardNotFoundException {
         Operation currentOperation = operationWorkflowService
                 .findOptionalOperationById(operationId)
@@ -63,14 +63,14 @@ public class OperationDeleteBoardAndBoardAccessAndTasksServiceImpl
 
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public void revertDeleteBoardAndBoardAccessAndTasks(UUID operationId)
+    public void revertDeleteBoardAndBoardAccesses(UUID operationId)
             throws OperationNotFoundException, OperationConflictException, BoardNotFoundException {
 
         Operation operation = operationWorkflowService
                 .findOptionalOperationById(operationId)
                 .orElseThrow(OperationNotFoundException::new);
 
-        if (operation.getType() != OperationType.DELETE_BOARD_AND_BOARD_ACCESS_AND_TASKS) {
+        if (operation.getType() != OperationType.DELETE_BOARD_AND_BOARD_ACCESSES) {
             throw new OperationConflictException();
         }
 

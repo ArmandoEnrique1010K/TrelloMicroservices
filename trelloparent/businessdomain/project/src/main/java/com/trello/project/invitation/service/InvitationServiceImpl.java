@@ -387,7 +387,7 @@ public class InvitationServiceImpl implements InvitationService {
                 .collect(Collectors.toSet());
 
         try {
-            Map<UUID, UserResponse> usersById = identityClientService.findUsersByIds(userIds)
+            Map<UUID, UserResponse> usersById = identityClientService.listAllUsersByIds(userIds)
                     .stream()
                     .collect(Collectors.toMap(
                             // UserResponse::getId,

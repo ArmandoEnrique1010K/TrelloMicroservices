@@ -23,8 +23,8 @@ public class IdentityClientServiceImpl implements IdentityClientService {
 
     @Retry(name = "businessdomain-identity-user-query")
     @Override
-    public List<UserResponse> findUsersByIds(Set<UUID> usersIds) {
-        return identityClient.findUsersByIds(new ArrayList<>(usersIds));
+    public List<UserResponse> listAllUsersByIds(Set<UUID> usersIds) {
+        return identityClient.listAllUsersByIds(new ArrayList<>(usersIds));
     }
 
     @Retry(name = "businessdomain-identity-user-query")

@@ -16,11 +16,11 @@ public interface BoardService {
             throws OperationConflictException, OperationNotPendingException, BusinessRuleException,
             BoardAlreadyExistsException, OperationNotFoundException;
 
-    void deleteBoardAndBoardAccessAndTasks(UUID boardId, UUID operationId)
+    void deleteBoardAndBoardAccesses(UUID boardId, UUID operationId)
             throws OperationConflictException, OperationNotPendingException, BusinessRuleException,
             BoardNotFoundException, OperationNotFoundException;
 
-    void deleteAllBoardsByIdsAndBoardAccessAndTasks(List<UUID> boardsIds, UUID operationId)
+    void deleteAllBoardsByIdsAndMultipleBoardAccesses(List<UUID> boardsIds, UUID operationId)
             throws OperationConflictException, OperationNotPendingException, BusinessRuleException,
             ManyBoardsNotFoundException, OperationNotFoundException;
 }

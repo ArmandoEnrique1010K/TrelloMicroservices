@@ -15,8 +15,8 @@ import com.trello.workflow.operation.service.handler.OperationAddBoardAccessServ
 import com.trello.workflow.operation.service.handler.OperationAddBoardAndBoardAccessUserOwnerService;
 import com.trello.workflow.operation.service.handler.OperationChangeRoleBoardAccessService;
 import com.trello.workflow.operation.service.handler.OperationDeactivateBoardAccessService;
-import com.trello.workflow.operation.service.handler.OperationDeleteAllBoardsAndBoardAccessAndTasksService;
-import com.trello.workflow.operation.service.handler.OperationDeleteBoardAndBoardAccessAndTasksService;
+import com.trello.workflow.operation.service.handler.OperationDeleteAllBoardsAndMultipleBoardAccessesService;
+import com.trello.workflow.operation.service.handler.OperationDeleteBoardAndBoardAccessesService;
 import com.trello.workflow.services.OperationWorkflowService;
 
 // Servicio para procesar la operación
@@ -29,8 +29,8 @@ public class OperationProcessorImpl implements OperationProcessor {
     private final OperationChangeRoleBoardAccessService operationChangeRoleBoardAccessService;
     private final OperationDeactivateBoardAccessService operationDeactivateBoardAccessService;
     private final OperationAddBoardAndBoardAccessUserOwnerService operationAddBoardAndBoardAccessUserOwnerService;
-    private final OperationDeleteBoardAndBoardAccessAndTasksService operationDeleteBoardAndBoardAccessAndTasksService;
-    private final OperationDeleteAllBoardsAndBoardAccessAndTasksService operationDeleteAllBoardsAndBoardAccessAndTasksService;
+    private final OperationDeleteBoardAndBoardAccessesService operationDeleteBoardAndBoardAccessesService;
+    private final OperationDeleteAllBoardsAndMultipleBoardAccessesService operationDeleteAllBoardsAndMultipleBoardAccessesService;
 
     public OperationProcessorImpl(
             OperationWorkflowService operationWorkflowService,
@@ -39,16 +39,16 @@ public class OperationProcessorImpl implements OperationProcessor {
             OperationChangeRoleBoardAccessService operationChangeRoleBoardAccessService,
             OperationDeactivateBoardAccessService operationDeactivateBoardAccessService,
             OperationAddBoardAndBoardAccessUserOwnerService operationAddBoardAndBoardAccessUserOwnerService,
-            OperationDeleteBoardAndBoardAccessAndTasksService operationDeleteBoardAndBoardAccessAndTasksService,
-            OperationDeleteAllBoardsAndBoardAccessAndTasksService operationDeleteAllBoardsAndBoardAccessAndTasksService) {
+            OperationDeleteBoardAndBoardAccessesService operationDeleteBoardAndBoardAccessesService,
+            OperationDeleteAllBoardsAndMultipleBoardAccessesService operationDeleteAllBoardsAndMultipleBoardAccessesService) {
         this.operationWorkflowService = operationWorkflowService;
         this.operationAddBoardAccessService = operationAddBoardAccessService;
         this.operationActivateBoardAccessService = operationActivateBoardAccessService;
         this.operationChangeRoleBoardAccessService = operationChangeRoleBoardAccessService;
         this.operationDeactivateBoardAccessService = operationDeactivateBoardAccessService;
         this.operationAddBoardAndBoardAccessUserOwnerService = operationAddBoardAndBoardAccessUserOwnerService;
-        this.operationDeleteBoardAndBoardAccessAndTasksService = operationDeleteBoardAndBoardAccessAndTasksService;
-        this.operationDeleteAllBoardsAndBoardAccessAndTasksService = operationDeleteAllBoardsAndBoardAccessAndTasksService;
+        this.operationDeleteBoardAndBoardAccessesService = operationDeleteBoardAndBoardAccessesService;
+        this.operationDeleteAllBoardsAndMultipleBoardAccessesService = operationDeleteAllBoardsAndMultipleBoardAccessesService;
     }
 
     // // Procesa una operación registrada según su tipo y estado actual.
@@ -84,11 +84,11 @@ public class OperationProcessorImpl implements OperationProcessor {
     // operationAddBoardAndBoardAccessUserOwnerService
     // .applyAddBoardAndBoardAccessUserOwner(operation.getId());
 
-    // case DELETE_BOARD_AND_BOARD_ACCESS_AND_TASKS ->
+    // case DELETE_BOARD_AND_BOARD_ACCESS ->
     // operationDeleteBoardAndBoardAccessAndTasksService
     // .applyDeleteBoardAndBoardAccessAndTasks(operation.getId());
 
-    // case DELETE_ALL_BOARDS_AND_BOARD_ACCESS_AND_TASKS ->
+    // case DELETE_ALL_BOARDS_AND_MANY_BOARD_ACCESS ->
     // operationDeleteAllBoardsAndBoardAccessAndTasksService
     // .applyDeleteAllBoardsAndBoardAccessAndTasks(operation.getId());
 
@@ -137,19 +137,19 @@ public class OperationProcessorImpl implements OperationProcessor {
     }
 
     @Override
-    public void processDeleteBoardAndBoardAccessAndTasksOperation(UUID operationId)
+    public void processDeleteBoardAndBoardAccessesOperation(UUID operationId)
             throws OperationNotFoundException, OperationNotPendingException, OperationConflictException {
-        Operation operation = findOperation(operationId, OperationType.DELETE_BOARD_AND_BOARD_ACCESS_AND_TASKS);
-        operationDeleteBoardAndBoardAccessAndTasksService
-                .applyDeleteBoardAndBoardAccessAndTasks(operation.getId());
+        Operation operation = findOperation(operationId, OperationType.DELETE_BOARD_AND_BOARD_ACCESSES);
+        operationDeleteBoardAndBoardAccessesService
+                .applyDeleteBoardAndBoardAccesses(operation.getId());
     }
 
     @Override
-    public void processDeleteAllBoardsAndBoardAccessAndTasksOperation(UUID operationId)
+    public void processDeleteAllBoardsAndMultipleBoardAccessesOperation(UUID operationId)
             throws OperationNotFoundException, OperationNotPendingException, OperationConflictException {
-        Operation operation = findOperation(operationId, OperationType.DELETE_ALL_BOARDS_AND_BOARD_ACCESS_AND_TASKS);
-        operationDeleteAllBoardsAndBoardAccessAndTasksService
-                .applyDeleteAllBoardsAndBoardAccessAndTasks(operation.getId());
+        Operation operation = findOperation(operationId, OperationType.DELETE_ALL_BOARDS_AND_MULTIPLE_BOARD_ACCESSES);
+        operationDeleteAllBoardsAndMultipleBoardAccessesService
+                .applyDeleteAllBoardsAndMultipleBoardAccesses(operation.getId());
     }
 
     // Método privado para encontrar la operación y verificar el tipo de la

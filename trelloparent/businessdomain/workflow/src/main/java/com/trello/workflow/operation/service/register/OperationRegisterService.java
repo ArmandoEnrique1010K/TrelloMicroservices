@@ -43,11 +43,11 @@ public interface OperationRegisterService {
             throws OperationConflictException, OperationNotPendingException, BusinessRuleException,
             BoardAlreadyExistsException;
 
-    Operation registerDeleteBoardAndBoardAccessAndTasks(UUID boardId, UUID operationId)
+    Operation registerDeleteBoardAndBoardAccesses(UUID boardId, UUID operationId)
             throws OperationConflictException, OperationNotPendingException, BusinessRuleException,
             BoardNotFoundException;
 
-    Operation registerDeleteAllBoardsAndBoardAccessAndTasks(List<UUID> boardsIds, UUID operationId)
+    Operation registerDeleteAllBoardsAndMultipleBoardAccesses(List<UUID> boardsIds, UUID operationId)
             throws OperationConflictException, OperationNotPendingException, BusinessRuleException,
             ManyBoardsNotFoundException;
 }

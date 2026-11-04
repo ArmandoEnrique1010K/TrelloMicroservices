@@ -125,7 +125,7 @@ public class OperationDeleteWorkspaceProcessorImpl implements OperationDeleteWor
                     .collect(Collectors.toList());
         }
 
-        workflowClientService.deleteManyBoardsByIdsAndBoardAccessAndTasks(boardsIds, operation.getId());
+        workflowClientService.deleteAllBoardsByIdsAndMultipleBoardAccesses(boardsIds, operation.getId());
     }
 
     private void processLocalCompensation(Operation operation)
@@ -162,7 +162,7 @@ public class OperationDeleteWorkspaceProcessorImpl implements OperationDeleteWor
         }
 
         try {
-            workflowClientService.revertDeleteManyBoardsByIdsAndBoardAccessAndTasks(operation.getId());
+            workflowClientService.revertDeleteAllBoardsByIdsAndMultipleBoardAccesses(operation.getId());
             operationUtils.markCompensationCompleted(operation);
         } catch (ServiceUnavailableException e) {
             operationUtils.markLocalCompensationCompleted(operation);

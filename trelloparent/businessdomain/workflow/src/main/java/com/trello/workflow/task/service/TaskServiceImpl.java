@@ -620,7 +620,7 @@ public class TaskServiceImpl implements TaskService {
         try {
             // Consulta todos los usuarios mediante una única llamada al microservicio
             // Identity
-            Map<UUID, UserResponse> usersById = identityClientService.findUsersByIds(userIds).stream()
+            Map<UUID, UserResponse> usersById = identityClientService.listAllUsersByIds(userIds).stream()
                     .collect(Collectors.toMap(u -> u.getId(), Function.identity()));
 
             UsersByIdResponse result = new UsersByIdResponse();
