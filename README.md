@@ -1,9 +1,11 @@
 # TrelloMicroservices
 
 "Microservicios en un monorepositorio para una aplicación de Trello" - ArmandoEnrique1010k
+
+---
 # Índice
 - [Introducción](#Introducción)
-	- [Descripción del proyecto](#Descripción%20del%20proyecto)
+	- [Descripción del proyecto](#Descripción del proyecto)
 	- [Objetivos](#Objetivos)
 	- [Tecnologías utilizadas](#Tecnologías%20utilizadas)
 	- [Características principales](#Características%20principales)
@@ -21,8 +23,9 @@
 - Transacciones compensatorias
 - Procesamiento de operaciones pendientes
 - Escenarios de funcionamiento y tolerancia a fallos del patrón SAGA
-- Bibliografia
+- Bibliografía
 
+---
 # Introducción
 
 El presente proyecto tiene como finalidad demostrar los conocimientos adquiridos en el desarrollo de APIs REST utilizando una arquitectura de microservicios con Spring Boot y Spring Cloud. Su construcción también permitió profundizar en la toma de decisiones de arquitectura de software, la comunicación entre servicios independientes y el manejo de operaciones distribuidas.
@@ -70,12 +73,14 @@ Las siguientes son las principales tecnologías, frameworks y librerías utiliza
 
 ### Núcleo y arquitectura base
 
-|Tecnología|Descripción|
-|---|---|
-|Java|Lenguaje de programación principal del backend.|
-|Spring Framework|Framework base que proporciona el contenedor de dependencias y los mecanismos de inyección de dependencias.|
-|Spring Boot|Simplifica la configuración, desarrollo y ejecución independiente de cada microservicio.|
-|Spring Cloud|Ecosistema de herramientas para implementar funcionalidades relacionadas con arquitecturas distribuidas.|
+| Tecnología       | Descripción                                                                                                 |
+| ---------------- | ----------------------------------------------------------------------------------------------------------- |
+| Java             | Lenguaje de programación principal del backend.                                                             |
+| Spring Framework | Framework base que proporciona el contenedor de dependencias y los mecanismos de inyección de dependencias. |
+| Spring Boot      | Simplifica la configuración, desarrollo y ejecución independiente de cada microservicio.                    |
+| Spring Cloud     | Ecosistema de herramientas para implementar funcionalidades relacionadas con arquitecturas distribuidas.    |
+
+![205](assets/Pasted%20image%2020261103211041.png)
 
 ### Persistencia y datos
 
@@ -83,7 +88,8 @@ Las siguientes son las principales tecnologías, frameworks y librerías utiliza
 | --------------- | -------------------------------------------------------------------------------------------------------------- |
 | Spring Data JPA | Abstracción para la persistencia y acceso a bases de datos mediante repositorios y consultas JPA.              |
 | PostgreSQL      | Sistema de gestión de bases de datos relacional utilizado para almacenar la información de cada microservicio. |
-<span style="display:block; text-align:center">![114](assets/Pasted%20image%2020261103205938.png)</span>
+
+![a|147](assets/Pasted%20image%2020261103205938.png)
 
 ### Desarrollo web y APIs
 
@@ -94,6 +100,9 @@ Las siguientes son las principales tecnologías, frameworks y librerías utiliza
 |Spring Boot Starter Validation|Validación de datos de entrada mediante anotaciones de Bean Validation.|
 |Resend|Servicio de envío de correos electrónicos transaccionales, utilizado para la activación de cuentas.|
 
+![275](assets/Pasted%20image%2020261103211151.png)
+
+
 ### Mapeo y generación de código
 
 |Tecnología|Descripción|
@@ -101,12 +110,16 @@ Las siguientes son las principales tecnologías, frameworks y librerías utiliza
 |MapStruct|Generación de código para realizar conversiones entre entidades, DTOs y otros objetos Java.|
 |Lombok|Reducción de código repetitivo mediante anotaciones para generar constructores, getters, setters y otros métodos.|
 
+![[README-1793759012822.webp|311]]
+
 ### Seguridad y autenticación
 
-|Tecnología|Descripción|
-|---|---|
-|Spring Security|Gestión de autenticación, autorización y protección de endpoints.|
-|OAuth2 Resource Server|Validación de tokens JWT utilizados para autenticar las solicitudes HTTP.|
+| Tecnología             | Descripción                                                               |
+| ---------------------- | ------------------------------------------------------------------------- |
+| Spring Security        | Gestión de autenticación, autorización y protección de endpoints.         |
+| OAuth2 Resource Server | Validación de tokens JWT utilizados para autenticar las solicitudes HTTP. |
+
+![[README-1793759107965.webp|143]]
 
 ### Comunicación entre microservicios y resiliencia
 
@@ -116,6 +129,7 @@ Las siguientes son las principales tecnologías, frameworks y librerías utiliza
 |Apache HttpClient|Cliente HTTP utilizado para configurar y ejecutar peticiones que requieren métodos como PATCH.|
 |Resilience4j Circuit Breaker|Aislamiento de fallos en las comunicaciones entre microservicios mediante el patrón Circuit Breaker.|
 |Resilience4j Retry|Gestión de reintentos automáticos ante determinados errores en las comunicaciones.|
+![[README-1793759171414.webp|267]]
 
 ### Observabilidad e infraestructura
 
@@ -123,6 +137,8 @@ Las siguientes son las principales tecnologías, frameworks y librerías utiliza
 | -------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
 | Spring Boot Actuator | Supervisión de los microservicios y consulta de información operativa, incluyendo estados y eventos de los Circuit Breakers. |
 | Docker               | Contenedorización y configuración de la infraestructura necesaria para ejecutar el entorno de desarrollo local.              |
+
+![[README-1793759308068.webp|306]]
 
 ## Características principales
 
@@ -140,6 +156,8 @@ Las siguientes son las principales tecnologías, frameworks y librerías utiliza
 - **Supervisión de servicios:** utilización de Spring Boot Actuator para consultar información de ejecución y supervisar los mecanismos de resiliencia.
 - **Infraestructura local con Docker:** configuración de los servicios y bases de datos necesarios para reproducir el entorno de desarrollo.
 
+---
+# Arquitectura del proyecto
 
 
 
