@@ -14,7 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.trello.project.client.dto.response.UserResponse;
-import com.trello.project.client.dto.response.UsersByIdResponse;
+import com.trello.project.client.dto.response.UsersMapResponse;
 import com.trello.project.client.dto.response.UsersListResponse;
 import com.trello.project.client.services.IdentityClientService;
 import com.trello.project.entities.Board;
@@ -325,12 +325,12 @@ public class InvitationServiceImpl implements InvitationService {
                     .listAllUsersByEmailAndExcludingIds(email, excludedUsersIds);
 
             result.setAvailable(true);
-            result.setUsers(users);
+            result.setUsersList(users);
 
         } catch (ServiceUnavailableException e) {
 
             result.setAvailable(false);
-            result.setUsers(List.of());
+            result.setUsersList(List.of());
         }
 
         return result;
@@ -341,10 +341,10 @@ public class InvitationServiceImpl implements InvitationService {
     // tablero
     private void enrichBoardInvitationWithUserData(List<Invitation> invitations,
             List<BoardInvitationResponse> responses) {
-        UsersByIdResponse result = getUsersById(
+        UsersMapResponse result = fetchUsersById(
                 invitations, invitation -> invitation.getRecipientUserId());
 
-        Map<UUID, UserResponse> usersById = result.getUsersById();
+        Map<UUID, UserResponse> usersById = result.getUsersMap();
 
         for (int i = 0; i < invitations.size(); i++) {
             Invitation invitation = invitations.get(i);
@@ -361,10 +361,10 @@ public class InvitationServiceImpl implements InvitationService {
     private void enrichReceivedInvitationWithUserData(List<Invitation> invitations,
             List<ReceivedInvitationResponse> responses) {
 
-        UsersByIdResponse result = getUsersById(
+        UsersMapResponse result = fetchUsersById(
                 invitations, invitation -> invitation.getSenderUserId());
 
-        Map<UUID, UserResponse> usersById = result.getUsersById();
+        Map<UUID, UserResponse> usersById = result.getUsersMap();
 
         for (int i = 0; i < invitations.size(); i++) {
             Invitation invitation = invitations.get(i);
@@ -377,7 +377,7 @@ public class InvitationServiceImpl implements InvitationService {
     }
 
     // Método para tener los datos de los usuarios por ID
-    private UsersByIdResponse getUsersById(
+    private UsersMapResponse fetchUsersById(
             List<Invitation> invitations,
             Function<Invitation, UUID> userIdExtractor) {
 
@@ -394,16 +394,16 @@ public class InvitationServiceImpl implements InvitationService {
                             user -> user.getId(),
                             Function.identity()));
 
-            UsersByIdResponse result = new UsersByIdResponse();
+            UsersMapResponse result = new UsersMapResponse();
             result.setAvailable(true);
-            result.setUsersById(usersById);
+            result.setUsersMap(usersById);
             return result;
 
         } catch (ServiceUnavailableException e) {
-            UsersByIdResponse result = new UsersByIdResponse();
+            UsersMapResponse result = new UsersMapResponse();
             result.setAvailable(false);
 
-            result.setUsersById(Map.of());
+            result.setUsersMap(Map.of());
             return result;
         }
     }

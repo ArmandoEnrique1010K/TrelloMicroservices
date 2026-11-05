@@ -46,6 +46,7 @@
         <org.springdoc.version>3.1.0</org.springdoc.version>
         <org.lombok.mapstruct.binding.version>0.2.0</org.lombok.mapstruct.binding.version>
         <org.validation.version>4.1.0</org.validation.version>
+        <postgres.version>42.7.2</postgres.version>
     </properties>
 
 
@@ -93,6 +94,17 @@
             <version>${org.validation.version}</version>
         </dependency>
 
+
+        <!-- Security -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
+        </dependency>
     </dependencies>
 
     <build>

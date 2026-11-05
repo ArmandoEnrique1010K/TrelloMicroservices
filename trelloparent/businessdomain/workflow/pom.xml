@@ -11,9 +11,9 @@
 
     <groupId>com.trello</groupId>
     <artifactId>workflow</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>1.0</version>
     <name>workflow</name>
-    <description>Microservicio de tareas</description>
+    <description>Microservicio de flujo de trabajo</description>
 
     <url />
     <licenses>
@@ -28,9 +28,7 @@
         <tag />
         <url />
     </scm>
-    <properties>
-        <java.version>25</java.version>
-    </properties>
+
     <dependencies>
         <!-- Data -->
         <dependency>
@@ -60,25 +58,10 @@
             <artifactId>feign-hc5</artifactId>
         </dependency>
 
-        <!-- Security -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-security</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
-        </dependency>
-
         <!-- Resilience4j -->
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-circuitbreaker-resilience4j</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
 
         <!-- Retry - Resilience4j -->

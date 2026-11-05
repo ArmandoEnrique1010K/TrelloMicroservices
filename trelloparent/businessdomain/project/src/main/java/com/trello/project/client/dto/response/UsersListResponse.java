@@ -12,5 +12,5 @@ public class UsersListResponse {
     private boolean available;
 
     @Schema(name = "users", description = "Lista con los datos de los usuarios")
-    private List<UserResponse> users;
+    private List<UserResponse> usersList;
 }

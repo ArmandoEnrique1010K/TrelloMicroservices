@@ -7,7 +7,7 @@ import com.trello.project.board.exception.BoardAlreadyExistsException;
 import com.trello.project.board.mapper.BoardMembershipResponseMapper;
 import com.trello.project.board.mapper.BoardResponseMapper;
 import com.trello.project.client.dto.response.UserResponse;
-import com.trello.project.client.dto.response.UsersByIdResponse;
+import com.trello.project.client.dto.response.UsersMapResponse;
 import com.trello.project.client.services.IdentityClientService;
 import com.trello.project.entities.Board;
 import com.trello.project.entities.Operation;
@@ -167,10 +167,10 @@ public class BoardServiceImpl implements BoardService {
             List<Board> boards,
             List<BoardMembershipResponse> responses) {
 
-        UsersByIdResponse result = getUsersById(
+        UsersMapResponse result = fetchUsersById(
                 boards, board -> board.getWorkspace().getOwnerUserId());
 
-        Map<UUID, UserResponse> usersById = result.getUsersById();
+        Map<UUID, UserResponse> usersById = result.getUsersMap();
 
         for (int i = 0; i < boards.size(); i++) {
             Board board = boards.get(i);
@@ -186,7 +186,7 @@ public class BoardServiceImpl implements BoardService {
     }
 
     // Método para tener los datos de los usuarios por ID
-    private UsersByIdResponse getUsersById(
+    private UsersMapResponse fetchUsersById(
             List<Board> boards,
             Function<Board, UUID> userIdExtractor) {
 
@@ -195,11 +195,11 @@ public class BoardServiceImpl implements BoardService {
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
 
-        UsersByIdResponse result = new UsersByIdResponse();
+        UsersMapResponse result = new UsersMapResponse();
 
         if (userIds.isEmpty()) {
             result.setAvailable(true);
-            result.setUsersById(Map.of());
+            result.setUsersMap(Map.of());
             return result;
         }
 
@@ -210,11 +210,11 @@ public class BoardServiceImpl implements BoardService {
                             user -> user.getId(),
                             Function.identity()));
             result.setAvailable(true);
-            result.setUsersById(usersById);
+            result.setUsersMap(usersById);
 
         } catch (ServiceUnavailableException e) {
             result.setAvailable(false);
-            result.setUsersById(Map.of());
+            result.setUsersMap(Map.of());
         }
 
         return result;

@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 
 import com.trello.project.client.dto.response.UserResponse;
-import com.trello.project.client.dto.response.UsersByIdResponse;
+import com.trello.project.client.dto.response.UsersMapResponse;
 import com.trello.project.entities.Board;
 import com.trello.project.entities.Member;
 import com.trello.project.entities.Operation;
@@ -144,10 +144,10 @@ public class MemberServiceImpl implements MemberService {
 
     private void enrichUserMemberWithUserData(List<Member> members, List<UserMemberResponse> responses) {
 
-        UsersByIdResponse result = getUsersById(
+        UsersMapResponse result = fetchUsersById(
                 members, member -> member.getUserId());
 
-        Map<UUID, UserResponse> usersById = result.getUsersById();
+        Map<UUID, UserResponse> usersById = result.getUsersMap();
 
         for (int i = 0; i < members.size(); i++) {
             Member member = members.get(i);
@@ -160,7 +160,7 @@ public class MemberServiceImpl implements MemberService {
         }
     }
 
-    private UsersByIdResponse getUsersById(
+    private UsersMapResponse fetchUsersById(
             List<Member> members,
             Function<Member, UUID> userIdExtractor) {
 
@@ -178,17 +178,17 @@ public class MemberServiceImpl implements MemberService {
                             user -> user.getId(),
                             Function.identity()));
 
-            UsersByIdResponse result = new UsersByIdResponse();
+            UsersMapResponse result = new UsersMapResponse();
             result.setAvailable(true);
-            result.setUsersById(usersById);
+            result.setUsersMap(usersById);
             return result;
 
         } catch (ServiceUnavailableException e) {
-            UsersByIdResponse result = new UsersByIdResponse();
+            UsersMapResponse result = new UsersMapResponse();
             result.setAvailable(false);
 
             // No puede ser null
-            result.setUsersById(Map.of());
+            result.setUsersMap(Map.of());
             return result;
         }
     }
