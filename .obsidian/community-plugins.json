@@ -10,5 +10,7 @@
   "html-font-toolbar",
   "image-converter",
   "obsidian-paste-image-rename",
-  "resizer"
+  "resizer",
+  "local-image-resizer",
+  "markdown-heading-links"
 ]

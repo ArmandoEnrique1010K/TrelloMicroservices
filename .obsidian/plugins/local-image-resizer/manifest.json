@@ -1,0 +1,9 @@
+{
+  "id": "local-image-resizer",
+  "name": "Local Image Resizer",
+  "version": "1.0.3",
+  "minAppVersion": "1.5.0",
+  "description": "Resize, convert, and compress images locally while preserving the originals.",
+  "author": "JS Tools Space",
+  "isDesktopOnly": false
+}
