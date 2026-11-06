@@ -530,7 +530,8 @@ El diagrama también representa los elementos relacionados con la seguridad y la
 
 De esta manera, el diagrama proporciona una visión general de cómo se distribuyen los componentes del sistema y cómo se relacionan entre sí durante el desarrollo y ejecución local de la aplicación.
 
-![Diagrama de solucion en un entorno de desarrollo](assets/solucion_entorno_desarrollo.png|470)
+
+![](assets/solucion_entorno_desarrollo.png)
 
 ## Estructura de directorios y módulos
 

@@ -4,11 +4,11 @@
     "type": "split",
     "children": [
       {
-        "id": "3616968b2a53e7e4",
+        "id": "985ec8c40048af72",
         "type": "tabs",
         "children": [
           {
-            "id": "e721bd7188455482",
+            "id": "1c46461d6a8a3680",
             "type": "leaf",
             "state": {
               "type": "markdown",
@@ -204,13 +204,13 @@
       "html-font-toolbar:Toggle HTML font toolbar": false
     }
   },
-  "active": "e721bd7188455482",
+  "active": "1c46461d6a8a3680",
   "lastOpenFiles": [
+    "assets/solucion_entorno_desarrollo.png",
+    "README.md",
     "assets/README-1793933059247.webp",
     "assets/README-1793933018377.webp",
     "assets/README-1793932923756.webp",
-    "assets/solucion_entorno_desarrollo.png",
-    "README.md",
     "trelloparent/postgres_data_project/pg_stat/pgstat.stat",
     "trelloparent/postgres_data_project/pg_stat/pgstat.tmp",
     "trelloparent/postgres_data_project/pg_logical/replorigin_checkpoint.tmp",
@@ -227,7 +227,6 @@
     "assets/README-1793763089551.png",
     "assets/README-1793763075746.webp",
     "assets/resilence4j-logo.png",
-    "assets/oauth-2-logo.png",
     "().md",
     "Gobierno de ti, seccion 1.md",
     "Gobierno de TI Seccion 2.md",
