@@ -42,6 +42,7 @@ import com.trello.workflow.note.dto.response.UserNoteResponse;
 import com.trello.workflow.services.BoardAccessWorkflowService;
 import com.trello.workflow.services.HistoryWorkflowService;
 import com.trello.workflow.services.LabelWorkflowService;
+import com.trello.workflow.services.NoteWorkflowService;
 import com.trello.workflow.task.dto.request.TaskRequest;
 import com.trello.workflow.task.dto.response.AuthorTaskResponse;
 import com.trello.workflow.task.dto.response.DetailsTaskResponse;
@@ -68,13 +69,15 @@ public class TaskServiceImpl implements TaskService {
     private final DetailsTaskResponseMapper detailsTaskResponseMapper;
     private final LabelWorkflowService labelWorkflowService;
     private final LabelTaskResponseMapper labelTaskResponseMapper;
+    private final NoteWorkflowService noteWorkflowService;
 
     public TaskServiceImpl(BoardAccessWorkflowService boardAccessWorkflowService,
             HistoryWorkflowService historyWorkflowService, TaskWorkflowService taskWorkflowService,
             TaskRequestMapper taskRequestMapper,
             TaskResponseMapper taskResponseMapper, IdentityClientService identityClientService,
             AuthorTaskResponseMapper authorTaskResponseMapper, DetailsTaskResponseMapper detailsTaskResponseMapper,
-            LabelWorkflowService labelWorkflowService, LabelTaskResponseMapper labelTaskResponseMapper) {
+            LabelWorkflowService labelWorkflowService, LabelTaskResponseMapper labelTaskResponseMapper,
+            NoteWorkflowService noteWorkflowService) {
         this.boardAccessWorkflowService = boardAccessWorkflowService;
         this.historyWorkflowService = historyWorkflowService;
         this.taskWorkflowService = taskWorkflowService;
@@ -85,6 +88,7 @@ public class TaskServiceImpl implements TaskService {
         this.detailsTaskResponseMapper = detailsTaskResponseMapper;
         this.labelWorkflowService = labelWorkflowService;
         this.labelTaskResponseMapper = labelTaskResponseMapper;
+        this.noteWorkflowService = noteWorkflowService;
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -290,11 +294,14 @@ public class TaskServiceImpl implements TaskService {
 
         // Las notas se utilizan posteriormente para obtener los usuarios que crearon
         // cada una de ellas
-        List<Note> notes = findedTask.getNotes();
+        // List<Note> notes = findedTask.getNotes();
+        List<Note> notes = noteWorkflowService.findAllNotesByTaskId(taskId);
 
         // El historial solamente se procesará si el usuario tiene autorización
         // suficiente para visualizarlo.
-        List<History> histories = findedTask.getHistories();
+
+        // List<History> histories = findedTask.getHistories();
+        List<History> histories = historyWorkflowService.findAllHistoriesByTaskId(taskId);
 
         // 3. Mapear la información propia de Task
 

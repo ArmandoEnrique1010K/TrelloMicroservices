@@ -33,12 +33,6 @@ public class Operation {
     @Id
     private UUID id;
 
-    @Enumerated(EnumType.STRING)
-    private OperationType type;
-
-    @Enumerated(EnumType.STRING)
-    private OperationStatus status;
-
     // Campos necesarios
     private UUID boardId;
 
@@ -60,6 +54,12 @@ public class Operation {
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "json")
     private List<UUID> boardIds;
+
+    @Enumerated(EnumType.STRING)
+    private OperationType type;
+
+    @Enumerated(EnumType.STRING)
+    private OperationStatus status;
 
     // Número de intentos
     private int attempts;

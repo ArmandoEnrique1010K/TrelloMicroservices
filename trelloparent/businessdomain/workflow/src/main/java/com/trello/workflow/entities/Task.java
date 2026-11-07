@@ -36,13 +36,6 @@ public class Task {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    // @Column(name = "board_Id", nullable = false)
-    // private UUID boardId;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "board_id", nullable = false)
-    private Board board;
-
     @Column(nullable = false)
     private String name;
 
@@ -66,6 +59,10 @@ public class Task {
 
     @Enumerated(EnumType.STRING)
     private Status status;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "board_id", nullable = false)
+    private Board board;
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "tasks_labels", joinColumns = @JoinColumn(name = "task_id"), inverseJoinColumns = @JoinColumn(name = "label_id"))

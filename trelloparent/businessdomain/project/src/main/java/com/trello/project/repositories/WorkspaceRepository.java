@@ -10,7 +10,8 @@ import java.util.Optional;
 
 public interface WorkspaceRepository extends JpaRepository<Workspace, UUID> {
 
-    List<Workspace> findByOwnerUserIdAndStatusTrue(UUID ownerUserId);
+    // Listar tableros y ordenarlos de forma descendente por fecha de creación
+    List<Workspace> findByOwnerUserIdAndStatusTrueOrderByCreatedAtDesc(UUID ownerUserId);
 
     boolean existsByOwnerUserIdAndNameAndStatusTrue(UUID ownerUserId, String name);
 

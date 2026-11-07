@@ -25,6 +25,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @Table(name = "labels")
 public class Label {
+    // TODO: CREAR UNA ENTIDAD INTERMEDIA
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;

@@ -29,15 +29,6 @@ public class Operation {
     @Id
     private UUID id;
 
-    // Tipo de operación
-    // Relacionada con el nombre del método del endpoint
-    @Enumerated(EnumType.STRING)
-    private OperationType type;
-
-    // Estado de la operación
-    @Enumerated(EnumType.STRING)
-    private OperationStatus status;
-
     // Campos necesarios para cualquier operacion
     private UUID boardId;
 
@@ -51,16 +42,13 @@ public class Operation {
     // Usuario autor del tablero
     private UUID ownerUserId;
 
+    // ID de espacio de trabajo
+    private UUID workspaceId;
+
     // Nombre del tablero
     private String boardName;
     // Descripción del tablero
     private String boardDescription;
-
-    // ID de espacio de trabajo
-    private UUID workspaceId;
-
-    // Clave enviada desde el frontend
-    private UUID idempotencyKey;
 
     // Boolean con B mayuscula para que admita los valores
     // null, true o false
@@ -75,6 +63,18 @@ public class Operation {
     // Rol nuevo del usuario
     @Enumerated(EnumType.STRING)
     private Role newRole;
+
+    // Clave enviada desde el frontend
+    private UUID idempotencyKey;
+
+    // Tipo de operación
+    // Relacionada con el nombre del método del endpoint
+    @Enumerated(EnumType.STRING)
+    private OperationType type;
+
+    // Estado de la operación
+    @Enumerated(EnumType.STRING)
+    private OperationStatus status;
 
     // Número de intentos realizados por el usuario
     private int manualAttempts;

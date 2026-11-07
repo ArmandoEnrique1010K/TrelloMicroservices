@@ -35,7 +35,7 @@ public class BoardProjectServiceImpl implements BoardProjectService {
         workspaceRepository.findByIdAndOwnerUserIdAndStatusTrue(workspaceId, ownerUserId)
                 .orElseThrow(WorkspaceNotFoundException::new);
 
-        return boardRepository.findByWorkspaceIdAndStatusTrue(workspaceId);
+        return boardRepository.findByWorkspaceIdAndStatusTrueOrderByCreatedAtDesc(workspaceId);
     }
 
     @Override
@@ -137,7 +137,7 @@ public class BoardProjectServiceImpl implements BoardProjectService {
 
     @Override
     public List<Board> findAllBoardsByMemberActiveTrueAndMemberUserId(UUID memberUserId) {
-        return boardRepository.findByMemberActiveTrueAndMemberUserId(memberUserId);
+        return boardRepository.findBoardByMemberActiveTrueAndMemberUserIdAndOrderByMemberJoinedAt(memberUserId);
     }
 
     @Override

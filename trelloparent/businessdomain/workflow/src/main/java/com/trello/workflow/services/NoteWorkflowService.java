@@ -1,5 +1,6 @@
 package com.trello.workflow.services;
 
+import java.util.List;
 import java.util.UUID;
 
 import com.trello.workflow.entities.Note;
@@ -12,4 +13,6 @@ public interface NoteWorkflowService {
             throws NoteNotFoundException;
 
     void deleteNoteByEntity(Note note);
+
+    List<Note> findAllNotesByTaskId(UUID taskId);
 }

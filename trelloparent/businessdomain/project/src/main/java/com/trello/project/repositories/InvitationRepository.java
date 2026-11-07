@@ -21,9 +21,13 @@ public interface InvitationRepository extends JpaRepository<Invitation, UUID> {
     // board
     boolean existsByBoardIdAndRecipientUserId(UUID boardId, UUID recipientUserId);
 
-    List<Invitation> findByRecipientUserIdAndStatus(UUID recipientUserId, Status status);
+    // Listar invitaciones por usuario receptor y ordenarlas de forma descendente
+    // por fecha de envio
+    List<Invitation> findByRecipientUserIdAndStatusOrderBySendedAtDesc(UUID recipientUserId, Status status);
 
-    List<Invitation> findByBoardId(UUID boardId);
+    // Listar invitaciones por id de tablero y ordenarlas de forma descendente por
+    // fecha de envio
+    List<Invitation> findByBoardIdOrderBySendedAtDesc(UUID boardId);
 
     Optional<Invitation> findByIdAndSenderUserId(UUID id, UUID senderUserId);
 

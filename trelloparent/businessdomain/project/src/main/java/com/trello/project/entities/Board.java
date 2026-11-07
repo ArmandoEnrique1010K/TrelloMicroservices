@@ -34,6 +34,13 @@ public class Board {
     private String name;
     private String description;
 
+    @CreationTimestamp
+    @Column(nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    // Estado del tablero, si es false quiere decir que fue eliminado logicamente
+    private boolean status;
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "workspace_id", nullable = false)
     private Workspace workspace;
@@ -44,9 +51,4 @@ public class Board {
     @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Invitation> invitations;
 
-    @CreationTimestamp
-    @Column(nullable = false, updatable = false)
-    private LocalDateTime createdAt;
-
-    private boolean status;
 }

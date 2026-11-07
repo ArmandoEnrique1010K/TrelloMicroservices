@@ -31,10 +31,6 @@ public class Invitation {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "board_id", nullable = false)
-    private Board board;
-
     // ID del usuario emisor
     @Column(name = "sender_user_id", nullable = false)
     private UUID senderUserId;
@@ -46,6 +42,15 @@ public class Invitation {
 
     private String message;
 
+    // Fecha de envio (no es lo mismo que fecha de creación)
+    // @CreationTimestamp
+    // @Column(nullable = false, updatable = false)
+    @Column(nullable = false)
+    private LocalDateTime sendedAt;
+
+    // Fecha de aceptación
+    private LocalDateTime acceptedAt;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Role role;
@@ -55,12 +60,7 @@ public class Invitation {
     @Column(nullable = false)
     private Status status;
 
-    // Fecha de envio (no es lo mismo que fecha de creación)
-    // @CreationTimestamp
-    // @Column(nullable = false, updatable = false)
-    @Column(nullable = false)
-    private LocalDateTime sendedAt;
-
-    // Fecha de aceptación
-    private LocalDateTime acceptedAt;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "board_id", nullable = false)
+    private Board board;
 }

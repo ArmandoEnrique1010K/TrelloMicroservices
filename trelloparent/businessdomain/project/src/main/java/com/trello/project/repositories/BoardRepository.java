@@ -15,7 +15,9 @@ import com.trello.project.enums.Role;
 public interface BoardRepository extends JpaRepository<Board, UUID> {
     Optional<Board> findByIdAndStatusTrue(UUID boardId);
 
-    List<Board> findByWorkspaceIdAndStatusTrue(UUID workspaceId);
+    // Listar todos los tableros por ID de espacio de trabajo y estado true
+    // Ordenar de forma descendente (mayor a menor) por fecha de creación
+    List<Board> findByWorkspaceIdAndStatusTrueOrderByCreatedAtDesc(UUID workspaceId);
 
     boolean existsByWorkspaceIdAndNameAndStatusTrue(UUID workspaceId, String name);
 
@@ -52,6 +54,9 @@ public interface BoardRepository extends JpaRepository<Board, UUID> {
     // Listar todos los tableros por ID del usuario en que es miembro
     // Recordar que el usuario administrador del espacio de trabajo no sera miembro
     // porque es el administrador
+
+    // Ordenar por fecha en la que el miembro se unio de forma descendente
+    // m.joinedAt es de tipo LocalDateTime
     @Query("""
                 SELECT b
                 FROM Board b
@@ -59,6 +64,7 @@ public interface BoardRepository extends JpaRepository<Board, UUID> {
                 WHERE m.userId = :userId
                   AND b.status = true
                   AND m.active = true
+                ORDER BY m.joinedAt DESC
             """)
-    List<Board> findByMemberActiveTrueAndMemberUserId(@Param("userId") UUID userId);
+    List<Board> findBoardByMemberActiveTrueAndMemberUserIdAndOrderByMemberJoinedAt(@Param("userId") UUID userId);
 }

@@ -40,14 +40,15 @@ public class InvitationProjectServiceImpl implements InvitationProjectService {
 
     @Override
     public List<Invitation> findAllUnconfirmedInvitationsByRecipientUserId(UUID recipientUserId) {
-        return invitationRepository.findByRecipientUserIdAndStatus(recipientUserId, Status.UNCONFIRMED);
+        return invitationRepository.findByRecipientUserIdAndStatusOrderBySendedAtDesc(recipientUserId,
+                Status.UNCONFIRMED);
     }
 
     @Override
     public List<Invitation> findAllInvitationsByBoardId(UUID boardId)
             throws BoardNotFoundException {
         boardRepository.findById(boardId).orElseThrow(BoardNotFoundException::new);
-        return invitationRepository.findByBoardId(boardId);
+        return invitationRepository.findByBoardIdOrderBySendedAtDesc(boardId);
     }
 
     @Override

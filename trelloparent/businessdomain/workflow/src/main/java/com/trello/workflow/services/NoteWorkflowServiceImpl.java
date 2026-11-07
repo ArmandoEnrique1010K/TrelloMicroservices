@@ -1,6 +1,8 @@
 package com.trello.workflow.services;
 
 import com.trello.workflow.repositories.NoteRepository;
+
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
@@ -32,5 +34,10 @@ public class NoteWorkflowServiceImpl implements NoteWorkflowService {
     @Override
     public void deleteNoteByEntity(Note note) {
         noteRepository.delete(note);
+    }
+
+    @Override
+    public List<Note> findAllNotesByTaskId(UUID taskId) {
+        return noteRepository.findByTaskIdOrderByCreatedAtDesc(taskId);
     }
 }

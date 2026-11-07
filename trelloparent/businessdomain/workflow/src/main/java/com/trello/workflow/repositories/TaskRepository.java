@@ -13,12 +13,15 @@ public interface TaskRepository extends JpaRepository<Task, UUID> {
     // generar varias filas para una misma Task (una por cada Label). DISTINCT
     // evita que una misma Task aparezca repetida en el resultado. No evita que
     // un mismo Label pueda pertenecer a diferentes Tasks.
+
+    // Ademas se van a ordenar de forma descendente por fecha de actualización
     @Query("""
                 SELECT DISTINCT t
                 FROM Task t
                 LEFT JOIN FETCH t.labels
                 JOIN FETCH t.board b
                 WHERE b.id = :boardId
+                ORDER BY t.updatedAt DESC
             """)
-    List<Task> findAllByBoardIdWithLabels(UUID boardId);
+    List<Task> findAllByBoardIdWithLabelsOrderByUpdatedAtDesc(UUID boardId);
 }

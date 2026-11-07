@@ -32,10 +32,6 @@ public class BoardAccess {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "board_id", nullable = false)
-    private Board board;
-
     @Column(name = "user_id", nullable = false)
     private UUID userId;
 
@@ -43,6 +39,10 @@ public class BoardAccess {
 
     // Estado del permiso de acceso
     private boolean status;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "board_id", nullable = false)
+    private Board board;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

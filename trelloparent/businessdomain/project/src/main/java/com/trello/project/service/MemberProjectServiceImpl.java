@@ -33,12 +33,12 @@ public class MemberProjectServiceImpl implements MemberProjectService {
     public List<Member> findAllMembersByBoardIdAndIsOwnerUser(UUID boardId, boolean isOwnerUser) {
         // Si es el usuario administrador del espacio de trabajo
         if (isOwnerUser) {
-            return memberRepository.findByBoardId(boardId);
+            return memberRepository.findByBoardIdOrderByJoinedAtDesc(boardId);
         }
 
         // De lo contrario solamente listara los activos
         // Obviamente si el miembro tiene el rol de MEMBER o ADMIN
-        return memberRepository.findByActiveTrueAndBoardId(boardId);
+        return memberRepository.findByActiveTrueAndBoardIdOrderByJoinedAtDesc(boardId);
     }
 
     @Override

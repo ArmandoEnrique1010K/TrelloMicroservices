@@ -25,7 +25,7 @@ public class WorkspaceProjectServiceImpl implements WorkspaceProjectService {
 
     @Override
     public List<Workspace> findAllWorkspaceByOwnerId(UUID ownerUserId) {
-        return workspaceRepository.findByOwnerUserIdAndStatusTrue(ownerUserId);
+        return workspaceRepository.findByOwnerUserIdAndStatusTrueOrderByCreatedAtDesc(ownerUserId);
     }
 
     @Override

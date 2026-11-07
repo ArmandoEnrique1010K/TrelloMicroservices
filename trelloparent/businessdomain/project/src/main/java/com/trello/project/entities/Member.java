@@ -39,16 +39,9 @@ public class Member {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "board_id", nullable = false)
-    private Board board;
-
     // ID del usuario
     @Column(name = "user_id", nullable = false)
     private UUID userId;
-
-    @Enumerated(EnumType.STRING)
-    private Role role;
 
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
@@ -56,4 +49,11 @@ public class Member {
 
     // Estado del miembro: si esta activo o si ya fue eliminado (borrado logico)
     private boolean active;
+
+    @Enumerated(EnumType.STRING)
+    private Role role;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "board_id", nullable = false)
+    private Board board;
 }

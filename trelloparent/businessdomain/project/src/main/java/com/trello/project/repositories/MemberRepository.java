@@ -10,9 +10,11 @@ import com.trello.project.entities.Member;
 
 public interface MemberRepository extends JpaRepository<Member, UUID> {
 
-    List<Member> findByBoardId(UUID boardId);
+    // Listar miembros por ID de tablero y ordenarlos de forma descendente por la
+    // fecha en que se unio
+    List<Member> findByBoardIdOrderByJoinedAtDesc(UUID boardId);
 
-    List<Member> findByActiveTrueAndBoardId(UUID boardId);
+    List<Member> findByActiveTrueAndBoardIdOrderByJoinedAtDesc(UUID boardId);
 
     // boolean existsByBoardIdAndBoardWorkspaceOwnerUserIdAndRole(UUID boardId, UUID
     // ownerUserId, Role role);
