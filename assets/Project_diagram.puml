@@ -8,13 +8,19 @@ entity Workspace {
     - description: String
     - ownerUserId: UUID
     - createdAt: LocalDateTime
+    - status: boolean
+    - boards: List<Board>
 }
 
 entity Board {
-    - id: UUID
+    - id: UUID <<not generated>>
     - name: String
     - description: String
     - createdAt: LocalDateTime
+    - status: boolean
+    - workspace: Workspace
+    - members: List<Member>
+    - invitations: List<Invitation>
 }
 
 entity Invitation {
@@ -24,6 +30,9 @@ entity Invitation {
     - message: String
     - sendedAt: LocalDateTime
     - acceptedAt: LocalDateTime
+    - role: Role
+    - status: Status
+    - board: Board
 }
 
 entity Member {
@@ -31,18 +40,20 @@ entity Member {
     - userId: UUID
     - joinedAt: LocalDateTime
     - active: boolean
+    - role: Role
+    - board: Board
 }
 
 enum Role {
-    ADMIN
-    MEMBER
-    VIEWER
+    + ADMIN
+    + MEMBER
+    + VIEWER
 }
 
 enum Status {
-    ACCEPTED
-    REJECTED
-    UNCONFIRMED
+    + ACCEPTED
+    + REJECTED
+    + UNCONFIRMED
 }
 
 entity Operation {
@@ -51,8 +62,20 @@ entity Operation {
   - boardId: UUID
   - userId: UUID
   - invitationId: UUID
+  - memberId: UUID
+  - ownerUserId: UUID
+  - workspaceId: UUID
+  - boardName: String 
+  - boardDescription: String
   'Se utiliza Boolean para poder establecer el valor "null" aparte de true o false
   - memberActive: Boolean
+  'Rol antiguo y nuevo
+  - oldRole: Role
+  - newRole: Role
+  'Clave enviada desde el frontend
+  - idempotencyKey: UUID
+  - type: OperationType
+  - status: OperationStatus
   'Ambos son de tipo entero, no pueden ser "null"
   - manualAttempts: int
   - automaticAttempts: int
@@ -63,36 +86,37 @@ entity Operation {
 }
 
 enum OperationType {
-  ACCEPT_INVITATION
-  CHANGE_ROLE_MEMBER
-  DEACTIVATE_MEMBER
-  CREATE_BOARD
-  DELETE_BOARD
-  DELETE_WORKSPACE
+  + ACCEPT_INVITATION
+  + CHANGE_ROLE_MEMBER
+  + DEACTIVATE_MEMBER
+  + CREATE_BOARD
+  + DELETE_BOARD
+  + DELETE_WORKSPACE
 }
 
 
 enum OperationStatus {
-  REGISTERED
-  EXECUTION_PENDING
-  EXECUTING
-  COMPLETED
-  COMPENSATION_PENDING
-  LOCAL_COMPENSATION_IN_PROGRESS
-  LOCAL_COMPENSATION_COMPLETED
-  COMPENSATION_COMPLETED
-  MANUAL_INTERVENTION_REQUIRED
+  + REGISTERED
+  + EXECUTION_PENDING
+  + EXECUTING
+  + COMPLETED
+  + COMPENSATION_PENDING
+  + LOCAL_COMPENSATION_IN_PROGRESS
+  + LOCAL_COMPENSATION_COMPLETED
+  + COMPENSATION_COMPLETED
+  + MANUAL_INTERVENTION_REQUIRED
 }
 
 Workspace "1 " *-- "0..*" Board
 Board " 1  " *-- "0..*   " Member
 Board "1  " *-- "0..*" Invitation
 Member "0..*" --> "1  " Role
-Invitation "0..*  " --> "1     " Role
+Invitation "     0.. *" --> " 1" Role
 Invitation "0..*" --> "1 " Status
 
 Operation "0..*   " --> "1 " OperationType
-Operation "0..*" --> "1 " OperationStatus
-Operation "0..*" ----> "       1  " Role
+Operation "0..*" --> "1    " OperationStatus
+Operation "0..* " ----> "1  " Role
+Operation "0..* " ----> "1  " Role
 
 @enduml

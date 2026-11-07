@@ -12,6 +12,8 @@ entity User {
     - password: String
     - confirmed: boolean
     - createdAt: LocalDateTime
+    - optToken: OtpToken
+    - refreshTokens: List<RefreshToken>
 }
 
 entity OtpToken {
@@ -20,6 +22,8 @@ entity OtpToken {
     - attemps: integer
     - expiresAt: LocalDateTime
     - resetToken: UUID
+    - otpPurpose: OtpPurpose
+    - user: User
 }
 
 entity RefreshToken {
@@ -27,11 +31,12 @@ entity RefreshToken {
     - tokenHash: String
     - expiresAt: LocalDateTime
     - revokedAt: LocalDateTime
+    - user: User
 }
 
 enum OtpPurpose {
-    ACCOUNT_CONFIRMATION,
-    PASSWORD_RESET
+    + ACCOUNT_CONFIRMATION,
+    + PASSWORD_RESET
 }
 
 'Se utiliza 1..* para indicar "uno a muchos", no se utiliza 1..n

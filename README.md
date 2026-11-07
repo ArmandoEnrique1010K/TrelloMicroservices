@@ -96,7 +96,7 @@ Las principales tecnologías, frameworks y librerías utilizadas para el desarro
 | Spring Boot      | Simplifica la configuración, desarrollo y ejecución independiente de cada microservicio.                       |
 | Spring Cloud     | Es el ecosistema de herramientas para implementar funcionalidades relacionadas con arquitecturas distribuidas. |
 
-![](assets/spring-boot-logo.png|470)
+![](assets/spring-boot-logo.png)
 
 ### Persistencia y datos
 
@@ -105,7 +105,7 @@ Las principales tecnologías, frameworks y librerías utilizadas para el desarro
 | Spring Data JPA | Proporciona abstracción para la persistencia y acceso a bases de datos mediante repositorios y consultas JPA.        |
 | PostgreSQL      | Es el sistema de gestión de bases de datos relacional utilizado para almacenar la información de cada microservicio. |
 
-![](assets/postgres-logo.png|470)
+![](assets/postgres-logo.png)
 
 ### Desarrollo web y APIs
 
@@ -116,7 +116,7 @@ Las principales tecnologías, frameworks y librerías utilizadas para el desarro
 | Spring Boot Starter Validation | Gestiona la validación de datos de entrada mediante anotaciones de Bean Validation.                                  |
 | Resend                         | Es un servicio externo de envío de correos electrónicos transaccionales, es utilizado para la activación de cuentas. |
 
-![](assets/swagger-logo.png|470)
+![](assets/swagger-logo.png)
 
 ### Mapeo y generación de código
 
@@ -125,7 +125,7 @@ Las principales tecnologías, frameworks y librerías utilizadas para el desarro
 | MapStruct  | Genera código para realizar conversiones entre entidades, DTOs y otros objetos Java.                        |
 | Lombok     | Reduce código repetitivo mediante anotaciones para generar constructores, getters, setters y otros métodos. |
 
-![](assets/mapstruct-logo.png|470)
+![](assets/mapstruct-logo.png)
 
 ### Seguridad y autenticación
 
@@ -134,7 +134,7 @@ Las principales tecnologías, frameworks y librerías utilizadas para el desarro
 | Spring Security        | Es un framework de Java para la gestión de autenticación, autorización, protección de endpoints y mitigación de vulnerabilidades comunes.     |
 | OAuth2 Resource Server | Protocolo estándar para la autorización delegada y manejo de tokens JWT utilizados para autenticar las solicitudes HTTP entre microservicios. |
 
-![](assets/oauth-2-logo.png|470)
+![](assets/oauth-2-logo.png)
 
 ### Comunicación entre microservicios y resiliencia
 
@@ -145,7 +145,7 @@ Las principales tecnologías, frameworks y librerías utilizadas para el desarro
 | Resilience4j Circuit Breaker | Librería ligera para el aislamiento de fallos en las comunicaciones entre microservicios mediante el patrón Circuit Breaker. |
 | Resilience4j Retry           | Es un módulo de Resilience4j para la gestión de reintentos automáticos ante determinados errores en las comunicaciones.      |
 
-![](assets/resilence4j-logo.png|470)
+![](assets/resilence4j-logo.png)
 
 ### Observabilidad e infraestructura
 
@@ -154,7 +154,7 @@ Las principales tecnologías, frameworks y librerías utilizadas para el desarro
 | Spring Boot Actuator | Es un módulo de Spring Boot que expone métricas operativas de los microservicios y consulta de información operativa, incluyendo estados y eventos de los Circuit Breakers. |
 | Docker               | Es la herramienta para la creación y gestión de contenedores, además de la configuración de la infraestructura necesaria para ejecutar el entorno de desarrollo local.      |
 
-![](assets/docker-logo.png|470)
+![](assets/docker-logo.png)
 
 ## Características principales
 
@@ -616,15 +616,15 @@ El diagrama permite visualizar la estructura del modelo de datos de cada microse
 
 ### Identity
 
-![Diagrama UML del microservicio Identity](assets/diagrama_identity.png|470)
+![](assets/diagrama_identity.png)
 
 ### Project
 
-![Diagrama UML del microservicio Project](assets/diagrama_project.png|470)
+![](assets/diagrama_project.png)
 
 ### Workflow
 
-![Diagrama UML del microservicio Workflow](assets/diagrama_workflow_2.png|470)
+![](assets/diagrama_workflow_2.png)
 
 ## Generación de claves RSA para JWT
 
