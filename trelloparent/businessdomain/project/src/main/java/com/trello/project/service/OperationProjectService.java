@@ -1,9 +1,12 @@
 package com.trello.project.service;
 
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 import com.trello.project.entities.Operation;
+import com.trello.project.enums.OperationStatus;
 import com.trello.project.enums.OperationType;
 
 public interface OperationProjectService {
@@ -31,4 +34,12 @@ public interface OperationProjectService {
     Optional<Operation> findLatestOperationByBoardIdAndType(UUID boardId, OperationType type);
 
     Optional<Operation> findLatestOperationByWorkspaceIdAndType(UUID workspaceId, OperationType type);
+
+    List<Operation> findOperationsByStatusesListOrderByNextAutomaticAttemptAtAscWorkspaceIdAsc(
+            List<OperationStatus> statuses);
+
+    boolean existsPreviousOperationsByWorkspaceIdAndCreatedAt(UUID workspaceId, LocalDateTime createdAt);
+
+    List<Operation> findOperationsByOperationTypeAndStatusOrderByCompletedAtAscWorkspaceIdAsc(
+            OperationType operationType, OperationStatus operationStatus);
 }

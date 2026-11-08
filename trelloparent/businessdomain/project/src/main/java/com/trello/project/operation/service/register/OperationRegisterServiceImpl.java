@@ -12,7 +12,6 @@ import com.trello.project.entities.Board;
 import com.trello.project.entities.Invitation;
 import com.trello.project.entities.Member;
 import com.trello.project.entities.Operation;
-import com.trello.project.entities.Workspace;
 import com.trello.project.enums.OperationType;
 import com.trello.project.enums.Role;
 import com.trello.project.enums.Status;
@@ -113,6 +112,7 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
         // 3. Obtener el tablero asociado a la invitación.
         Board findedBoard = invitation.getBoard();
         UUID boardId = findedBoard.getId();
+        UUID workspaceId = findedBoard.getWorkspace().getId();
 
         // 4. Consultar si ya existe un registro de miembro para el usuario
         // en este tablero.
@@ -150,6 +150,7 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
         operation.setBoardId(boardId);
         operation.setUserId(recipientUserId);
         operation.setInvitationId(invitationId);
+        operation.setWorkspaceId(workspaceId);
 
         // Guardar el estado previo del miembro y los roles anterior y
         // previsto. Estos datos permiten conocer la situación inicial
@@ -188,6 +189,7 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
         Board findedBoard = findedMember.getBoard();
         UUID boardId = findedBoard.getId();
         UUID userId = findedMember.getUserId();
+        UUID workspaceId = findedBoard.getWorkspace().getId();
 
         Operation operation = operationRegisterUtils
                 .createOperation(OperationType.CHANGE_ROLE_MEMBER);
@@ -208,6 +210,8 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
         operation.setOldRole(findedMember.getRole());
         // Y el nuevo rol aqui
         operation.setNewRole(role);
+
+        operation.setWorkspaceId(workspaceId);
 
         operationProjectService.saveOperation(operation);
         return operation;
@@ -236,6 +240,7 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
         Board findedBoard = findedMember.getBoard();
         UUID boardId = findedBoard.getId();
         UUID userId = findedMember.getUserId();
+        UUID workspaceId = findedBoard.getWorkspace().getId();
 
         Operation operation = operationRegisterUtils
                 .createOperation(OperationType.DEACTIVATE_MEMBER);
@@ -246,6 +251,8 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
         operation.setOwnerUserId(ownerUserId);
         operation.setMemberActive(true);
         operation.setOldRole(findedMember.getRole());
+
+        operation.setWorkspaceId(workspaceId);
 
         operationProjectService.saveOperation(operation);
         return operation;
@@ -261,7 +268,7 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
         String name = boardRequest.getName();
         String description = boardRequest.getDescription();
 
-        Workspace workspace = workspaceProjectService.findWorkspaceByIdAndOwnerUserIdAndStatusTrue(
+        workspaceProjectService.findWorkspaceByIdAndOwnerUserIdAndStatusTrue(
                 workspaceId,
                 ownerUserId);
 
@@ -297,20 +304,21 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
         operation.setBoardName(name);
         operation.setBoardDescription(description);
         operation.setOwnerUserId(ownerUserId);
-        operation.setWorkspaceId(workspace.getId());
+        operation.setWorkspaceId(workspaceId);
 
         // 4. Persistir la operación antes de ejecutar la creación.
         operationProjectService.saveOperation(operation);
         return operation;
     }
 
+    // TODO: CONTINUAR
     @Transactional(rollbackFor = Exception.class)
     @Override
     public Operation registerDeleteBoard(UUID ownerUserId, UUID boardId)
             throws WorkspaceNotFoundException, BoardNotFoundException {
 
         // Asegurar de que el tablero exista
-        boardProjectService.findBoardByIdAndOwnerUserIdAndActive(boardId, ownerUserId);
+        Board findedBoard = boardProjectService.findBoardByIdAndOwnerUserIdAndActive(boardId, ownerUserId);
 
         Optional<Operation> existing = operationProjectService.findLatestOperationByBoardIdAndType(boardId,
                 OperationType.DELETE_BOARD);
@@ -322,11 +330,14 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
             return reusable;
         }
 
+        UUID workspaceId = findedBoard.getWorkspace().getId();
+
         Operation operation = operationRegisterUtils
                 .createOperation(OperationType.DELETE_BOARD);
 
         operation.setBoardId(boardId);
         operation.setOwnerUserId(ownerUserId);
+        operation.setWorkspaceId(workspaceId);
 
         operationProjectService.saveOperation(operation);
         return operation;

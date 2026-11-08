@@ -1,11 +1,14 @@
 package com.trello.project.service;
 
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 
 import com.trello.project.entities.Operation;
+import com.trello.project.enums.OperationStatus;
 import com.trello.project.enums.OperationType;
 import com.trello.project.repositories.OperationRepository;
 
@@ -63,5 +66,42 @@ public class OperationProjectServiceImpl implements OperationProjectService {
     @Override
     public Optional<Operation> findLatestOperationByWorkspaceIdAndType(UUID workspaceId, OperationType type) {
         return operationRepository.findFirstByWorkspaceIdAndTypeOrderByCreatedAtDesc(workspaceId, type);
+    }
+
+    @Override
+    public List<Operation> findOperationsByStatusesListOrderByNextAutomaticAttemptAtAscWorkspaceIdAsc(
+            List<OperationStatus> statuses) {
+        LocalDateTime currentDate = LocalDateTime.now();
+
+        return operationRepository
+                .findByStatusInAndNextAutomaticAttemptAtLessThanOrderByNextAutomaticAttemptAtAscWorkspaceIdAsc(
+                        statuses,
+                        currentDate);
+    }
+
+    @Override
+    public boolean existsPreviousOperationsByWorkspaceIdAndCreatedAt(UUID workspaceId, LocalDateTime createdAt) {
+        // Estados que permiten continuar con las operaciones posteriores:
+        // - COMPLETED: la operación original terminó correctamente.
+        // - COMPENSATION_COMPLETED: los cambios fueron revertidos en ambos
+        // microservicios.
+        //
+        // LOCAL_COMPENSATION_COMPLETED no se incluye porque, aunque Project ya revirtió
+        // sus cambios, todavía falta completar la compensación en Workflow.
+        List<OperationStatus> completedStatuses = List.of(
+                OperationStatus.COMPLETED,
+                // OperationStatus.LOCAL_COMPENSATION_COMPLETED,
+                OperationStatus.COMPENSATION_COMPLETED);
+
+        return operationRepository.existsByWorkspaceIdAndCreatedAtLessThanAndStatusNotIn(workspaceId, createdAt,
+                completedStatuses);
+    }
+
+    @Override
+    public List<Operation> findOperationsByOperationTypeAndStatusOrderByCompletedAtAscWorkspaceIdAsc(
+            OperationType operationType, OperationStatus operationStatus) {
+        return operationRepository.findByTypeAndStatusOrderByCompletedAtAscWorkspaceIdAsc(
+                operationType,
+                operationStatus);
     }
 }
