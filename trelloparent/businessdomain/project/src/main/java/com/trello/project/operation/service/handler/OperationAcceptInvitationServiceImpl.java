@@ -19,6 +19,7 @@ import com.trello.project.exception.MemberNotFoundException;
 import com.trello.project.invitation.exception.InvitationConfirmedException;
 import com.trello.project.operation.exception.OperationNotFoundException;
 import com.trello.project.operation.exception.OperationNotPendingException;
+import com.trello.project.operation.service.utils.OperationHandlerUtils;
 import com.trello.project.service.InvitationProjectService;
 import com.trello.project.service.MemberProjectService;
 import com.trello.project.service.OperationProjectService;
@@ -32,63 +33,34 @@ public class OperationAcceptInvitationServiceImpl implements OperationAcceptInvi
     private final OperationProjectService operationProjectService;
     private final InvitationProjectService invitationProjectService;
     private final MemberProjectService memberProjectService;
+    private final OperationHandlerUtils operationHandlerUtils;
 
     public OperationAcceptInvitationServiceImpl(
             OperationProjectService operationProjectService,
             InvitationProjectService invitationProjectService,
-            MemberProjectService memberProjectService) {
+            MemberProjectService memberProjectService,
+            OperationHandlerUtils operationHandlerUtils) {
         this.operationProjectService = operationProjectService;
         this.invitationProjectService = invitationProjectService;
         this.memberProjectService = memberProjectService;
+        this.operationHandlerUtils = operationHandlerUtils;
     }
 
     @Transactional(rollbackFor = Exception.class)
     @Override
     public void applyAcceptInvitation(UUID operationId, boolean automatic)
             throws OperationNotFoundException, OperationNotPendingException, InvitationConfirmedException {
-        // 1. Recuperar la operación registrada previamente para identificar
-        // el proceso de aceptación que se va a ejecutar.
-        Operation persistedOperation = operationProjectService
-                .findOperationById(operationId)
-                .orElseThrow(OperationNotFoundException::new);
 
-        // 2. Validar que la operación se encuentre en un estado que permita
-        // iniciar un nuevo intento de ejecución.
-        OperationStatus currentStatus = persistedOperation.getStatus();
+        Operation operation = operationHandlerUtils
+                .prepareExecution(operationId, automatic);
 
-        if (currentStatus != OperationStatus.REGISTERED
-                && currentStatus != OperationStatus.LOCAL_COMPENSATION_COMPLETED
-                && currentStatus != OperationStatus.COMPENSATION_COMPLETED
-        // && currentStatus != OperationStatus.MANUAL_INTERVENTION_REQUIRED
-        ) {
-
-            throw new OperationNotPendingException();
-        }
-
-        // 3. Incrementar el contador de intentos según el origen
-        // de la ejecución: manual o automática.
-        if (automatic) {
-            persistedOperation.setAutomaticAttempts(
-                    persistedOperation.getAutomaticAttempts() + 1);
-        } else {
-            persistedOperation.setManualAttempts(
-                    persistedOperation.getManualAttempts() + 1);
-        }
-
-        // 4. Registrar la operación como pendiente de ejecución y actualizar
-        // los datos utilizados para controlar su procesamiento y reintentos.
-        persistedOperation.setStatus(OperationStatus.EXECUTION_PENDING);
-        persistedOperation.setCompletedAt(null);
-        persistedOperation.setNextAutomaticAttemptAt(
-                LocalDateTime.now().plusSeconds(30));
-
-        // 5. Obtener los identificadores necesarios para localizar
+        // 1. Obtener los identificadores necesarios para localizar
         // la invitación y el miembro asociado a la aceptación.
-        UUID boardId = persistedOperation.getBoardId();
-        UUID recipientUserId = persistedOperation.getUserId();
-        UUID invitationId = persistedOperation.getInvitationId();
+        UUID boardId = operation.getBoardId();
+        UUID recipientUserId = operation.getUserId();
+        UUID invitationId = operation.getInvitationId();
 
-        // 6. Recuperar la invitación y comprobar que todavía pueda aceptarse.
+        // 2. Recuperar la invitación y comprobar que todavía pueda aceptarse.
         // Si ya fue confirmada, no se deben aplicar nuevamente los cambios.
         Invitation invitation = invitationProjectService.findInvitationByIdAndRecipientUserId(
                 invitationId,
@@ -98,19 +70,19 @@ public class OperationAcceptInvitationServiceImpl implements OperationAcceptInvi
             throw new InvitationConfirmedException();
         }
 
-        // 7. Confirmar la invitación y registrar la fecha de aceptación.
+        // 3. Confirmar la invitación y registrar la fecha de aceptación.
         invitation.setStatus(Status.ACCEPTED);
         invitation.setAcceptedAt(LocalDateTime.now());
         invitationProjectService.saveInvitation(invitation);
 
-        // 8. Comprobar si el usuario ya tiene un registro de miembro
+        // 4. Comprobar si el usuario ya tiene un registro de miembro
         // en el tablero para determinar si debe actualizarse o crearse.
         Optional<Member> optionalMember = memberProjectService
                 .findOptionalMemberByBoardIdAndUserId(boardId, recipientUserId);
 
         Board board = invitation.getBoard();
 
-        // 9. Aplicar los cambios correspondientes al miembro:
+        // 5. Aplicar los cambios correspondientes al miembro:
         // activar el registro existente y actualizar su rol, o crear
         // un nuevo miembro si todavía no existe.
         if (optionalMember.isPresent()) {
@@ -127,10 +99,6 @@ public class OperationAcceptInvitationServiceImpl implements OperationAcceptInvi
             member.setActive(true);
             memberProjectService.saveMember(member);
         }
-
-        // 10. Persistir los cambios de estado de la operación junto
-        // con los datos de ejecución actualizados.
-        operationProjectService.saveOperation(persistedOperation);
     }
 
     @Transactional(rollbackFor = Exception.class)

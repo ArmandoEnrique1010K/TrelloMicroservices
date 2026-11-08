@@ -24,6 +24,7 @@ import com.trello.project.operation.exception.OperationManualReviewException;
 import com.trello.project.operation.exception.OperationNotFoundException;
 import com.trello.project.operation.exception.OperationNotPendingException;
 import com.trello.project.operation.service.handler.OperationChangeRoleMemberService;
+import com.trello.project.operation.service.utils.AbstractOperationProcessor;
 import com.trello.project.operation.service.utils.OperationUtils;
 import com.trello.project.service.MemberProjectService;
 import com.trello.project.service.OperationProjectService;
@@ -32,29 +33,32 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service
-public class OperationChangeRoleMemberProcessorImpl implements OperationChangeRoleMemberProcessor {
-    private final OperationProjectService operationProjectService;
+public class OperationChangeRoleMemberProcessorImpl
+        extends AbstractOperationProcessor
+        implements OperationChangeRoleMemberProcessor {
+
     private final WorkflowClientService workflowClientService;
-    private final OperationUtils operationUtils;
     private final MemberProjectService memberProjectService;
     private final OperationChangeRoleMemberService operationChangeRoleMemberService;
     private final MemberResponseMapper memberResponseMapper;
 
     public OperationChangeRoleMemberProcessorImpl(
-            OperationProjectService operationProjectService,
-            WorkflowClientService workflowClientService,
             OperationUtils operationUtils,
-            MemberProjectService memberProjectService,
+            OperationProjectService operationProjectService,
             OperationChangeRoleMemberService operationChangeRoleMemberService,
+            WorkflowClientService workflowClientService,
+            MemberProjectService memberProjectService,
             MemberResponseMapper memberResponseMapper) {
-        this.operationProjectService = operationProjectService;
+
+        super(operationUtils, operationProjectService);
+
         this.workflowClientService = workflowClientService;
-        this.operationUtils = operationUtils;
-        this.memberProjectService = memberProjectService;
         this.operationChangeRoleMemberService = operationChangeRoleMemberService;
+        this.memberProjectService = memberProjectService;
         this.memberResponseMapper = memberResponseMapper;
     }
 
+    // En lugar de un void se devuelve un MemberResponse
     @Override
     public MemberResponse processChangeRoleMemberOperation(UUID operationId)
             throws OperationNotFoundException, OperationConflictException, MemberNotFoundException,
@@ -62,73 +66,26 @@ public class OperationChangeRoleMemberProcessorImpl implements OperationChangeRo
             OperationCompensatedException, BusinessRuleException
 
     {
-        Operation operation = operationProjectService
-                .findOperationById(operationId)
-                .orElseThrow(OperationNotFoundException::new);
+        Operation operation = findOperation(operationId);
 
         if (operation.getType() != OperationType.CHANGE_ROLE_MEMBER) {
             throw new OperationConflictException();
         }
 
-        return processOriginalOperation(operation);
-    }
+        processOriginalOperation(operation);
 
-    // En lugar de un void se devuelve un MemberResponse
-    private MemberResponse processOriginalOperation(Operation operation)
-            throws MemberNotFoundException, OperationNotPendingException, OperationNotFoundException,
-            OperationManualReviewException, MemberInactiveException, OperationCompensatedException,
-            BusinessRuleException {
-        operationUtils.markExecuting(operation);
-
-        try {
-            processChangeRoleMember(operation);
-            operationUtils.markCompleted(operation);
-
-        } catch (ServiceUnavailableException e) {
-            operationUtils.markCompensationPending(operation);
-
-            try {
-                processLocalCompensation(operation);
-                processRemoteCompensation(operation);
-
-            } catch (ServiceUnavailableException compensationException) {
-                Operation updatedOperation = operationProjectService
-                        .findOperationById(operation.getId())
-                        .orElseThrow(OperationNotFoundException::new);
-
-                if (updatedOperation.getStatus() == OperationStatus.COMPENSATION_COMPLETED) {
-                    throw new OperationCompensatedException();
-                }
-
-                throw compensationException;
-            }
-
-            Operation updatedOperation = operationProjectService
-                    .findOperationById(operation.getId())
-                    .orElseThrow(OperationNotFoundException::new);
-
-            if (updatedOperation.getStatus() == OperationStatus.COMPENSATION_COMPLETED) {
-                throw new OperationCompensatedException();
-            }
-
-            // TODO: DEFINIR UN BLOQUE CATCH CON LAS EXCEPCIONES DE TIPO RUNTIME EXCEPTION
-            // DESDE EL MICROSERVICIO WORKFLOW
-        } catch (Exception e) {
-            operationUtils.markManualReview(operation, e);
-            throw new BusinessRuleException();
-        }
-
+        // Luego de procesar la operación debe realizar el mapeo
         UUID memberId = operation.getMemberId();
         UUID userId = operation.getUserId();
 
-        Member member = memberProjectService.findMemberByIdAndUserId(memberId, userId);
+        Member member = memberProjectService.findMemberByIdAndUserId(memberId,
+                userId);
         MemberResponse memberResponse = memberResponseMapper.memberToMemberResponse(member);
         return memberResponse;
     }
 
-    private void processChangeRoleMember(Operation operation)
-            throws MemberNotFoundException {
-
+    @Override
+    protected void executeOriginalOperation(Operation operation) {
         UUID memberId = operation.getMemberId();
         UUID userId = operation.getUserId();
         UUID boardId = operation.getBoardId();
@@ -149,15 +106,14 @@ public class OperationChangeRoleMemberProcessorImpl implements OperationChangeRo
                 operation.getId());
     }
 
-    private void processLocalCompensation(Operation operation)
-            throws OperationNotPendingException, OperationNotFoundException, OperationManualReviewException,
-            MemberNotFoundException, MemberInactiveException {
+    @Override
+    protected void processLocalCompensation(Operation operation) {
         if (operation.getStatus() != OperationStatus.COMPENSATION_PENDING) {
             throw new OperationNotPendingException();
         }
 
         try {
-            operationUtils.markLocalCompensationCompleted(operation);
+            operationUtils.markLocalCompensationInProgress(operation);
             operationChangeRoleMemberService.revertChangeRoleMember(operation.getId());
 
             Operation updatedOperation = operationProjectService
@@ -177,8 +133,11 @@ public class OperationChangeRoleMemberProcessorImpl implements OperationChangeRo
         }
     }
 
-    private void processRemoteCompensation(Operation operation)
-            throws OperationNotPendingException, OperationCompensatedException {
+    // // TODO: DEFINIR UN BLOQUE CATCH CON LAS EXCEPCIONES DE TIPO RUNTIME
+    // EXCEPTION
+    // // DESDE EL MICROSERVICIO WORKFLOW
+    @Override
+    protected void processRemoteCompensation(Operation operation) {
         if (operation.getStatus() != OperationStatus.LOCAL_COMPENSATION_COMPLETED) {
             throw new OperationNotPendingException();
         }
@@ -186,10 +145,10 @@ public class OperationChangeRoleMemberProcessorImpl implements OperationChangeRo
         try {
             workflowClientService.revertChangeRoleBoardAccess(operation.getId());
             operationUtils.markCompensationCompleted(operation);
-        } catch (ServiceUnavailableException e) {
+        } catch (ServiceUnavailableException exception) {
             operationUtils.markLocalCompensationCompleted(operation);
+            log.info("EXCEPTION: " + exception);
             throw new OperationCompensatedException();
         }
     }
-
 }

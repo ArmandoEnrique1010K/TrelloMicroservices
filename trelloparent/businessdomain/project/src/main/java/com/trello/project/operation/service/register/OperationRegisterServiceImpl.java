@@ -25,6 +25,7 @@ import com.trello.project.exception.MemberNotFoundException;
 import com.trello.project.exception.WorkspaceNotFoundException;
 import com.trello.project.invitation.exception.InvitationConfirmedException;
 import com.trello.project.operation.exception.OperationNotPendingException;
+import com.trello.project.operation.service.utils.OperationRegisterUtils;
 import com.trello.project.service.BoardProjectService;
 import com.trello.project.service.InvitationProjectService;
 import com.trello.project.service.MemberProjectService;
@@ -42,18 +43,21 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
     private final MemberProjectService memberProjectService;
     private final BoardProjectService boardProjectService;
     private final WorkspaceProjectService workspaceProjectService;
+    private final OperationRegisterUtils operationRegisterUtils;
 
     public OperationRegisterServiceImpl(
             OperationProjectService operationProjectService,
             InvitationProjectService invitationProjectService,
             MemberProjectService memberProjectService,
             BoardProjectService boardProjectService,
-            WorkspaceProjectService workspaceProjectService) {
+            WorkspaceProjectService workspaceProjectService,
+            OperationRegisterUtils operationRegisterUtils) {
         this.operationProjectService = operationProjectService;
         this.invitationProjectService = invitationProjectService;
         this.memberProjectService = memberProjectService;
         this.boardProjectService = boardProjectService;
         this.workspaceProjectService = workspaceProjectService;
+        this.operationRegisterUtils = operationRegisterUtils;
     }
 
     /**
@@ -92,7 +96,7 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
 
         // 2. Buscar una operación previa de aceptación de la invitación que
         // pueda reutilizarse para continuar un intento anterior.
-        Optional<Operation> existingOperation = operationProjectService
+        Optional<Operation> existing = operationProjectService
                 .findLatestOperationByInvitationIdAndType(
                         invitationId,
                         OperationType.ACCEPT_INVITATION);
@@ -100,39 +104,13 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
         // Si existe una operación previa, evaluar su estado para determinar
         // si se puede reutilizar, si el proceso debe rechazarse o si corresponde
         // registrar una nueva operación.
-        if (existingOperation.isPresent()) {
-            Operation existing = existingOperation.get();
+        Operation reusable = operationRegisterUtils
+                .findReusableOperation(existing);
 
-            switch (existing.getStatus()) {
-                case REGISTERED, LOCAL_COMPENSATION_COMPLETED, COMPENSATION_COMPLETED -> {
-                    // Reutilizar la operación existente para reintentar el proceso
-                    // conservando su identificador.
-                    //
-                    // Actualizar el nuevo rol con el valor actual de la invitación,
-                    // ya que este puede haber cambiado desde el intento anterior.
-                    existing.setNewRole(invitation.getRole());
-
-                    // Devolver la operación existente para continuar el flujo
-                    // utilizando el mismo identificador.
-                    return existing;
-                }
-
-                // La operación se encuentra en ejecución, pendiente de ejecución
-                // o compensación, o requiere intervención manual. No se permite
-                // iniciar otro intento mientras esta operación no se resuelva.
-                case EXECUTION_PENDING,
-                        EXECUTING,
-                        COMPENSATION_PENDING,
-                        LOCAL_COMPENSATION_IN_PROGRESS,
-                        MANUAL_INTERVENTION_REQUIRED ->
-                    throw new OperationNotPendingException();
-
-                case COMPLETED -> {
-                    // La operación anterior finalizó correctamente. No se reutiliza;
-                    // se continúa con el flujo para registrar una nueva operación
-                    // de aceptación de la invitación.
-                }
-            }
+        if (reusable != null) {
+            // Actualizar el nuevo rol en la operación
+            reusable.setNewRole(invitationRole);
+            return reusable;
         }
 
         // 3. Obtener el tablero asociado a la invitación.
@@ -167,17 +145,8 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
         // Se registran los valores previos y el nuevo rol previsto para
         // disponer de información suficiente para gestionar la ejecución
         // y, si fuera necesario, la compensación de los cambios locales.
-
-        // Generar el identificador que permitirá relacionar los pasos
-        // posteriores de la operación.
-        UUID operationId = UUID.randomUUID();
-
-        Operation operation = new Operation();
-        operation.setId(operationId);
-        operation.setType(OperationType.ACCEPT_INVITATION);
-        operation.setStatus(OperationStatus.REGISTERED);
-        operation.setManualAttempts(0);
-        operation.setAutomaticAttempts(0);
+        Operation operation = operationRegisterUtils
+                .createOperation(OperationType.ACCEPT_INVITATION);
 
         // Guardar las referencias del tablero, el usuario y la invitación
         // involucrados en la operación.
@@ -191,12 +160,6 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
         operation.setMemberActive(memberActive);
         operation.setOldRole(role);
         operation.setNewRole(invitationRole);
-
-        // Registrar la fecha de creación y dejar sin programar el siguiente
-        // intento automático hasta que corresponda según el flujo.
-        LocalDateTime currentDateTime = LocalDateTime.now();
-        operation.setCreatedAt(currentDateTime);
-        operation.setNextAutomaticAttemptAt(null);
 
         // 6. Persistir la operación en estado REGISTERED y devolverla
         // para que el flujo de aplicación de negocio pueda continuar.
@@ -213,43 +176,24 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
         Member findedMember = memberProjectService.findMemberActiveByIdAndOwnerUserId(memberId, ownerUserId);
 
         // Buscar operación existente
-        Optional<Operation> existingOperation = operationProjectService.findLatestOperationByMemberIdAndType(memberId,
+        Optional<Operation> existing = operationProjectService.findLatestOperationByMemberIdAndType(memberId,
                 OperationType.CHANGE_ROLE_MEMBER);
 
-        if (existingOperation.isPresent()) {
-            Operation existing = existingOperation.get();
+        Operation reusable = operationRegisterUtils
+                .findReusableOperation(existing);
 
-            switch (existing.getStatus()) {
-                case REGISTERED, LOCAL_COMPENSATION_COMPLETED, COMPENSATION_COMPLETED -> {
-                    // Cambia el rol
-                    existing.setNewRole(role);
-                    return existing;
-                }
-
-                case EXECUTION_PENDING,
-                        EXECUTING,
-                        COMPENSATION_PENDING,
-                        LOCAL_COMPENSATION_IN_PROGRESS,
-                        MANUAL_INTERVENTION_REQUIRED ->
-                    throw new OperationNotPendingException();
-
-                case COMPLETED -> {
-                }
-            }
+        if (reusable != null) {
+            // Actualizar el nuevo rol en la operación
+            reusable.setNewRole(role);
+            return reusable;
         }
 
         Board findedBoard = findedMember.getBoard();
         UUID boardId = findedBoard.getId();
         UUID userId = findedMember.getUserId();
 
-        UUID operationId = UUID.randomUUID();
-
-        Operation operation = new Operation();
-        operation.setId(operationId);
-        operation.setType(OperationType.CHANGE_ROLE_MEMBER);
-        operation.setStatus(OperationStatus.REGISTERED);
-        operation.setManualAttempts(0);
-        operation.setAutomaticAttempts(0);
+        Operation operation = operationRegisterUtils
+                .createOperation(OperationType.CHANGE_ROLE_MEMBER);
 
         // Solamente se rellenan los campos necesarios
         operation.setBoardId(boardId);
@@ -268,13 +212,11 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
         // Y el nuevo rol aqui
         operation.setNewRole(role);
 
-        LocalDateTime currentDateTime = LocalDateTime.now();
-        operation.setCreatedAt(currentDateTime);
-        operation.setNextAutomaticAttemptAt(null);
-
         operationProjectService.saveOperation(operation);
         return operation;
     }
+
+    // TODO: CONTINUAR AQUI
 
     // TODO: SI DE FORMA AUTOMATICA SE DESACTIVA EL MIEMBRO, ENTONCES SE DEBEN
     // ELIMINAR LAS OPERACIONES PENDIENTES RELACIONADAS AL MIEMBRO POR ID Y

@@ -14,7 +14,7 @@ import com.trello.project.operation.exception.OperationNotPendingException;
 
 public interface OperationChangeRoleMemberProcessor {
     MemberResponse processChangeRoleMemberOperation(UUID operationId)
-            throws OperationNotFoundException, OperationConflictException, MemberNotFoundException,
-            OperationNotPendingException, OperationManualReviewException, MemberInactiveException,
-            OperationCompensatedException, BusinessRuleException;
+            throws OperationNotFoundException, OperationConflictException, OperationCompensatedException,
+            BusinessRuleException, MemberNotFoundException, MemberInactiveException,
+            OperationNotPendingException, OperationManualReviewException;
 }

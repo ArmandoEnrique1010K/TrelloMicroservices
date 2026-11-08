@@ -13,6 +13,6 @@ import com.trello.project.operation.exception.OperationNotPendingException;
 public interface OperationAcceptInvitationProcessor {
     void processAcceptInvitationOperation(UUID operationId)
             throws OperationNotFoundException, OperationConflictException, OperationCompensatedException,
-            OperationManualReviewException, BusinessRuleException, OperationNotPendingException,
-            InvitationNotFoundException;
+            BusinessRuleException, InvitationNotFoundException, OperationNotPendingException,
+            OperationManualReviewException;
 }

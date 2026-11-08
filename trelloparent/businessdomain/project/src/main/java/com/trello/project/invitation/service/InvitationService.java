@@ -73,5 +73,5 @@ public interface InvitationService {
     void acceptInvitation(UUID invitationId, UUID recipientUserId)
             throws InvitationNotFoundException, InvitationConfirmedException, OperationNotPendingException,
             OperationNotFoundException, OperationConflictException, OperationCompensatedException,
-            OperationManualReviewException, BusinessRuleException;
+            BusinessRuleException, OperationManualReviewException;
 }

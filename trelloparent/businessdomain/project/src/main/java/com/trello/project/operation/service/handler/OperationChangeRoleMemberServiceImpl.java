@@ -1,6 +1,5 @@
 package com.trello.project.operation.service.handler;
 
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
@@ -14,6 +13,7 @@ import com.trello.project.exception.MemberInactiveException;
 import com.trello.project.exception.MemberNotFoundException;
 import com.trello.project.operation.exception.OperationNotFoundException;
 import com.trello.project.operation.exception.OperationNotPendingException;
+import com.trello.project.operation.service.utils.OperationHandlerUtils;
 import com.trello.project.service.InvitationProjectService;
 import com.trello.project.service.MemberProjectService;
 import com.trello.project.service.OperationProjectService;
@@ -23,14 +23,17 @@ public class OperationChangeRoleMemberServiceImpl implements OperationChangeRole
     private final OperationProjectService operationProjectService;
     private final InvitationProjectService invitationProjectService;
     private final MemberProjectService memberProjectService;
+    private final OperationHandlerUtils operationHandlerUtils;
 
     public OperationChangeRoleMemberServiceImpl(
             OperationProjectService operationProjectService,
             InvitationProjectService invitationProjectService,
-            MemberProjectService memberProjectService) {
+            MemberProjectService memberProjectService,
+            OperationHandlerUtils operationHandlerUtils) {
         this.operationProjectService = operationProjectService;
         this.invitationProjectService = invitationProjectService;
         this.memberProjectService = memberProjectService;
+        this.operationHandlerUtils = operationHandlerUtils;
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -38,36 +41,15 @@ public class OperationChangeRoleMemberServiceImpl implements OperationChangeRole
     public void applyChangeRoleMember(UUID operationId, boolean automatic)
             throws OperationNotFoundException, OperationNotPendingException, MemberNotFoundException,
             MemberInactiveException {
-        Operation persistedOperation = operationProjectService
-                .findOperationById(operationId)
-                .orElseThrow(OperationNotFoundException::new);
 
-        OperationStatus currentStatus = persistedOperation.getStatus();
+        Operation operation = operationHandlerUtils
+                .prepareExecution(operationId, automatic);
 
-        if (currentStatus != OperationStatus.REGISTERED
-                && currentStatus != OperationStatus.LOCAL_COMPENSATION_COMPLETED
-                && currentStatus != OperationStatus.COMPENSATION_COMPLETED) {
-            throw new OperationNotPendingException();
-        }
-
-        if (automatic) {
-            persistedOperation.setAutomaticAttempts(
-                    persistedOperation.getAutomaticAttempts() + 1);
-        } else {
-            persistedOperation.setManualAttempts(
-                    persistedOperation.getManualAttempts() + 1);
-        }
-
-        persistedOperation.setStatus(OperationStatus.EXECUTION_PENDING);
-        persistedOperation.setCompletedAt(null);
-        persistedOperation.setNextAutomaticAttemptAt(
-                LocalDateTime.now().plusSeconds(30));
-
-        UUID boardId = persistedOperation.getId();
-        UUID userId = persistedOperation.getUserId();
-        UUID memberId = persistedOperation.getMemberId();
-        UUID ownerUserId = persistedOperation.getOwnerUserId();
-        Role newRole = persistedOperation.getNewRole();
+        UUID boardId = operation.getBoardId();
+        UUID userId = operation.getUserId();
+        UUID memberId = operation.getMemberId();
+        UUID ownerUserId = operation.getOwnerUserId();
+        Role newRole = operation.getNewRole();
 
         // Buscar miembro
         Member findedMember = memberProjectService.findMemberActiveByIdAndOwnerUserId(memberId, ownerUserId);
@@ -75,16 +57,21 @@ public class OperationChangeRoleMemberServiceImpl implements OperationChangeRole
         // Actualiza el rol
         findedMember.setRole(newRole);
 
+        // Caso especial
         // Borrar invitación si existe
+
+        // Luego de cambiar el rol de un miembro, si o si debe eliminar la invitación,
+        // porque en la invitación se ha especificado un rol y cuando cambia el rol, el
+        // rol escrito en la invitación ya no tiene validez, a pesar de que se haya
+        // aceptado la invitación porque solamente se puede cambiar el rol del miembro
+        // cuando el miembro acepto la invitación o tambien antes de que acepte la
+        // invitación, se puede cambiar el rol de la invitación
         invitationProjectService.deleteInvitationIfExistsByBoardIdAndRecipientUserId(
                 boardId,
                 userId,
                 ownerUserId);
 
         memberProjectService.saveMember(findedMember);
-
-        // Guardar la operación
-        operationProjectService.saveOperation(persistedOperation);
     }
 
     // Solamente revierte los cambios en el rol del miembro
