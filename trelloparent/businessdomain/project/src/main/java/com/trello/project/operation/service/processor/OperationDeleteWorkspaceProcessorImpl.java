@@ -21,28 +21,33 @@ import com.trello.project.operation.exception.OperationManualReviewException;
 import com.trello.project.operation.exception.OperationNotFoundException;
 import com.trello.project.operation.exception.OperationNotPendingException;
 import com.trello.project.operation.service.handler.OperationDeleteWorkspaceService;
+import com.trello.project.operation.service.utils.AbstractOperationProcessor;
 import com.trello.project.operation.service.utils.OperationUtils;
 import com.trello.project.service.OperationProjectService;
 import com.trello.project.service.WorkspaceProjectService;
 
-@Service
-public class OperationDeleteWorkspaceProcessorImpl implements OperationDeleteWorkspaceProcessor {
+import lombok.extern.slf4j.Slf4j;
 
-    private final OperationProjectService operationProjectService;
+@Slf4j
+@Service
+public class OperationDeleteWorkspaceProcessorImpl
+        extends AbstractOperationProcessor
+        implements OperationDeleteWorkspaceProcessor {
+
     private final WorkflowClientService workflowClientService;
-    private final OperationUtils operationUtils;
     private final OperationDeleteWorkspaceService operationDeleteWorkspaceService;
     private final WorkspaceProjectService workspaceProjectService;
 
     public OperationDeleteWorkspaceProcessorImpl(
+            OperationUtils operationUtils,
             OperationProjectService operationProjectService,
             WorkflowClientService workflowClientService,
-            OperationUtils operationUtils,
             OperationDeleteWorkspaceService operationDeleteWorkspaceService,
             WorkspaceProjectService workspaceProjectService) {
-        this.operationProjectService = operationProjectService;
+
+        super(operationUtils, operationProjectService);
+
         this.workflowClientService = workflowClientService;
-        this.operationUtils = operationUtils;
         this.operationDeleteWorkspaceService = operationDeleteWorkspaceService;
         this.workspaceProjectService = workspaceProjectService;
     }
@@ -63,52 +68,8 @@ public class OperationDeleteWorkspaceProcessorImpl implements OperationDeleteWor
         processOriginalOperation(operation);
     }
 
-    private void processOriginalOperation(Operation operation)
-            throws OperationCompensatedException, OperationNotFoundException, BusinessRuleException,
-            WorkspaceNotFoundException, OperationNotPendingException, OperationManualReviewException {
-        operationUtils.markExecuting(operation);
-        try {
-            processDeleteWorkspace(operation);
-            operationUtils.markCompleted(operation);
-
-        } catch (ServiceUnavailableException e) {
-            operationUtils.markCompensationPending(operation);
-
-            try {
-                processLocalCompensation(operation);
-                processRemoteCompensation(operation);
-
-            } catch (ServiceUnavailableException compensationException) {
-                Operation updatedOperation = operationProjectService
-                        .findOperationById(operation.getId())
-                        .orElseThrow(OperationNotFoundException::new);
-
-                if (updatedOperation.getStatus() == OperationStatus.COMPENSATION_COMPLETED) {
-                    throw new OperationCompensatedException();
-                }
-
-                throw compensationException;
-            }
-
-            Operation updatedOperation = operationProjectService
-                    .findOperationById(operation.getId())
-                    .orElseThrow(OperationNotFoundException::new);
-
-            if (updatedOperation.getStatus() == OperationStatus.COMPENSATION_COMPLETED) {
-                throw new OperationCompensatedException();
-            }
-
-            // TODO: DEFINIR UN BLOQUE CATCH CON LAS EXCEPCIONES DE TIPO RUNTIME EXCEPTION
-            // DESDE EL MICROSERVICIO WORKFLOW
-        } catch (Exception e) {
-            operationUtils.markManualReview(operation, e);
-            throw new BusinessRuleException();
-        }
-
-    }
-
-    private void processDeleteWorkspace(Operation operation)
-            throws WorkspaceNotFoundException {
+    @Override
+    protected void executeOriginalOperation(Operation operation) {
         UUID workspaceId = operation.getWorkspaceId();
         UUID ownerUserId = operation.getOwnerUserId();
 
@@ -128,9 +89,8 @@ public class OperationDeleteWorkspaceProcessorImpl implements OperationDeleteWor
         workflowClientService.deleteAllBoardsByIdsAndMultipleBoardAccesses(boardsIds, operation.getId());
     }
 
-    private void processLocalCompensation(Operation operation)
-            throws OperationNotPendingException, OperationNotFoundException, WorkspaceNotFoundException,
-            OperationManualReviewException {
+    @Override
+    protected void processLocalCompensation(Operation operation) {
         if (operation.getStatus() != OperationStatus.COMPENSATION_PENDING) {
             throw new OperationNotPendingException();
         }
@@ -146,17 +106,20 @@ public class OperationDeleteWorkspaceProcessorImpl implements OperationDeleteWor
                 throw new OperationManualReviewException();
             }
             operationUtils.markLocalCompensationCompleted(updatedOperation);
-        } catch (OperationManualReviewException e) {
-            throw e;
-        } catch (Exception e) {
-            operationUtils.markManualReview(operation, e);
+            // } catch (OperationManualReviewException e) {
+            // throw e;
+        } catch (Exception exception) {
+            operationUtils.markManualReview(operation, exception);
+
+            log.info("EXCEPTION: " + exception);
             throw new OperationManualReviewException();
         }
-
     }
 
-    private void processRemoteCompensation(Operation operation)
-            throws OperationNotPendingException, OperationCompensatedException {
+    // TODO: DEFINIR UN BLOQUE CATCH CON LAS EXCEPCIONES DE TIPO RUNTIME EXCEPTION
+    // DESDE EL MICROSERVICIO WORKFLOW
+    @Override
+    protected void processRemoteCompensation(Operation operation) {
         if (operation.getStatus() != OperationStatus.LOCAL_COMPENSATION_COMPLETED) {
             throw new OperationNotPendingException();
         }
@@ -169,5 +132,4 @@ public class OperationDeleteWorkspaceProcessorImpl implements OperationDeleteWor
             throw new OperationCompensatedException();
         }
     }
-
 }

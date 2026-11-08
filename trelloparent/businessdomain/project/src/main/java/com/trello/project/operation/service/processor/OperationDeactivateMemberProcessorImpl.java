@@ -20,6 +20,7 @@ import com.trello.project.operation.exception.OperationManualReviewException;
 import com.trello.project.operation.exception.OperationNotFoundException;
 import com.trello.project.operation.exception.OperationNotPendingException;
 import com.trello.project.operation.service.handler.OperationDeactivateMemberService;
+import com.trello.project.operation.service.utils.AbstractOperationProcessor;
 import com.trello.project.operation.service.utils.OperationUtils;
 import com.trello.project.service.MemberProjectService;
 import com.trello.project.service.OperationProjectService;
@@ -28,23 +29,22 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service
-public class OperationDeactivateMemberProcessorImpl implements OperationDeactivateMemberProcessor {
-
-    private final OperationProjectService operationProjectService;
+public class OperationDeactivateMemberProcessorImpl extends AbstractOperationProcessor
+        implements OperationDeactivateMemberProcessor {
     private final WorkflowClientService workflowClientService;
-    private final OperationUtils operationUtils;
     private final MemberProjectService memberProjectService;
     private final OperationDeactivateMemberService operationDeactivateMemberService;
 
     public OperationDeactivateMemberProcessorImpl(
+            OperationUtils operationUtils,
             OperationProjectService operationProjectService,
             WorkflowClientService workflowClientService,
-            OperationUtils operationUtils,
             MemberProjectService memberProjectService,
             OperationDeactivateMemberService operationDeactivateMemberService) {
-        this.operationProjectService = operationProjectService;
+
+        super(operationUtils, operationProjectService);
+
         this.workflowClientService = workflowClientService;
-        this.operationUtils = operationUtils;
         this.memberProjectService = memberProjectService;
         this.operationDeactivateMemberService = operationDeactivateMemberService;
     }
@@ -65,53 +65,8 @@ public class OperationDeactivateMemberProcessorImpl implements OperationDeactiva
         processOriginalOperation(operation);
     }
 
-    private void processOriginalOperation(Operation operation)
-            throws OperationNotFoundException, OperationCompensatedException, BusinessRuleException,
-            MemberNotFoundException, OperationNotPendingException, OperationManualReviewException {
-        operationUtils.markExecuting(operation);
-
-        try {
-            processDeactivateMember(operation);
-            operationUtils.markCompleted(operation);
-
-        } catch (ServiceUnavailableException e) {
-            operationUtils.markCompensationPending(operation);
-
-            try {
-                processLocalCompensation(operation);
-                processRemoteCompensation(operation);
-
-            } catch (ServiceUnavailableException compensationException) {
-                Operation updatedOperation = operationProjectService
-                        .findOperationById(operation.getId())
-                        .orElseThrow(OperationNotFoundException::new);
-
-                if (updatedOperation.getStatus() == OperationStatus.COMPENSATION_COMPLETED) {
-                    throw new OperationCompensatedException();
-                }
-
-                throw compensationException;
-            }
-
-            Operation updatedOperation = operationProjectService
-                    .findOperationById(operation.getId())
-                    .orElseThrow(OperationNotFoundException::new);
-
-            if (updatedOperation.getStatus() == OperationStatus.COMPENSATION_COMPLETED) {
-                throw new OperationCompensatedException();
-            }
-
-            // TODO: DEFINIR UN BLOQUE CATCH CON LAS EXCEPCIONES DE TIPO RUNTIME EXCEPTION
-            // DESDE EL MICROSERVICIO WORKFLOW
-        } catch (Exception e) {
-            operationUtils.markManualReview(operation, e);
-            throw new BusinessRuleException();
-        }
-    }
-
-    private void processDeactivateMember(Operation operation)
-            throws MemberNotFoundException {
-
+    @Override
+    protected void executeOriginalOperation(Operation operation) {
         UUID memberId = operation.getMemberId();
         UUID userId = operation.getUserId();
         UUID boardId = operation.getBoardId();
@@ -121,19 +76,14 @@ public class OperationDeactivateMemberProcessorImpl implements OperationDeactiva
         WorkflowRole workflowOldRole = WorkflowRoleUtils.parseRoleToWorkflowRole(
                 oldRole);
 
-        // Verificar que el miembro exista
-        log.info("id de miembro: " + memberId);
-        log.info("id de usuario: " + userId);
-
         memberProjectService.findMemberByIdAndUserId(memberId, userId);
 
         workflowClientService.deactivateBoardAccess(boardId, userId, workflowOldRole,
                 operation.getId());
     }
 
-    private void processLocalCompensation(Operation operation)
-            throws OperationNotPendingException, OperationNotFoundException, MemberNotFoundException,
-            OperationManualReviewException {
+    @Override
+    protected void processLocalCompensation(Operation operation) {
         if (operation.getStatus() != OperationStatus.COMPENSATION_PENDING) {
             throw new OperationNotPendingException();
         }
@@ -151,16 +101,20 @@ public class OperationDeactivateMemberProcessorImpl implements OperationDeactiva
             }
             operationUtils.markLocalCompensationCompleted(updatedOperation);
 
-        } catch (OperationManualReviewException e) {
-            throw e;
-        } catch (Exception e) {
-            operationUtils.markManualReview(operation, e);
+            // } catch (OperationManualReviewException e) {
+            // throw e;
+        } catch (Exception exception) {
+            operationUtils.markManualReview(operation, exception);
+
+            log.info("EXCEPTION: " + exception);
             throw new OperationManualReviewException();
         }
     }
 
-    private void processRemoteCompensation(Operation operation)
-            throws OperationNotFoundException, OperationCompensatedException {
+    // TODO: DEFINIR UN BLOQUE CATCH CON LAS EXCEPCIONES DE TIPO RUNTIME EXCEPTION
+    // DESDE EL MICROSERVICIO WORKFLOW
+    @Override
+    protected void processRemoteCompensation(Operation operation) {
         if (operation.getStatus() != OperationStatus.LOCAL_COMPENSATION_COMPLETED) {
             throw new OperationNotPendingException();
         }
@@ -173,5 +127,4 @@ public class OperationDeactivateMemberProcessorImpl implements OperationDeactiva
             throw new OperationCompensatedException();
         }
     }
-
 }

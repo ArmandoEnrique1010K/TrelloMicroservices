@@ -5,7 +5,6 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 
 import com.trello.project.client.services.WorkflowClientService;
-import com.trello.project.entities.Board;
 import com.trello.project.entities.Operation;
 import com.trello.project.enums.OperationStatus;
 import com.trello.project.enums.OperationType;
@@ -19,6 +18,7 @@ import com.trello.project.operation.exception.OperationManualReviewException;
 import com.trello.project.operation.exception.OperationNotFoundException;
 import com.trello.project.operation.exception.OperationNotPendingException;
 import com.trello.project.operation.service.handler.OperationDeleteBoardService;
+import com.trello.project.operation.service.utils.AbstractOperationProcessor;
 import com.trello.project.operation.service.utils.OperationUtils;
 import com.trello.project.service.BoardProjectService;
 import com.trello.project.service.OperationProjectService;
@@ -27,23 +27,24 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service
-public class OperationDeleteBoardProcessorImpl implements OperationDeleteBoardProcessor {
+public class OperationDeleteBoardProcessorImpl
+        extends AbstractOperationProcessor
+        implements OperationDeleteBoardProcessor {
 
-    private final OperationProjectService operationProjectService;
     private final WorkflowClientService workflowClientService;
-    private final OperationUtils operationUtils;
     private final OperationDeleteBoardService operationDeleteBoardService;
     private final BoardProjectService boardProjectService;
 
     public OperationDeleteBoardProcessorImpl(
+            OperationUtils operationUtils,
             OperationProjectService operationProjectService,
             WorkflowClientService workflowClientService,
-            OperationUtils operationUtils,
             OperationDeleteBoardService operationDeleteBoardService,
             BoardProjectService boardProjectService) {
-        this.operationProjectService = operationProjectService;
+
+        super(operationUtils, operationProjectService);
+
         this.workflowClientService = workflowClientService;
-        this.operationUtils = operationUtils;
         this.operationDeleteBoardService = operationDeleteBoardService;
         this.boardProjectService = boardProjectService;
     }
@@ -65,66 +66,18 @@ public class OperationDeleteBoardProcessorImpl implements OperationDeleteBoardPr
 
     }
 
-    private void processOriginalOperation(Operation operation)
-            throws OperationNotFoundException, OperationCompensatedException, BusinessRuleException,
-            WorkspaceNotFoundException, BoardNotFoundException, OperationNotPendingException,
-            OperationManualReviewException {
-        operationUtils.markExecuting(operation);
-        try {
-            processDeleteBoard(operation);
-            operationUtils.markCompleted(operation);
-
-        } catch (ServiceUnavailableException e) {
-            operationUtils.markCompensationPending(operation);
-
-            try {
-                processLocalCompensation(operation);
-                processRemoteCompensation(operation);
-
-            } catch (ServiceUnavailableException compensationException) {
-                Operation updatedOperation = operationProjectService
-                        .findOperationById(operation.getId())
-                        .orElseThrow(OperationNotFoundException::new);
-
-                if (updatedOperation.getStatus() == OperationStatus.COMPENSATION_COMPLETED) {
-                    throw new OperationCompensatedException();
-                }
-
-                throw compensationException;
-            }
-
-            Operation updatedOperation = operationProjectService
-                    .findOperationById(operation.getId())
-                    .orElseThrow(OperationNotFoundException::new);
-
-            if (updatedOperation.getStatus() == OperationStatus.COMPENSATION_COMPLETED) {
-                throw new OperationCompensatedException();
-            }
-
-            // TODO: DEFINIR UN BLOQUE CATCH CON LAS EXCEPCIONES DE TIPO RUNTIME EXCEPTION
-            // DESDE EL MICROSERVICIO WORKFLOW
-        } catch (Exception e) {
-            operationUtils.markManualReview(operation, e);
-            throw new BusinessRuleException();
-        }
-
-    }
-
-    private void processDeleteBoard(Operation operation)
-            throws WorkspaceNotFoundException, BoardNotFoundException {
+    @Override
+    protected void executeOriginalOperation(Operation operation) {
         UUID boardId = operation.getBoardId();
         UUID ownerUserId = operation.getOwnerUserId();
 
-        log.info("TABLERO ENCONTRADO");
         // El estado del tablero no importa
-        Board board = boardProjectService.findBoardByIdAndOwnerUserId(boardId, ownerUserId);
-        log.info("TABLERO ID: " + board.getId());
+        boardProjectService.findBoardByIdAndOwnerUserId(boardId, ownerUserId);
         workflowClientService.deleteBoardAndBoardAccesses(boardId, operation.getId());
     }
 
-    private void processLocalCompensation(Operation operation)
-            throws OperationNotPendingException, OperationNotFoundException, BoardNotFoundException,
-            OperationManualReviewException {
+    @Override
+    protected void processLocalCompensation(Operation operation) {
         if (operation.getStatus() != OperationStatus.COMPENSATION_PENDING) {
             throw new OperationNotPendingException();
         }
@@ -140,16 +93,20 @@ public class OperationDeleteBoardProcessorImpl implements OperationDeleteBoardPr
                 throw new OperationManualReviewException();
             }
             operationUtils.markLocalCompensationCompleted(updatedOperation);
-        } catch (OperationManualReviewException e) {
-            throw e;
-        } catch (Exception e) {
-            operationUtils.markManualReview(operation, e);
+            // } catch (OperationManualReviewException e) {
+            // throw e;
+        } catch (Exception exception) {
+            operationUtils.markManualReview(operation, exception);
+
+            log.info("EXCEPTION: " + exception);
             throw new OperationManualReviewException();
         }
     }
 
-    private void processRemoteCompensation(Operation operation)
-            throws OperationNotPendingException, OperationCompensatedException {
+    // TODO: DEFINIR UN BLOQUE CATCH CON LAS EXCEPCIONES DE TIPO RUNTIME EXCEPTION
+    // DESDE EL MICROSERVICIO WORKFLOW
+    @Override
+    protected void processRemoteCompensation(Operation operation) {
         if (operation.getStatus() != OperationStatus.LOCAL_COMPENSATION_COMPLETED) {
             throw new OperationNotPendingException();
         }
@@ -162,5 +119,4 @@ public class OperationDeleteBoardProcessorImpl implements OperationDeleteBoardPr
             throw new OperationCompensatedException();
         }
     }
-
 }

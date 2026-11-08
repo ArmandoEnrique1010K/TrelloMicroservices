@@ -125,10 +125,12 @@ public class OperationChangeRoleMemberProcessorImpl
             }
             operationUtils.markLocalCompensationCompleted(updatedOperation);
 
-        } catch (OperationManualReviewException e) {
-            throw e;
-        } catch (Exception e) {
-            operationUtils.markManualReview(operation, e);
+            // } catch (OperationManualReviewException e) {
+            // throw e;
+        } catch (Exception exception) {
+            operationUtils.markManualReview(operation, exception);
+
+            log.info("EXCEPTION: " + exception);
             throw new OperationManualReviewException();
         }
     }

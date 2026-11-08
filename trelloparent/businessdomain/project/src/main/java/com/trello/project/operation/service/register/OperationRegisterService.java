@@ -9,7 +9,6 @@ import com.trello.project.exception.MemberInactiveException;
 import com.trello.project.exception.MemberNotFoundException;
 import com.trello.project.exception.WorkspaceNotFoundException;
 import com.trello.project.invitation.exception.InvitationConfirmedException;
-import com.trello.project.operation.exception.OperationNotPendingException;
 
 import java.util.UUID;
 
@@ -18,24 +17,24 @@ public interface OperationRegisterService {
 
     // Aceptar invitación
     Operation registerAcceptInvitation(UUID invitationId, UUID recipientUserId)
-            throws InvitationNotFoundException, InvitationConfirmedException, OperationNotPendingException;
+            throws InvitationNotFoundException, InvitationConfirmedException;
 
     Operation registerChangeRoleMember(Role role, UUID memberId, UUID ownerUserId)
-            throws MemberNotFoundException, MemberInactiveException, OperationNotPendingException;
+            throws MemberNotFoundException, MemberInactiveException;
 
     Operation registerDeactivateMember(UUID memberId, UUID ownerUserId)
-            throws MemberNotFoundException, MemberInactiveException, OperationNotPendingException;
+            throws MemberNotFoundException, MemberInactiveException;
 
     // Crear tablero y permiso de acceso del usuario administrador en el
     // microservicio Workflow
     Operation registerCreateBoard(UUID workspaceId, UUID ownerUserId,
             BoardRequest boardRequest,
             UUID idempotencyKey)
-            throws WorkspaceNotFoundException, OperationNotPendingException;
+            throws WorkspaceNotFoundException;
 
     Operation registerDeleteBoard(UUID ownerUserId, UUID boardId)
-            throws WorkspaceNotFoundException, BoardNotFoundException, OperationNotPendingException;
+            throws WorkspaceNotFoundException, BoardNotFoundException;
 
     Operation registerDeleteWorkspace(UUID ownerUserId, UUID workspaceId)
-            throws WorkspaceNotFoundException, OperationNotPendingException;
+            throws WorkspaceNotFoundException;
 }

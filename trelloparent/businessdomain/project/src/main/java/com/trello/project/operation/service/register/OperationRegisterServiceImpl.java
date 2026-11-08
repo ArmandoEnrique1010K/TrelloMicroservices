@@ -1,6 +1,5 @@
 package com.trello.project.operation.service.register;
 
-import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -14,7 +13,6 @@ import com.trello.project.entities.Invitation;
 import com.trello.project.entities.Member;
 import com.trello.project.entities.Operation;
 import com.trello.project.entities.Workspace;
-import com.trello.project.enums.OperationStatus;
 import com.trello.project.enums.OperationType;
 import com.trello.project.enums.Role;
 import com.trello.project.enums.Status;
@@ -24,7 +22,6 @@ import com.trello.project.exception.MemberInactiveException;
 import com.trello.project.exception.MemberNotFoundException;
 import com.trello.project.exception.WorkspaceNotFoundException;
 import com.trello.project.invitation.exception.InvitationConfirmedException;
-import com.trello.project.operation.exception.OperationNotPendingException;
 import com.trello.project.operation.service.utils.OperationRegisterUtils;
 import com.trello.project.service.BoardProjectService;
 import com.trello.project.service.InvitationProjectService;
@@ -76,7 +73,7 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
     @Transactional(rollbackFor = Exception.class)
     @Override
     public Operation registerAcceptInvitation(UUID invitationId, UUID recipientUserId)
-            throws InvitationNotFoundException, InvitationConfirmedException, OperationNotPendingException {
+            throws InvitationNotFoundException, InvitationConfirmedException {
 
         // 1. Validar las condiciones de negocio antes de comprobar
         // si existe una operación previa que pueda reutilizarse.
@@ -170,7 +167,7 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
     @Transactional(rollbackFor = Exception.class)
     @Override
     public Operation registerChangeRoleMember(Role role, UUID memberId, UUID ownerUserId)
-            throws MemberNotFoundException, MemberInactiveException, OperationNotPendingException {
+            throws MemberNotFoundException, MemberInactiveException {
 
         // Validar logica de negocio
         Member findedMember = memberProjectService.findMemberActiveByIdAndOwnerUserId(memberId, ownerUserId);
@@ -216,65 +213,39 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
         return operation;
     }
 
-    // TODO: CONTINUAR AQUI
-
     // TODO: SI DE FORMA AUTOMATICA SE DESACTIVA EL MIEMBRO, ENTONCES SE DEBEN
     // ELIMINAR LAS OPERACIONES PENDIENTES RELACIONADAS AL MIEMBRO POR ID Y
     // OWNERUSERID
     @Transactional(rollbackFor = Exception.class)
     @Override
     public Operation registerDeactivateMember(UUID memberId, UUID ownerUserId)
-            throws MemberNotFoundException, MemberInactiveException, OperationNotPendingException {
+            throws MemberNotFoundException, MemberInactiveException {
 
         Member findedMember = memberProjectService.findMemberActiveByIdAndOwnerUserId(memberId, ownerUserId);
 
-        Optional<Operation> existingOperation = operationProjectService.findLatestOperationByMemberIdAndType(memberId,
+        Optional<Operation> existing = operationProjectService.findLatestOperationByMemberIdAndType(memberId,
                 OperationType.DEACTIVATE_MEMBER);
 
-        if (existingOperation.isPresent()) {
-            Operation existing = existingOperation.get();
+        Operation reusable = operationRegisterUtils
+                .findReusableOperation(existing);
 
-            switch (existing.getStatus()) {
-                case REGISTERED, LOCAL_COMPENSATION_COMPLETED, COMPENSATION_COMPLETED -> {
-                    return existing;
-                }
-
-                case EXECUTION_PENDING,
-                        EXECUTING,
-                        COMPENSATION_PENDING,
-                        LOCAL_COMPENSATION_IN_PROGRESS,
-                        MANUAL_INTERVENTION_REQUIRED ->
-                    throw new OperationNotPendingException();
-
-                case COMPLETED -> {
-                }
-            }
+        if (reusable != null) {
+            return reusable;
         }
 
         Board findedBoard = findedMember.getBoard();
         UUID boardId = findedBoard.getId();
         UUID userId = findedMember.getUserId();
 
-        UUID operationId = UUID.randomUUID();
-
-        Operation operation = new Operation();
-        operation.setId(operationId);
-        operation.setType(OperationType.DEACTIVATE_MEMBER);
-        operation.setStatus(OperationStatus.REGISTERED);
-        operation.setManualAttempts(0);
-        operation.setAutomaticAttempts(0);
+        Operation operation = operationRegisterUtils
+                .createOperation(OperationType.DEACTIVATE_MEMBER);
 
         operation.setBoardId(boardId);
         operation.setMemberId(memberId);
         operation.setUserId(userId);
         operation.setOwnerUserId(ownerUserId);
         operation.setMemberActive(true);
-
         operation.setOldRole(findedMember.getRole());
-
-        LocalDateTime currentDateTime = LocalDateTime.now();
-        operation.setCreatedAt(currentDateTime);
-        operation.setNextAutomaticAttemptAt(null);
 
         operationProjectService.saveOperation(operation);
         return operation;
@@ -285,7 +256,7 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
     public Operation registerCreateBoard(UUID workspaceId, UUID ownerUserId,
             BoardRequest boardRequest,
             UUID idempotencyKey)
-            throws WorkspaceNotFoundException, OperationNotPendingException {
+            throws WorkspaceNotFoundException {
 
         String name = boardRequest.getName();
         String description = boardRequest.getDescription();
@@ -299,58 +270,34 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
         }
 
         // 1. Comprobar si ya se registró esta misma solicitud.
-        Optional<Operation> existingOperation = operationProjectService
+        Optional<Operation> existing = operationProjectService
                 .findLatestOperationByWorkspaceIdAndIdempotencyKeyAndType(
                         workspaceId,
                         idempotencyKey,
                         OperationType.CREATE_BOARD);
 
-        if (existingOperation.isPresent()) {
-            Operation existing = existingOperation.get();
+        Operation reusable = operationRegisterUtils
+                .findReusableOperation(existing);
 
-            // De acuerdo a su estado debe devolver la operacion existente, una excepcion o
-            // continuar con una nueva operacion
-            switch (existing.getStatus()) {
-                case REGISTERED, LOCAL_COMPENSATION_COMPLETED, COMPENSATION_COMPLETED -> {
-                    // Si el usuario ha cambiado el nombre y la descripcion en el mismo formulario,
-                    // debe actualizarlo
-                    existing.setBoardName(name);
-                    existing.setBoardDescription(description);
-                    return existing;
-                }
-
-                case EXECUTION_PENDING,
-                        EXECUTING,
-                        COMPENSATION_PENDING,
-                        LOCAL_COMPENSATION_IN_PROGRESS,
-                        MANUAL_INTERVENTION_REQUIRED ->
-                    throw new OperationNotPendingException();
-
-                case COMPLETED -> {
-                }
-            }
+        // 2. Si el usuario ha cambiado el nombre y la descripcion en el mismo
+        // formulario, debe actualizarlo
+        if (reusable != null) {
+            reusable.setBoardName(name);
+            reusable.setBoardDescription(description);
+            return reusable;
         }
 
-        // 3. Crear identificadores para una operación nueva.
+        // 3. Crear un identificador para el tablero.
         UUID boardId = UUID.randomUUID();
-        UUID operationId = UUID.randomUUID();
 
-        Operation operation = new Operation();
-        operation.setId(operationId);
-        operation.setIdempotencyKey(idempotencyKey);
-        operation.setType(OperationType.CREATE_BOARD);
-        operation.setStatus(OperationStatus.REGISTERED);
-        operation.setManualAttempts(0);
-        operation.setAutomaticAttempts(0);
+        Operation operation = operationRegisterUtils
+                .createOperation(OperationType.CREATE_BOARD);
+
         operation.setBoardId(boardId);
         operation.setBoardName(name);
         operation.setBoardDescription(description);
         operation.setOwnerUserId(ownerUserId);
         operation.setWorkspaceId(workspace.getId());
-
-        LocalDateTime currentDateTime = LocalDateTime.now();
-        operation.setCreatedAt(currentDateTime);
-        operation.setNextAutomaticAttemptAt(null);
 
         // 4. Persistir la operación antes de ejecutar la creación.
         operationProjectService.saveOperation(operation);
@@ -360,49 +307,26 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
     @Transactional(rollbackFor = Exception.class)
     @Override
     public Operation registerDeleteBoard(UUID ownerUserId, UUID boardId)
-            throws WorkspaceNotFoundException, BoardNotFoundException, OperationNotPendingException {
+            throws WorkspaceNotFoundException, BoardNotFoundException {
 
-        log.info("BoardID: " + boardId);
-        log.info("OWNER USER ID: " + ownerUserId);
         // Asegurar de que el tablero exista
         boardProjectService.findBoardByIdAndOwnerUserIdAndActive(boardId, ownerUserId);
 
-        Optional<Operation> existingOperation = operationProjectService.findLatestOperationByBoardIdAndType(boardId,
+        Optional<Operation> existing = operationProjectService.findLatestOperationByBoardIdAndType(boardId,
                 OperationType.DELETE_BOARD);
 
-        if (existingOperation.isPresent()) {
-            Operation existing = existingOperation.get();
+        Operation reusable = operationRegisterUtils
+                .findReusableOperation(existing);
 
-            switch (existing.getStatus()) {
-                case REGISTERED, LOCAL_COMPENSATION_COMPLETED, COMPENSATION_COMPLETED -> {
-                    return existing;
-                }
-
-                case EXECUTION_PENDING,
-                        EXECUTING,
-                        COMPENSATION_PENDING,
-                        LOCAL_COMPENSATION_IN_PROGRESS,
-                        MANUAL_INTERVENTION_REQUIRED ->
-                    throw new OperationNotPendingException();
-
-                case COMPLETED -> {
-                }
-            }
+        if (reusable != null) {
+            return reusable;
         }
-        UUID operationId = UUID.randomUUID();
 
-        Operation operation = new Operation();
-        operation.setId(operationId);
-        operation.setType(OperationType.DELETE_BOARD);
-        operation.setStatus(OperationStatus.REGISTERED);
-        operation.setManualAttempts(0);
-        operation.setAutomaticAttempts(0);
+        Operation operation = operationRegisterUtils
+                .createOperation(OperationType.DELETE_BOARD);
+
         operation.setBoardId(boardId);
         operation.setOwnerUserId(ownerUserId);
-
-        LocalDateTime currentDateTime = LocalDateTime.now();
-        operation.setCreatedAt(currentDateTime);
-        operation.setNextAutomaticAttemptAt(null);
 
         operationProjectService.saveOperation(operation);
         return operation;
@@ -411,50 +335,29 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
     @Transactional(rollbackFor = Exception.class)
     @Override
     public Operation registerDeleteWorkspace(UUID ownerUserId, UUID workspaceId)
-            throws WorkspaceNotFoundException, OperationNotPendingException {
+            throws WorkspaceNotFoundException {
 
         workspaceProjectService.findWorkspaceByIdAndOwnerUserIdAndStatusTrue(workspaceId, ownerUserId);
 
-        Optional<Operation> existingOperation = operationProjectService
+        Optional<Operation> existing = operationProjectService
                 .findLatestOperationByWorkspaceIdAndType(
                         workspaceId,
                         OperationType.DELETE_WORKSPACE);
 
-        if (existingOperation.isPresent()) {
-            Operation existing = existingOperation.get();
+        Operation reusable = operationRegisterUtils
+                .findReusableOperation(existing);
 
-            switch (existing.getStatus()) {
-                case REGISTERED, LOCAL_COMPENSATION_COMPLETED, COMPENSATION_COMPLETED -> {
-                    return existing;
-                }
-
-                case EXECUTION_PENDING,
-                        EXECUTING,
-                        COMPENSATION_PENDING,
-                        LOCAL_COMPENSATION_IN_PROGRESS,
-                        MANUAL_INTERVENTION_REQUIRED ->
-                    throw new OperationNotPendingException();
-
-                case COMPLETED -> {
-                }
-            }
+        if (reusable != null) {
+            return reusable;
         }
-        UUID operationId = UUID.randomUUID();
-        Operation operation = new Operation();
-        operation.setId(operationId);
-        operation.setType(OperationType.DELETE_WORKSPACE);
-        operation.setStatus(OperationStatus.REGISTERED);
-        operation.setManualAttempts(0);
-        operation.setAutomaticAttempts(0);
+
+        Operation operation = operationRegisterUtils
+                .createOperation(OperationType.DELETE_WORKSPACE);
+
         operation.setWorkspaceId(workspaceId);
         operation.setOwnerUserId(ownerUserId);
 
-        LocalDateTime currentDateTime = LocalDateTime.now();
-        operation.setCreatedAt(currentDateTime);
-        operation.setNextAutomaticAttemptAt(null);
-
         operationProjectService.saveOperation(operation);
         return operation;
-
     }
 }

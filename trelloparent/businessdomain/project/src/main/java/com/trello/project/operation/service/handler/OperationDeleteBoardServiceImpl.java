@@ -1,6 +1,5 @@
 package com.trello.project.operation.service.handler;
 
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
@@ -12,6 +11,7 @@ import com.trello.project.exception.BoardNotFoundException;
 import com.trello.project.exception.WorkspaceNotFoundException;
 import com.trello.project.operation.exception.OperationNotFoundException;
 import com.trello.project.operation.exception.OperationNotPendingException;
+import com.trello.project.operation.service.utils.OperationHandlerUtils;
 import com.trello.project.service.BoardProjectService;
 import com.trello.project.service.OperationProjectService;
 
@@ -22,12 +22,15 @@ import lombok.extern.slf4j.Slf4j;
 public class OperationDeleteBoardServiceImpl implements OperationDeleteBoardService {
     private final OperationProjectService operationProjectService;
     private final BoardProjectService boardProjectService;
+    private final OperationHandlerUtils operationHandlerUtils;
 
     public OperationDeleteBoardServiceImpl(
             OperationProjectService operationProjectService,
-            BoardProjectService boardProjectService) {
+            BoardProjectService boardProjectService,
+            OperationHandlerUtils operationHandlerUtils) {
         this.operationProjectService = operationProjectService;
         this.boardProjectService = boardProjectService;
+        this.operationHandlerUtils = operationHandlerUtils;
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -36,45 +39,19 @@ public class OperationDeleteBoardServiceImpl implements OperationDeleteBoardServ
             throws OperationNotFoundException, OperationNotPendingException, WorkspaceNotFoundException,
             BoardNotFoundException {
 
-        Operation persistedOperation = operationProjectService
-                .findOperationById(operationId)
-                .orElseThrow(OperationNotFoundException::new);
+        Operation operation = operationHandlerUtils
+                .prepareExecution(operationId, automatic);
 
-        OperationStatus currentStatus = persistedOperation.getStatus();
-
-        if (currentStatus != OperationStatus.REGISTERED
-                && currentStatus != OperationStatus.LOCAL_COMPENSATION_COMPLETED
-                && currentStatus != OperationStatus.COMPENSATION_COMPLETED) {
-            throw new OperationNotPendingException();
-        }
-
-        if (automatic) {
-            persistedOperation.setAutomaticAttempts(
-                    persistedOperation.getAutomaticAttempts() + 1);
-        } else {
-            persistedOperation.setManualAttempts(
-                    persistedOperation.getManualAttempts() + 1);
-        }
-
-        persistedOperation.setStatus(OperationStatus.EXECUTION_PENDING);
-        persistedOperation.setCompletedAt(null);
-        persistedOperation.setNextAutomaticAttemptAt(
-                LocalDateTime.now().plusSeconds(30));
-
-        UUID boardId = persistedOperation.getBoardId();
-        UUID ownerUserId = persistedOperation.getOwnerUserId();
-
-        log.info("BUSCANDO");
+        UUID boardId = operation.getBoardId();
+        UUID ownerUserId = operation.getOwnerUserId();
 
         // Verificar si existe tablero
         boardProjectService.findBoardByIdAndOwnerUserIdAndActive(boardId, ownerUserId);
-        log.info("CAMBIANDO ESTADO");
 
         // En lugar de borrar el tablero se va a cambiar su estado
         boardProjectService.changeStatusBoardById(boardId, ownerUserId, false);
-        log.info("GUARDANDO");
 
-        operationProjectService.saveOperation(persistedOperation);
+        operationProjectService.saveOperation(operation);
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -92,5 +69,4 @@ public class OperationDeleteBoardServiceImpl implements OperationDeleteBoardServ
         // A su vez este metodo busca si existe el tablero por su ID y lo guarda
         boardProjectService.changeStatusBoardById(boardId, ownerUserId, true);
     }
-
 }

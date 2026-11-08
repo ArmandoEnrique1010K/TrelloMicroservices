@@ -46,7 +46,7 @@ public abstract class AbstractOperationProcessor {
             // 3. Registrar que la operación finalizó correctamente.
             operationUtils.markCompleted(operation);
 
-        } catch (ServiceUnavailableException e) {
+        } catch (ServiceUnavailableException exception) {
             // La comunicación con Workflow no está disponible y el resultado
             // de la operación remota puede ser desconocido.
 
@@ -88,7 +88,7 @@ public abstract class AbstractOperationProcessor {
                     .orElseThrow(OperationNotFoundException::new);
 
             if (updated.getStatus() == OperationStatus.COMPENSATION_COMPLETED) {
-                log.info("EXCEPTION: " + e);
+                log.info("EXCEPTION: " + exception);
                 throw new OperationCompensatedException();
             }
 
@@ -99,13 +99,13 @@ public abstract class AbstractOperationProcessor {
             // } catch (OperationManualReviewException exceptionManualReview) {
             // log.info("EXCEPTION: " + exceptionManualReview);
 
-        } catch (Exception e) {
+        } catch (Exception exception) {
             // Cualquier otro error se registra para revisión manual, dado que
             // no se ha definido aquí una estrategia segura de recuperación
             // automática para esta excepción.
-            operationUtils.markManualReview(operation, e);
+            operationUtils.markManualReview(operation, exception);
 
-            log.info("EXCEPTION: " + e);
+            log.info("EXCEPTION: " + exception);
             throw new BusinessRuleException();
         }
     }

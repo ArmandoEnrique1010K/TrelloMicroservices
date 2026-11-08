@@ -1,6 +1,5 @@
 package com.trello.project.operation.service.handler;
 
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
@@ -14,6 +13,7 @@ import com.trello.project.exception.MemberInactiveException;
 import com.trello.project.exception.MemberNotFoundException;
 import com.trello.project.operation.exception.OperationNotFoundException;
 import com.trello.project.operation.exception.OperationNotPendingException;
+import com.trello.project.operation.service.utils.OperationHandlerUtils;
 import com.trello.project.service.InvitationProjectService;
 import com.trello.project.service.MemberProjectService;
 import com.trello.project.service.OperationProjectService;
@@ -23,14 +23,17 @@ public class OperationDeactivateMemberServiceImpl implements OperationDeactivate
     private final OperationProjectService operationProjectService;
     private final InvitationProjectService invitationProjectService;
     private final MemberProjectService memberProjectService;
+    private final OperationHandlerUtils operationHandlerUtils;
 
     public OperationDeactivateMemberServiceImpl(
             OperationProjectService operationProjectService,
             InvitationProjectService invitationProjectService,
-            MemberProjectService memberProjectService) {
+            MemberProjectService memberProjectService,
+            OperationHandlerUtils operationHandlerUtils) {
         this.operationProjectService = operationProjectService;
         this.invitationProjectService = invitationProjectService;
         this.memberProjectService = memberProjectService;
+        this.operationHandlerUtils = operationHandlerUtils;
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -38,35 +41,14 @@ public class OperationDeactivateMemberServiceImpl implements OperationDeactivate
     public void applyDeactivateMember(UUID operationId, boolean automatic)
             throws OperationNotFoundException, OperationNotPendingException, MemberNotFoundException,
             MemberInactiveException {
-        Operation persistedOperation = operationProjectService
-                .findOperationById(operationId)
-                .orElseThrow(OperationNotFoundException::new);
 
-        OperationStatus currentStatus = persistedOperation.getStatus();
+        Operation operation = operationHandlerUtils
+                .prepareExecution(operationId, automatic);
 
-        if (currentStatus != OperationStatus.REGISTERED
-                && currentStatus != OperationStatus.LOCAL_COMPENSATION_COMPLETED
-                && currentStatus != OperationStatus.COMPENSATION_COMPLETED) {
-            throw new OperationNotPendingException();
-        }
-
-        if (automatic) {
-            persistedOperation.setAutomaticAttempts(
-                    persistedOperation.getAutomaticAttempts() + 1);
-        } else {
-            persistedOperation.setManualAttempts(
-                    persistedOperation.getManualAttempts() + 1);
-        }
-
-        persistedOperation.setStatus(OperationStatus.EXECUTION_PENDING);
-        persistedOperation.setCompletedAt(null);
-        persistedOperation.setNextAutomaticAttemptAt(
-                LocalDateTime.now().plusSeconds(30));
-
-        UUID boardId = persistedOperation.getId();
-        UUID userId = persistedOperation.getUserId();
-        UUID memberId = persistedOperation.getMemberId();
-        UUID ownerUserId = persistedOperation.getOwnerUserId();
+        UUID boardId = operation.getBoardId();
+        UUID userId = operation.getUserId();
+        UUID memberId = operation.getMemberId();
+        UUID ownerUserId = operation.getOwnerUserId();
 
         // Buscar miembro
         Member findedMember = memberProjectService.findMemberActiveByIdAndOwnerUserId(memberId, ownerUserId);
@@ -82,7 +64,7 @@ public class OperationDeactivateMemberServiceImpl implements OperationDeactivate
 
         memberProjectService.saveMember(findedMember);
 
-        operationProjectService.saveOperation(persistedOperation);
+        operationProjectService.saveOperation(operation);
     }
 
     @Transactional(rollbackFor = Exception.class)

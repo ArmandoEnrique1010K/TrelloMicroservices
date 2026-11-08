@@ -1,6 +1,5 @@
 package com.trello.project.operation.service.handler;
 
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
@@ -15,6 +14,7 @@ import com.trello.project.exception.BoardNotFoundException;
 import com.trello.project.exception.WorkspaceNotFoundException;
 import com.trello.project.operation.exception.OperationNotFoundException;
 import com.trello.project.operation.exception.OperationNotPendingException;
+import com.trello.project.operation.service.utils.OperationHandlerUtils;
 import com.trello.project.service.BoardProjectService;
 import com.trello.project.service.OperationProjectService;
 import com.trello.project.service.WorkspaceProjectService;
@@ -26,14 +26,17 @@ public class OperationCreateBoardServiceImpl
     private final OperationProjectService operationProjectService;
     private final BoardProjectService boardProjectService;
     private final WorkspaceProjectService workspaceProjectService;
+    private final OperationHandlerUtils operationHandlerUtils;
 
     public OperationCreateBoardServiceImpl(
             OperationProjectService operationProjectService,
             BoardProjectService boardProjectService,
-            WorkspaceProjectService workspaceProjectService) {
+            WorkspaceProjectService workspaceProjectService,
+            OperationHandlerUtils operationHandlerUtils) {
         this.operationProjectService = operationProjectService;
         this.boardProjectService = boardProjectService;
         this.workspaceProjectService = workspaceProjectService;
+        this.operationHandlerUtils = operationHandlerUtils;
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -41,38 +44,14 @@ public class OperationCreateBoardServiceImpl
     public void applyCreateBoard(UUID operationId, boolean automatic)
             throws OperationNotFoundException, OperationNotPendingException, BoardAlreadyExistsException,
             WorkspaceNotFoundException {
-        Operation persistedOperation = operationProjectService
-                .findOperationById(operationId)
-                .orElseThrow(OperationNotFoundException::new);
+        Operation operation = operationHandlerUtils
+                .prepareExecution(operationId, automatic);
 
-        OperationStatus currentStatus = persistedOperation.getStatus();
-
-        if (currentStatus != OperationStatus.REGISTERED
-                && currentStatus != OperationStatus.LOCAL_COMPENSATION_COMPLETED
-                && currentStatus != OperationStatus.COMPENSATION_COMPLETED
-        // && currentStatus != OperationStatus.MANUAL_INTERVENTION_REQUIRED
-        ) {
-            throw new OperationNotPendingException();
-        }
-
-        if (automatic) {
-            persistedOperation.setAutomaticAttempts(
-                    persistedOperation.getAutomaticAttempts() + 1);
-        } else {
-            persistedOperation.setManualAttempts(
-                    persistedOperation.getManualAttempts() + 1);
-        }
-
-        persistedOperation.setStatus(OperationStatus.EXECUTION_PENDING);
-        persistedOperation.setCompletedAt(null);
-        persistedOperation.setNextAutomaticAttemptAt(
-                LocalDateTime.now().plusSeconds(30));
-
-        UUID ownerUserId = persistedOperation.getOwnerUserId();
-        String boardName = persistedOperation.getBoardName();
-        String boardDescription = persistedOperation.getBoardDescription();
-        UUID workspaceId = persistedOperation.getWorkspaceId();
-        UUID boardId = persistedOperation.getBoardId();
+        UUID ownerUserId = operation.getOwnerUserId();
+        String boardName = operation.getBoardName();
+        String boardDescription = operation.getBoardDescription();
+        UUID workspaceId = operation.getWorkspaceId();
+        UUID boardId = operation.getBoardId();
         // UUID idempotencyKey = persistedOperation.getIdempotencyKey();
 
         Workspace workspace = workspaceProjectService.findWorkspaceByIdAndOwnerUserIdAndStatusTrue(
@@ -93,7 +72,7 @@ public class OperationCreateBoardServiceImpl
         board.setStatus(true);
         boardProjectService.saveBoard(board);
 
-        operationProjectService.saveOperation(persistedOperation);
+        operationProjectService.saveOperation(operation);
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -106,9 +85,6 @@ public class OperationCreateBoardServiceImpl
         operationProjectService.saveOperation(operation);
 
         UUID ownerUserId = operation.getOwnerUserId();
-        // String boardName = operation.getBoardName();
-        // String boardDescription = operation.getBoardDescription();
-        // UUID workspaceId = operation.getWorkspaceId();
         UUID boardId = operation.getBoardId();
 
         // Debe borrar inmediatamente el tablero

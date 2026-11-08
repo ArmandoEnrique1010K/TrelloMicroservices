@@ -21,30 +21,34 @@ import com.trello.project.operation.exception.OperationManualReviewException;
 import com.trello.project.operation.exception.OperationNotFoundException;
 import com.trello.project.operation.exception.OperationNotPendingException;
 import com.trello.project.operation.service.handler.OperationCreateBoardService;
+import com.trello.project.operation.service.utils.AbstractOperationProcessor;
 import com.trello.project.operation.service.utils.OperationUtils;
 import com.trello.project.service.BoardProjectService;
 import com.trello.project.service.OperationProjectService;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Service
 public class OperationCreateBoardProcessorImpl
+        extends AbstractOperationProcessor
         implements OperationCreateBoardProcessor {
-    private final OperationProjectService operationProjectService;
     private final WorkflowClientService workflowClientService;
-    private final OperationUtils operationUtils;
     private final BoardProjectService boardProjectService;
     private final BoardResponseMapper boardResponseMapper;
     private final OperationCreateBoardService operationCreateBoardService;
 
     public OperationCreateBoardProcessorImpl(
+            OperationUtils operationUtils,
             OperationProjectService operationProjectService,
             WorkflowClientService workflowClientService,
-            OperationUtils operationUtils,
             BoardProjectService boardProjectService,
             BoardResponseMapper boardResponseMapper,
             OperationCreateBoardService operationCreateBoardService) {
-        this.operationProjectService = operationProjectService;
+
+        super(operationUtils, operationProjectService);
+
         this.workflowClientService = workflowClientService;
-        this.operationUtils = operationUtils;
         this.boardProjectService = boardProjectService;
         this.boardResponseMapper = boardResponseMapper;
         this.operationCreateBoardService = operationCreateBoardService;
@@ -56,65 +60,13 @@ public class OperationCreateBoardProcessorImpl
             OperationNotFoundException, OperationManualReviewException, OperationCompensatedException,
             OperationConflictException, BusinessRuleException {
 
-        Operation operation = operationProjectService
-                .findOperationById(operationId)
-                .orElseThrow(OperationNotFoundException::new);
+        Operation operation = findOperation(operationId);
 
         if (operation.getType() != OperationType.CREATE_BOARD) {
             throw new OperationConflictException();
         }
 
-        return processOriginalOperation(operation);
-    }
-
-    private BoardResponse processOriginalOperation(Operation operation)
-            throws WorkspaceNotFoundException, BoardNotFoundException, OperationNotPendingException,
-            OperationNotFoundException, OperationManualReviewException, OperationCompensatedException,
-            BusinessRuleException {
-        operationUtils.markExecuting(operation);
-
-        try {
-            processCreateBoard(operation);
-            operationUtils.markCompleted(operation);
-
-        } catch (ServiceUnavailableException e) {
-            operationUtils.markCompensationPending(operation);
-
-            try {
-                processLocalCompensation(operation);
-                processRemoteCompensation(operation);
-            } catch (ServiceUnavailableException compensationException) {
-
-                Operation updatedOperation = operationProjectService
-                        .findOperationById(operation.getId())
-                        .orElseThrow(OperationNotFoundException::new);
-
-                if (updatedOperation.getStatus() == OperationStatus.COMPENSATION_COMPLETED) {
-                    throw new OperationCompensatedException();
-                }
-
-                throw compensationException;
-            }
-
-            Operation updatedOperation = operationProjectService
-                    .findOperationById(operation.getId())
-                    .orElseThrow(OperationNotFoundException::new);
-
-            if (updatedOperation.getStatus() == OperationStatus.COMPENSATION_COMPLETED) {
-                throw new OperationCompensatedException();
-            }
-
-            // En lugar de devolver un null, se devuelve la misma excepción porque el
-            // tablero ya fue eliminado
-            // return null;
-            throw new OperationCompensatedException();
-            // TODO: DEFINIR UN BLOQUE CATCH CON LAS EXCEPCIONES DE TIPO RUNTIME EXCEPTION
-            // DESDE EL MICROSERVICIO WORKFLOW
-
-        } catch (Exception e) {
-            operationUtils.markManualReview(operation, e);
-            throw new BusinessRuleException();
-        }
+        processOriginalOperation(operation);
 
         UUID boardId = operation.getBoardId();
         UUID ownerUserId = operation.getOwnerUserId();
@@ -123,11 +75,10 @@ public class OperationCreateBoardProcessorImpl
         Board board = boardProjectService.findBoardByIdAndOwnerUserIdAndActive(boardId, ownerUserId);
         BoardResponse boardResponse = boardResponseMapper.boardToBoardResponse(board);
         return boardResponse;
-
     }
 
-    private void processCreateBoard(Operation operation)
-            throws WorkspaceNotFoundException, BoardNotFoundException {
+    @Override
+    protected void executeOriginalOperation(Operation operation) {
         UUID boardId = operation.getBoardId();
         UUID ownerUserId = operation.getOwnerUserId();
 
@@ -139,9 +90,8 @@ public class OperationCreateBoardProcessorImpl
         workflowClientService.addBoardAndBoardAccessUserOwner(boardId, operation.getId());
     }
 
-    private void processLocalCompensation(Operation operation)
-            throws OperationNotPendingException, OperationNotFoundException, OperationManualReviewException,
-            WorkspaceNotFoundException, BoardNotFoundException {
+    @Override
+    protected void processLocalCompensation(Operation operation) {
         if (operation.getStatus() != OperationStatus.COMPENSATION_PENDING) {
             throw new OperationNotPendingException();
         }
@@ -159,16 +109,20 @@ public class OperationCreateBoardProcessorImpl
             }
             operationUtils.markLocalCompensationCompleted(updatedOperation);
 
-        } catch (OperationManualReviewException e) {
-            throw e;
-        } catch (Exception e) {
-            operationUtils.markManualReview(operation, e);
+            // } catch (OperationManualReviewException e) {
+            // throw e;
+        } catch (Exception exception) {
+            operationUtils.markManualReview(operation, exception);
+
+            log.info("EXCEPTION: " + exception);
             throw new OperationManualReviewException();
         }
     }
 
-    private void processRemoteCompensation(Operation operation)
-            throws OperationNotPendingException, OperationCompensatedException {
+    // TODO: DEFINIR UN BLOQUE CATCH CON LAS EXCEPCIONES DE TIPO RUNTIME EXCEPTION
+    // DESDE EL MICROSERVICIO WORKFLOW
+    @Override
+    protected void processRemoteCompensation(Operation operation) {
         if (operation.getStatus() != OperationStatus.LOCAL_COMPENSATION_COMPLETED) {
             throw new OperationNotPendingException();
         }
@@ -176,8 +130,9 @@ public class OperationCreateBoardProcessorImpl
         try {
             workflowClientService.revertAddBoardAndBoardAccessUserOwner(operation.getId());
             operationUtils.markCompensationCompleted(operation);
-        } catch (ServiceUnavailableException e) {
+        } catch (ServiceUnavailableException exception) {
             operationUtils.markLocalCompensationCompleted(operation);
+            log.info("EXCEPTION: " + exception);
             throw new OperationCompensatedException();
         }
     }
