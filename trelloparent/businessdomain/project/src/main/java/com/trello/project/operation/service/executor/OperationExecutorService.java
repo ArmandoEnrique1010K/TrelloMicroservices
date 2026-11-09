@@ -6,11 +6,11 @@ public interface OperationExecutorService {
     void executeAllCompensatedOperations();
 
     // Borrar todas los tableros y espacios de trabajo que estan inactivos y estado
-    // de la operacion en COMPLETED
+    // de la operacion en LOGICAL_DELETE_COMPLETED
     void deleteAllBoardsByStatusFalseAndWorkspacesByStatusFalse();
 
-    // Debe borrar todas las operaciones con estado COMPLETED, excepto las
-    // operaciones que implican borrado de
+    // Debe borrar todas las operaciones con estado COMPLETED
+    // Se tiene en cuenta que ya se ejecutaron las operaciones de tipo
+    // LOGICAL_DELETE_COMPLETED
     void deleteAllCompletedOperations();
-
 }

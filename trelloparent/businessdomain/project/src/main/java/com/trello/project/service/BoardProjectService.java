@@ -44,4 +44,6 @@ public interface BoardProjectService {
     // Cambiar estado del tablero
     void changeStatusBoardById(UUID boardId, UUID ownerUserId, boolean status)
             throws BoardNotFoundException;
+
+    Board findBoardByWorkspaceIdAndName(UUID workspaceId, String name);
 }

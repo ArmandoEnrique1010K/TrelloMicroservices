@@ -7,7 +7,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.trello.project.board.dto.request.BoardRequest;
-import com.trello.project.board.exception.BoardAlreadyExistsException;
 import com.trello.project.entities.Board;
 import com.trello.project.entities.Invitation;
 import com.trello.project.entities.Member;
@@ -21,6 +20,7 @@ import com.trello.project.exception.MemberInactiveException;
 import com.trello.project.exception.MemberNotFoundException;
 import com.trello.project.exception.WorkspaceNotFoundException;
 import com.trello.project.invitation.exception.InvitationConfirmedException;
+import com.trello.project.operation.exception.OperationCompensatedException;
 import com.trello.project.operation.service.utils.OperationRegisterUtils;
 import com.trello.project.service.BoardProjectService;
 import com.trello.project.service.InvitationProjectService;
@@ -263,7 +263,7 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
     public Operation registerCreateBoard(UUID workspaceId, UUID ownerUserId,
             BoardRequest boardRequest,
             UUID idempotencyKey)
-            throws WorkspaceNotFoundException {
+            throws WorkspaceNotFoundException, OperationCompensatedException {
 
         String name = boardRequest.getName();
         String description = boardRequest.getDescription();
@@ -271,10 +271,6 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
         workspaceProjectService.findWorkspaceByIdAndOwnerUserIdAndStatusTrue(
                 workspaceId,
                 ownerUserId);
-
-        if (boardProjectService.existsBoardByWorkspaceIdAndName(workspaceId, name)) {
-            throw new BoardAlreadyExistsException();
-        }
 
         // 1. Comprobar si ya se registró esta misma solicitud.
         Optional<Operation> existing = operationProjectService
@@ -294,7 +290,16 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
             return reusable;
         }
 
-        // 3. Crear un identificador para el tablero.
+        // 3. Comprobar si el nombre ya está ocupado.
+        // Verificar si existe una operación de tipo CREATE_BOARD con el mismo
+        // WorkspaceId y Name
+        if (operationProjectService.existsOperationByTypeAndWorkspaceIdAndBoardName(
+                OperationType.CREATE_BOARD, workspaceId, name)) {
+            log.info("EL TABLERO EXISTE");
+            throw new OperationCompensatedException();
+        }
+
+        // 4. Crear un identificador para el tablero.
         UUID boardId = UUID.randomUUID();
 
         Operation operation = operationRegisterUtils
@@ -305,13 +310,13 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
         operation.setBoardDescription(description);
         operation.setOwnerUserId(ownerUserId);
         operation.setWorkspaceId(workspaceId);
+        operation.setIdempotencyKey(idempotencyKey);
 
-        // 4. Persistir la operación antes de ejecutar la creación.
+        // 5. Persistir la operación antes de ejecutar la creación.
         operationProjectService.saveOperation(operation);
         return operation;
     }
 
-    // TODO: CONTINUAR
     @Transactional(rollbackFor = Exception.class)
     @Override
     public Operation registerDeleteBoard(UUID ownerUserId, UUID boardId)

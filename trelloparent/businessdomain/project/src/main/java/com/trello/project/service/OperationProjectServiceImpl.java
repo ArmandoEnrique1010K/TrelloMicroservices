@@ -6,10 +6,12 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.trello.project.entities.Operation;
 import com.trello.project.enums.OperationStatus;
 import com.trello.project.enums.OperationType;
+import com.trello.project.operation.exception.OperationNotFoundException;
 import com.trello.project.repositories.OperationRepository;
 
 @Service
@@ -83,6 +85,8 @@ public class OperationProjectServiceImpl implements OperationProjectService {
     public boolean existsPreviousOperationsByWorkspaceIdAndCreatedAt(UUID workspaceId, LocalDateTime createdAt) {
         // Estados que permiten continuar con las operaciones posteriores:
         // - COMPLETED: la operación original terminó correctamente.
+        // - LOGICAL_DELETE_COMPLETED: la operación terminó, pero aun no se borrado
+        // fisicamente los datos.
         // - COMPENSATION_COMPLETED: los cambios fueron revertidos en ambos
         // microservicios.
         //
@@ -90,6 +94,7 @@ public class OperationProjectServiceImpl implements OperationProjectService {
         // sus cambios, todavía falta completar la compensación en Workflow.
         List<OperationStatus> completedStatuses = List.of(
                 OperationStatus.COMPLETED,
+                OperationStatus.LOGICAL_DELETE_COMPLETED,
                 // OperationStatus.LOCAL_COMPENSATION_COMPLETED,
                 OperationStatus.COMPENSATION_COMPLETED);
 
@@ -103,5 +108,34 @@ public class OperationProjectServiceImpl implements OperationProjectService {
         return operationRepository.findByTypeAndStatusOrderByCompletedAtAscWorkspaceIdAsc(
                 operationType,
                 operationStatus);
+    }
+
+    // Como este metodo estara dentro de un scheduler, se coloca Transactional
+    @Transactional
+    @Override
+    public void deleteAllOperationsByStatus(OperationStatus operationStatus) {
+        operationRepository.deleteAllByStatus(operationStatus);
+    }
+
+    @Override
+    public void deleteOperation(Operation operation) {
+        operationRepository.delete(operation);
+    }
+
+    @Override
+    public void changeStatusToCompletedOperation(UUID operationId) {
+        Operation operation = operationRepository.findById(operationId).orElseThrow(
+                OperationNotFoundException::new);
+
+        operation.setStatus(OperationStatus.COMPLETED);
+        operation.setCompletedAt(LocalDateTime.now());
+        operation.setNextAutomaticAttemptAt(null);
+        operationRepository.save(operation);
+    }
+
+    @Override
+    public boolean existsOperationByTypeAndWorkspaceIdAndBoardName(OperationType operationType, UUID workspaceId,
+            String boardName) {
+        return operationRepository.existsByTypeAndWorkspaceIdAndBoardName(operationType, workspaceId, boardName);
     }
 }

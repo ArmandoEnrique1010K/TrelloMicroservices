@@ -88,7 +88,7 @@ public class Operation {
 
     // Fecha de completado
     // Se llena cuando el campo OperationStatus tenga el estado de "COMPLETED" o
-    // "COMPENSATED"
+    // "LOGICAL_DELETE_COMPLETED"
     private LocalDateTime completedAt;
 
     // Fecha de creación

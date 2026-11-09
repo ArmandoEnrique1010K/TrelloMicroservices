@@ -1,5 +1,6 @@
 package com.trello.project.workspace.service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -65,6 +66,7 @@ public class WorkspaceServiceImpl implements WorkspaceService {
         Workspace workspaceToWorkspaceRequest = workspaceRequestMapper.workspaceRequestToWorkspace(workspaceRequest);
         workspaceToWorkspaceRequest.setOwnerUserId(ownerUserId);
         workspaceToWorkspaceRequest.setStatus(true);
+        workspaceToWorkspaceRequest.setCreatedAt(LocalDateTime.now());
 
         Workspace savedWorkspace = workspaceProjectService.saveWorkspace(workspaceToWorkspaceRequest);
         WorkspaceResponse workspaceResponse = workspaceResponseMapper.workspaceToWorkspaceResponse(savedWorkspace);

@@ -99,7 +99,10 @@ public class BoardProjectServiceImpl implements BoardProjectService {
                 .findById(boardId)
                 .orElseThrow(BoardNotFoundException::new);
 
-        workspaceRepository.findByIdAndOwnerUserIdAndStatusTrue(board.getWorkspace().getId(), ownerUserId)
+        UUID workspaceId = board.getWorkspace().getId();
+
+        workspaceRepository.findByIdAndOwnerUserId(
+                workspaceId, ownerUserId)
                 .orElseThrow(WorkspaceNotFoundException::new);
 
         boardRepository.delete(board);
@@ -147,5 +150,10 @@ public class BoardProjectServiceImpl implements BoardProjectService {
                 .orElseThrow(BoardNotFoundException::new);
         board.setStatus(status);
         boardRepository.save(board);
+    }
+
+    @Override
+    public Board findBoardByWorkspaceIdAndName(UUID workspaceId, String name) {
+        return boardRepository.findBoardByWorkspaceIdAndName(workspaceId, name);
     }
 }

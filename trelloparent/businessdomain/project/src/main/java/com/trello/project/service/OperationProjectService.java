@@ -42,4 +42,14 @@ public interface OperationProjectService {
 
     List<Operation> findOperationsByOperationTypeAndStatusOrderByCompletedAtAscWorkspaceIdAsc(
             OperationType operationType, OperationStatus operationStatus);
+
+    void deleteAllOperationsByStatus(OperationStatus operationStatus);
+
+    void deleteOperation(Operation operation);
+
+    void changeStatusToCompletedOperation(UUID operationId);
+
+    boolean existsOperationByTypeAndWorkspaceIdAndBoardName(OperationType operationType, UUID workspaceId,
+            String boardName);
+
 }

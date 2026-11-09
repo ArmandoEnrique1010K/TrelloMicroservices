@@ -46,7 +46,7 @@ public class BoardServiceImpl implements BoardService {
         operation.setAttempts(operation.getAttempts() + 1);
         operationWorkflowService.saveOperation(operation);
 
-        operationProcessor.processAddBoardAccessOperation(operation.getId());
+        operationProcessor.processAddBoardAndBoardAccessUserOwnerOperation(operation.getId());
 
         operation.setStatus(OperationStatus.COMPLETED);
         operation.setCompletedAt(LocalDateTime.now());

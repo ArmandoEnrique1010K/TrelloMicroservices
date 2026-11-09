@@ -6,6 +6,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 
 import com.trello.project.entities.Operation;
 import com.trello.project.enums.OperationStatus;
@@ -59,11 +60,14 @@ public interface OperationRepository extends JpaRepository<Operation, UUID> {
             OperationType operationType,
             OperationStatus operationStatus);
 
-    // NO USAR
-    // Ordenado de forma ascendente por fecha de creación
-    List<Operation> findByStatusInAndNextAutomaticAttemptAtLessThanOrderByWorkspaceIdAscCreatedAtAscIdAsc(
-            List<OperationStatus> statuses,
-            LocalDateTime currentDate);
+    List<Operation> findByType(OperationStatus operationStatus);
+
+    // No olvidar la anotación para que pueda ejecutar la operación de borrado
+    // fisico
+    @Modifying
+    void deleteAllByStatus(OperationStatus status);
+
+    boolean existsByTypeAndWorkspaceIdAndBoardName(OperationType operationType, UUID workspaceId, String boardName);
 
     // Borrar operaciones completadas
     // void deleteByBoardIdAndRecipientUserIdAndSenderUserId(

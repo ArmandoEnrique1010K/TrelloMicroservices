@@ -1,5 +1,6 @@
 package com.trello.project.operation.service.handler;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
@@ -70,6 +71,9 @@ public class OperationCreateBoardServiceImpl
         board.setDescription(boardDescription);
         board.setWorkspace(workspace);
         board.setStatus(true);
+
+        // Se guarda la fecha de creación aqui (no es la misma fecha de la operación)
+        board.setCreatedAt(LocalDateTime.now());
         boardProjectService.saveBoard(board);
 
         operationProjectService.saveOperation(operation);

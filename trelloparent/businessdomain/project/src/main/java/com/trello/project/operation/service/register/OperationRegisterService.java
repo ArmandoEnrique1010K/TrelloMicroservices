@@ -9,6 +9,7 @@ import com.trello.project.exception.MemberInactiveException;
 import com.trello.project.exception.MemberNotFoundException;
 import com.trello.project.exception.WorkspaceNotFoundException;
 import com.trello.project.invitation.exception.InvitationConfirmedException;
+import com.trello.project.operation.exception.OperationCompensatedException;
 
 import java.util.UUID;
 
@@ -30,7 +31,7 @@ public interface OperationRegisterService {
     Operation registerCreateBoard(UUID workspaceId, UUID ownerUserId,
             BoardRequest boardRequest,
             UUID idempotencyKey)
-            throws WorkspaceNotFoundException;
+            throws WorkspaceNotFoundException, OperationCompensatedException;
 
     Operation registerDeleteBoard(UUID ownerUserId, UUID boardId)
             throws WorkspaceNotFoundException, BoardNotFoundException;

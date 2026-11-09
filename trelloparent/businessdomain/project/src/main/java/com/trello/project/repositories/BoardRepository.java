@@ -67,4 +67,6 @@ public interface BoardRepository extends JpaRepository<Board, UUID> {
                 ORDER BY m.joinedAt DESC
             """)
     List<Board> findBoardByMemberActiveTrueAndMemberUserIdAndOrderByMemberJoinedAt(@Param("userId") UUID userId);
+
+    Board findBoardByWorkspaceIdAndName(UUID workspaceId, String name);
 }

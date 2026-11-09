@@ -65,7 +65,7 @@ public class WorkspaceProjectServiceImpl implements WorkspaceProjectService {
     public void deleteWorkspaceByIdAndOwnerUserId(UUID workspaceId, UUID ownerUserId)
             throws WorkspaceNotFoundException {
         Workspace workspace = workspaceRepository
-                .findByIdAndOwnerUserIdAndStatusTrue(workspaceId, ownerUserId)
+                .findByIdAndOwnerUserIdAndStatusFalse(workspaceId, ownerUserId)
                 .orElseThrow(WorkspaceNotFoundException::new);
 
         workspaceRepository.delete(workspace);

@@ -4,6 +4,7 @@ import java.util.UUID;
 
 import com.trello.project.entities.Operation;
 import com.trello.project.enums.OperationStatus;
+import com.trello.project.enums.OperationType;
 import com.trello.project.exception.BusinessRuleException;
 import com.trello.project.exception.ServiceUnavailableException;
 import com.trello.project.operation.exception.OperationCompensatedException;
@@ -44,8 +45,18 @@ public abstract class AbstractOperationProcessor {
             executeOriginalOperation(operation);
 
             // 3. Registrar que la operación finalizó correctamente.
-            operationUtils.markCompleted(operation);
 
+            // Las operaciones DELETE_BOARD y DELETE_WORKSPACE reciben un estado
+            // especial porque, aunque su eliminación lógica terminó correctamente,
+            // todavía necesitan pasar por el proceso de eliminación física.
+            if (operation.getType() == OperationType.DELETE_BOARD
+                    || operation.getType() == OperationType.DELETE_WORKSPACE) {
+
+                operationUtils.markLogicalDeleteCompleted(operation);
+
+            } else {
+                operationUtils.markCompleted(operation);
+            }
         } catch (ServiceUnavailableException exception) {
             // La comunicación con Workflow no está disponible y el resultado
             // de la operación remota puede ser desconocido.

@@ -39,6 +39,11 @@ public enum OperationStatus {
     // La compensación terminó correctamente tanto en Project como en Workflow.
     COMPENSATION_COMPLETED,
 
+    // Indica que la operación para el borrado fisico de datos fue completado la
+    // parte logica, ha cambiado el estado del registro a "false", pero aun no fue
+    // // eliminado fisicamente de la base de datos
+    LOGICAL_DELETE_COMPLETED,
+
     // Existe una inconsistencia que requiere revisión
     // La operación no puede continuar de forma segura mediante el flujo automático
     // y requiere revisión o intervención manual.

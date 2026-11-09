@@ -87,4 +87,12 @@ public class OperationUtils {
 
         operationProjectService.saveOperation(operation);
     }
+
+    public void markLogicalDeleteCompleted(Operation operation) {
+        operation.setStatus(OperationStatus.LOGICAL_DELETE_COMPLETED);
+        operation.setCompletedAt(LocalDateTime.now());
+        operation.setNextAutomaticAttemptAt(null);
+
+        operationProjectService.saveOperation(operation);
+    }
 }
