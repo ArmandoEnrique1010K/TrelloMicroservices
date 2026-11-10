@@ -16,9 +16,26 @@ import lombok.extern.slf4j.Slf4j;
 public class OperationAutomaticExecutorScheduler {
     private final OperationExecutorService operationExecutorService;
 
-    // TODO: GRAN PROBLEMA
-    // Las operaciones se deben ejecutar sin que el usuario haya iniciado sesion, es
-    // un ejecutor global de operaciones
+    // PROBLEMA: AUTENTICACIÓN EN LA EJECUCIÓN AUTOMÁTICA DE OPERACIONES SAGA
+    //
+    // Al ejecutar las operaciones pendientes mediante el Scheduler, se producían
+    // errores HTTP 401 (Unauthorized) en las llamadas Feign realizadas desde los
+    // procesadores.
+    //
+    // La causa era que el RequestInterceptor dependía del contexto HTTP actual
+    // para recuperar el JWT del usuario autenticado. Sin embargo, las tareas
+    // programadas se ejecutan fuera del ciclo de vida de una petición HTTP,
+    // por lo que no existe un token de usuario que pueda propagarse.
+    //
+    // Inicialmente se consideró pasar el JWT del usuario a cada procesador,
+    // pero esta solución acoplaría la ejecución de las operaciones SAGA a la
+    // sesión del usuario que las originó.
+    //
+    // Por ello, se debe separar la autenticación del usuario de la autenticación
+    // entre microservicios, utilizando un JWT de servicio para las comunicaciones
+    // internas entre Project y Workflow.
+
+    //
 
     // Por cada 30 segundos se ejecutaran operaciones pendientes
     // Hay una diferencia entre el uso de fixedRate y fixedDelay:
