@@ -23,13 +23,21 @@ public class OpenApiConfig {
                                 new SecurityScheme()
                                         .type(SecurityScheme.Type.HTTP)
                                         .scheme("bearer")
-                                        .bearerFormat("JWT")))
+                                        .bearerFormat("JWT"))
+
+                        // Autenticación mediante usuario y contraseña.
+                        // Basic 64 en este caso
+                        .addSecuritySchemes(
+                                "basicAuth",
+                                new SecurityScheme()
+                                        .type(SecurityScheme.Type.HTTP)
+                                        .scheme("basic")));
+
         // Habilita el icono de candado en todos los endpoints - todos los endpoints
         // requieren autenticación
         // .addSecurityItem(
         // new SecurityRequirement()
         // .addList("bearerAuth"))
-        ;
     }
 
 }

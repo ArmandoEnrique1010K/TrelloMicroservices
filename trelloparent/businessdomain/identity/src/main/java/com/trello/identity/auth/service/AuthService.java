@@ -2,6 +2,7 @@ package com.trello.identity.auth.service;
 
 import com.trello.identity.auth.dto.response.AccountResponse;
 import com.trello.identity.auth.dto.response.AuthenticationResponse;
+import com.trello.identity.auth.dto.response.ServiceTokenResponse;
 import com.trello.identity.auth.dto.request.AccountRequest;
 import com.trello.identity.auth.dto.request.AuthenticationRequest;
 import com.trello.identity.auth.dto.request.RefreshTokenRequest;
@@ -23,4 +24,5 @@ public interface AuthService {
             throws InvalidRefreshTokenException, UserNotFoundException;
 
     // void logout();
+    ServiceTokenResponse generateInternalToken();
 }

@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import com.trello.identity.auth.dto.response.AccountResponse;
 import com.trello.identity.auth.dto.response.AuthenticationResponse;
+import com.trello.identity.auth.dto.response.ServiceTokenResponse;
 import com.trello.identity.auth.dto.request.AccountRequest;
 import com.trello.identity.auth.dto.request.AuthenticationRequest;
 import com.trello.identity.auth.dto.request.RefreshTokenRequest;
@@ -137,6 +138,16 @@ public class AuthServiceImpl implements AuthService {
             throws InvalidRefreshTokenException, UserNotFoundException {
         return refreshTokenService.refreshAccessToken(
                 request.getRefreshToken());
+    }
+
+    @Override
+    public ServiceTokenResponse generateInternalToken() {
+        String token = jwtService.generateServiceToken();
+
+        ServiceTokenResponse response = new ServiceTokenResponse();
+        response.setAccessToken(token);
+
+        return response;
     }
 
     // TODO: IMPLEMENTAR CIERRE DE SESION POR MEDIO DE COOKIE

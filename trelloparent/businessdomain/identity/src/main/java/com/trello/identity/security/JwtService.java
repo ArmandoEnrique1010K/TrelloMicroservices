@@ -1,6 +1,7 @@
 package com.trello.identity.security;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 // import org.springframework.security.core.Authentication;
@@ -55,4 +56,21 @@ public class JwtService {
                 .getTokenValue();
     }
 
+    // Generar el JWT de servicio interno
+    public String generateServiceToken() {
+
+        Instant now = Instant.now();
+
+        JwtClaimsSet claims = JwtClaimsSet.builder()
+                .issuer("identity-service")
+                .subject("project-service")
+                .audience(List.of("workflow-service"))
+                .issuedAt(now)
+                .expiresAt(now.plusSeconds(300))
+                .claim("scope", "workflow:operations")
+                .build();
+
+        return jwtEncoder.encode(
+                JwtEncoderParameters.from(claims)).getTokenValue();
+    }
 }

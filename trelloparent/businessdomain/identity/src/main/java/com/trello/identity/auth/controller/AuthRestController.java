@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.trello.identity.auth.dto.response.AccountResponse;
 import com.trello.identity.auth.dto.response.AuthenticationResponse;
+import com.trello.identity.auth.dto.response.ServiceTokenResponse;
 import com.trello.identity.auth.dto.response.common.SuccessfulAccountResponse;
 import com.trello.identity.auth.dto.response.common.SuccessfulAuthenticationResponse;
 import com.trello.identity.auth.dto.request.AccountRequest;
@@ -29,6 +30,7 @@ import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
@@ -245,4 +247,49 @@ public class AuthRestController {
         return ResponseEntity.status(HttpStatus.OK).body(successfulResponse);
     }
 
+    // Si o si debe enviar Authorization: Basic base64(project-service:secret)
+    @Operation(summary = "Genera un JWT para su uso en servicios internos", description = "Genera un JWT para su uso en servicios internos autorizados.")
+    @SecurityRequirement(name = "basicAuth")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Inicio de sesión exitoso", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ServiceTokenResponse.class), examples = @ExampleObject(value = """
+                    {
+                        "accessToken": "eyJ..."
+                    }
+                    """))),
+            @ApiResponse(responseCode = "401", description = "Token de revalidación invalido", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
+                    {
+                        "detail": "The refresh token is invalid or has expired",
+                        "fields": null,
+                        "instance": null,
+                        "message": "Ha ocurrido un error inesperado",
+                        "status": 401,
+                        "title": "Invalid Refresh Token",
+                        "type": "/errors/authentication/invalid-refresh-token"
+                    }
+                    """))),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
+                    {
+                        "detail": "An unexpected error occurred while processing the request",
+                        "fields": null,
+                        "instance": null,
+                        "message": "Ha ocurrido un error inesperado",
+                        "status": 500,
+                        "title": "Internal server error",
+                        "type": "/errors/internal-server-error"
+                    }
+                    """)))
+    })
+    @PostMapping("/internal/service-token")
+    public ResponseEntity<ServiceTokenResponse> generateInternalToken() {
+        ServiceTokenResponse response = authService.generateInternalToken();
+        // Pasale el username y el password tal y como esta definido en
+        // applications.properties
+
+        // Desde JWT.io, al decodificar el Token obtenido, este debe obtener:
+        // "iss": "identity-service",
+        // "sub": "project-service",
+        // "aud": "workflow-service",
+        // "scope": "workflow:operations"
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
 }
