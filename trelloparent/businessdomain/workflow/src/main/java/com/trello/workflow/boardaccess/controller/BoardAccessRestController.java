@@ -4,8 +4,8 @@ import java.util.UUID;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.jwt.Jwt;
+// import org.springframework.security.core.annotation.AuthenticationPrincipal;
+// import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.trello.workflow.boardaccess.service.BoardAccessService;
 import com.trello.workflow.common.StandarizedApiExceptionResponse;
 import com.trello.workflow.enums.Role;
-import com.trello.workflow.security.JwtUtils;
+// import com.trello.workflow.security.JwtUtils;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -42,6 +42,9 @@ public class BoardAccessRestController {
         this.boardAccessService = boardAccessService;
     }
 
+    // Cada uno de estos metodos seran ejecutados mediante un llamado desde el
+    // microservicio Project sea de forma manual o automatica mediante el scheduler
+    // definido en el microservicio Project
     @Operation(summary = "Guarda un permiso de acceso al tablero", description = "Crea una copia local de los datos de acceso")
     @SecurityRequirement(name = "bearerAuth")
     @ApiResponses(value = {
@@ -144,14 +147,20 @@ public class BoardAccessRestController {
                     }
                     """))),
     })
-    @PostMapping("/board/{boardId}/role/{roleName}")
-    public ResponseEntity<Void> addBoardAccess(@AuthenticationPrincipal Jwt jwt,
+    @PostMapping("/board/{boardId}/user/{userId}/role/{roleName}")
+
+    // Si se llamara a este metodo desde el scheduler (ejecutor de tareas en segundo
+    // plano), no debe pasar el JWT del usuario que ha sido autenticado
+    public ResponseEntity<Void> addBoardAccess(
+            // @AuthenticationPrincipal Jwt jwt,
             @Parameter(description = "ID del tablero", required = true, example = "550e8400-e29b-41d4-a716-446655440000") @PathVariable UUID boardId,
+            @Parameter(description = "ID del usuario", required = true, example = "550e8400-e29b-41d4-a716-446655440000") @PathVariable UUID userId,
             @Parameter(description = "Rol del miembro", required = true, example = "OWNER") @PathVariable Role roleName,
             @RequestHeader("X-Operation-Id") UUID operationId) {
 
-        UUID userId = JwtUtils.getUserId(jwt);
+        // UUID userId = JwtUtils.getUserId(jwt);
 
+        // boardAccessService.addBoardAccess(boardId, userId, roleName, operationId);
         boardAccessService.addBoardAccess(boardId, userId, roleName, operationId);
 
         // Prueba de rendimiento

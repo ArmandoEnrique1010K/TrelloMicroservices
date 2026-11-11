@@ -7,8 +7,8 @@ import java.util.UUID;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.jwt.Jwt;
+// import org.springframework.security.core.annotation.AuthenticationPrincipal;
+// import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.trello.workflow.common.StandarizedApiExceptionResponse;
-import com.trello.workflow.security.JwtUtils;
+// import com.trello.workflow.security.JwtUtils;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -46,6 +46,8 @@ public class BoardRestController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204", description = "Se ha guardado el permiso"),
 
+            // TODO: VERIFICAR SI ESTE APIRESPONSE SERA APLICADO A LOS DEMÁS ENDPOINTS DE
+            // BOARD Y BOARDACCESS
             @ApiResponse(responseCode = "401", description = "El usuario no esta autenticado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
                     {
                         "detail": "Authentication is required to access this resource",
@@ -129,13 +131,14 @@ public class BoardRestController {
                     }
                     """))),
     })
-    @PostMapping("/{boardId}")
+    @PostMapping("/{boardId}/user/{userId}")
     public ResponseEntity<Void> addBoardAndBoardAccessUserOwner(
-            @AuthenticationPrincipal Jwt jwt,
+            // @AuthenticationPrincipal Jwt jwt,
             @Parameter(description = "ID del tablero", required = true, example = "550e8400-e29b-41d4-a716-446655440000") @PathVariable UUID boardId,
+            @Parameter(description = "ID del usuario", required = true, example = "550e8400-e29b-41d4-a716-446655440000") @PathVariable UUID userId,
             @RequestHeader("X-Operation-Id") UUID operationId) {
 
-        UUID userId = JwtUtils.getUserId(jwt);
+        // UUID userId = JwtUtils.getUserId(jwt);
 
         boardService.addBoardAndBoardAccessUserOwner(boardId, userId, operationId);
 

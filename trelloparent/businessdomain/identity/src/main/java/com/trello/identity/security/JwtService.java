@@ -10,6 +10,8 @@ import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.stereotype.Service;
 
+import com.trello.identity.auth.dto.response.ServiceTokenResponse;
+
 @Service
 public class JwtService {
     private final JwtEncoder jwtEncoder;
@@ -57,20 +59,27 @@ public class JwtService {
     }
 
     // Generar el JWT de servicio interno
-    public String generateServiceToken() {
+    public ServiceTokenResponse generateServiceToken() {
 
         Instant now = Instant.now();
+        Instant expiresAt = now.plusSeconds(300);
 
         JwtClaimsSet claims = JwtClaimsSet.builder()
                 .issuer("identity-service")
                 .subject("project-service")
                 .audience(List.of("workflow-service"))
                 .issuedAt(now)
-                .expiresAt(now.plusSeconds(300))
+                .expiresAt(expiresAt)
                 .claim("scope", "workflow:operations")
                 .build();
 
-        return jwtEncoder.encode(
+        String token = jwtEncoder.encode(
                 JwtEncoderParameters.from(claims)).getTokenValue();
+
+        ServiceTokenResponse response = new ServiceTokenResponse();
+        response.setAccessToken(token);
+        response.setExpiresAt(expiresAt);
+
+        return response;
     }
 }

@@ -142,10 +142,11 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public ServiceTokenResponse generateInternalToken() {
-        String token = jwtService.generateServiceToken();
+        ServiceTokenResponse token = jwtService.generateServiceToken();
 
         ServiceTokenResponse response = new ServiceTokenResponse();
-        response.setAccessToken(token);
+        response.setAccessToken(token.getAccessToken());
+        response.setExpiresAt(token.getExpiresAt());
 
         return response;
     }
