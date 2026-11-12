@@ -64,9 +64,6 @@ public class Operation {
     @Enumerated(EnumType.STRING)
     private Role newRole;
 
-    // Clave enviada desde el frontend
-    private UUID idempotencyKey;
-
     // Tipo de operación
     // Relacionada con el nombre del método del endpoint
     @Enumerated(EnumType.STRING)

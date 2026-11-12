@@ -6,7 +6,6 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.trello.project.board.exception.BoardAlreadyExistsException;
 import com.trello.project.entities.Board;
 import com.trello.project.entities.Operation;
 import com.trello.project.entities.Workspace;
@@ -43,7 +42,7 @@ public class OperationCreateBoardServiceImpl
     @Transactional(rollbackFor = Exception.class)
     @Override
     public void applyCreateBoard(UUID operationId, boolean automatic)
-            throws OperationNotFoundException, OperationNotPendingException, BoardAlreadyExistsException,
+            throws OperationNotFoundException, OperationNotPendingException,
             WorkspaceNotFoundException {
         Operation operation = operationHandlerUtils
                 .prepareExecution(operationId, automatic);
@@ -53,15 +52,15 @@ public class OperationCreateBoardServiceImpl
         String boardDescription = operation.getBoardDescription();
         UUID workspaceId = operation.getWorkspaceId();
         UUID boardId = operation.getBoardId();
-        // UUID idempotencyKey = persistedOperation.getIdempotencyKey();
 
         Workspace workspace = workspaceProjectService.findWorkspaceByIdAndOwnerUserIdAndStatusTrue(
                 workspaceId,
                 ownerUserId);
 
-        if (boardProjectService.existsBoardByWorkspaceIdAndName(workspaceId, boardName)) {
-            throw new BoardAlreadyExistsException();
-        }
+        // if (boardProjectService.existsBoardByWorkspaceIdAndName(workspaceId,
+        // boardName)) {
+        // throw new OperationCompensatedException();
+        // }
 
         // Crear el nuevo tablero
         // No se utiliza un mapper

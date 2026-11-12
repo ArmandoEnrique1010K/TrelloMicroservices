@@ -29,8 +29,7 @@ public interface OperationRegisterService {
     // Crear tablero y permiso de acceso del usuario administrador en el
     // microservicio Workflow
     Operation registerCreateBoard(UUID workspaceId, UUID ownerUserId,
-            BoardRequest boardRequest,
-            UUID idempotencyKey)
+            BoardRequest boardRequest)
             throws WorkspaceNotFoundException, OperationCompensatedException;
 
     Operation registerDeleteBoard(UUID ownerUserId, UUID boardId)

@@ -19,10 +19,7 @@ import com.trello.project.operation.exception.OperationNotPendingException;
 public interface BoardService {
 
     // SAGA PATTERN
-    // idempotencyKey es una clave aleatoria que se puede pasar desde el frontend
-    // como por ejemplo desde un formulario en una ventana modal
-    BoardResponse createBoardByWorkspaceId(UUID workspaceId, UUID ownerUserId, BoardRequest boardRequest,
-            UUID idempotencyKey)
+    BoardResponse createBoardByWorkspaceId(UUID workspaceId, UUID ownerUserId, BoardRequest boardRequest)
             throws WorkspaceNotFoundException, OperationNotPendingException, OperationNotFoundException,
             BoardAlreadyExistsException, BoardNotFoundException, OperationManualReviewException,
             OperationCompensatedException, OperationConflictException, BusinessRuleException;

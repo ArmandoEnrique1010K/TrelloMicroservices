@@ -116,9 +116,9 @@ public class OperationExecutorServiceImpl implements OperationExecutorService {
         permitedStatues.add(OperationStatus.LOCAL_COMPENSATION_COMPLETED);
         permitedStatues.add(OperationStatus.COMPENSATION_COMPLETED);
 
-        // Obtener operaciones pendientes ordenadas por fecha del próximo intento
+        // Obtener operaciones pendientes ordenadas por fecha de creación
         List<Operation> pendingOperations = operationProjectService
-                .findOperationsByStatusesListOrderByNextAutomaticAttemptAtAscWorkspaceIdAsc(permitedStatues);
+                .findOperationsByStatusesListOrderByWorkspaceIdAscAndCreatedAtAsc(permitedStatues);
 
         // La ejecución síncrona permite que cada operación complete su flujo de
         // procesamiento antes de continuar con la siguiente operación del bucle.
@@ -198,10 +198,8 @@ public class OperationExecutorServiceImpl implements OperationExecutorService {
                 // TODO: CORREGIR CADA UNO DE LOS PROBLEMAS ASOCIADOS A LOGICA DE NEGOCIO
                 case CREATE_BOARD:
                     // PROBLEMA
-                    // Cuando se crea un tablero, desde el frontend se pasa un idempotencyKey de
-                    // tipo UUID, un identificador aleatorio que representa una llave unica cuando
-                    // el usuario crea un nuevo tablero. El problema comienza cuando el usuario
-                    // utiliza otra clave idempotencyKey cuando el microservicio Workflow esta
+                    // Cuando se crea un tablero, el problema comienza cuando el usuario
+                    // utiliza el mismo nombre del tablero cuando el microservicio Workflow esta
                     // apagado e introduce los mismos datos para crear un tablero, el nombre de los
                     // tableros es unico (no puede existir 2 tableros con el mismo nombre) por ID de
                     // workspace

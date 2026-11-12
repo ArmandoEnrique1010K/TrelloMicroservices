@@ -25,8 +25,10 @@ public interface OperationRepository extends JpaRepository<Operation, UUID> {
             UUID ownerUserId, String boardName,
             OperationType type);
 
-    Optional<Operation> findFirstByWorkspaceIdAndIdempotencyKeyAndTypeOrderByCreatedAtDesc(UUID workspaceId,
-            UUID idempotencyKey, OperationType type);
+    Optional<Operation> findFirstByWorkspaceIdAndBoardNameAndTypeOrderByCreatedAtDesc(
+            UUID workspaceId,
+            String boardName,
+            OperationType type);
 
     Optional<Operation> findFirstByBoardIdAndTypeOrderByCreatedAtDesc(UUID boardId, OperationType type);
 
@@ -41,6 +43,9 @@ public interface OperationRepository extends JpaRepository<Operation, UUID> {
     List<Operation> findByStatusInAndNextAutomaticAttemptAtLessThanOrderByNextAutomaticAttemptAtAscWorkspaceIdAsc(
             List<OperationStatus> statuses,
             LocalDateTime currentDate);
+
+    List<Operation> findByStatusInOrderByWorkspaceIdAscCreatedAtAscIdAsc(
+            List<OperationStatus> statuses);
 
     // Comprueba si existe alguna operación del mismo Workspace cuya fecha de
     // creación sea anterior a la indicada y cuyo estado no esté incluido en la

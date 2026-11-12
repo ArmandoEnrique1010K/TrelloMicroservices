@@ -211,14 +211,12 @@ public class BoardRestController {
     })
     @PostMapping("/workspace/{workspaceId}")
     public ResponseEntity<SuccessfulResponse<BoardResponse>> createBoard(@AuthenticationPrincipal Jwt jwt,
-            // Clave secreta generada desde el frontend
-            @RequestHeader("Idempotency-Key") UUID idempotencyKey,
             @Parameter(description = "ID del espacio de trabajo", required = true, example = "550e8400-e29b-41d4-a716-446655440000") @PathVariable UUID workspaceId,
             @Valid @RequestBody BoardRequest input) {
 
         UUID userId = JwtUtils.getUserId(jwt);
 
-        BoardResponse response = boardService.createBoardByWorkspaceId(workspaceId, userId, input, idempotencyKey);
+        BoardResponse response = boardService.createBoardByWorkspaceId(workspaceId, userId, input);
 
         SuccessfulResponse<BoardResponse> successfulResponse = new SuccessfulResponse<>();
         successfulResponse.setMessage("Se agrego un nuevo tablero");

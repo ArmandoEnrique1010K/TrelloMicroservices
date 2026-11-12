@@ -73,15 +73,13 @@ public class BoardServiceImpl implements BoardService {
     }
 
     @Override
-    public BoardResponse createBoardByWorkspaceId(UUID workspaceId, UUID ownerUserId, BoardRequest boardRequest,
-            UUID idempotencyKey)
+    public BoardResponse createBoardByWorkspaceId(UUID workspaceId, UUID ownerUserId, BoardRequest boardRequest)
             throws WorkspaceNotFoundException, OperationNotPendingException, OperationNotFoundException,
             BoardAlreadyExistsException, BoardNotFoundException, OperationManualReviewException,
             OperationCompensatedException, OperationConflictException, BusinessRuleException {
 
         Operation operation = operationRegisterService.registerCreateBoard(workspaceId, ownerUserId,
-                boardRequest,
-                idempotencyKey);
+                boardRequest);
 
         if (operation.getStatus() == OperationStatus.REGISTERED
                 || operation.getStatus() == OperationStatus.LOCAL_COMPENSATION_COMPLETED

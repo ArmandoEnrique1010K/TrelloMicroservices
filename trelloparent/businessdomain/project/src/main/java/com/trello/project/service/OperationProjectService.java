@@ -28,7 +28,7 @@ public interface OperationProjectService {
             UUID ownerUserId, String boardName,
             OperationType type);
 
-    Optional<Operation> findLatestOperationByWorkspaceIdAndIdempotencyKeyAndType(UUID workspaceId, UUID idempotencyKey,
+    Optional<Operation> findLatestOperationByWorkspaceIdAndBoardNameAndType(UUID workspaceId, String name,
             OperationType type);
 
     Optional<Operation> findLatestOperationByBoardIdAndType(UUID boardId, OperationType type);
@@ -37,6 +37,8 @@ public interface OperationProjectService {
 
     List<Operation> findOperationsByStatusesListOrderByNextAutomaticAttemptAtAscWorkspaceIdAsc(
             List<OperationStatus> statuses);
+
+    List<Operation> findOperationsByStatusesListOrderByWorkspaceIdAscAndCreatedAtAsc(List<OperationStatus> statuses);
 
     boolean existsPreviousOperationsByWorkspaceIdAndCreatedAt(UUID workspaceId, LocalDateTime createdAt);
 

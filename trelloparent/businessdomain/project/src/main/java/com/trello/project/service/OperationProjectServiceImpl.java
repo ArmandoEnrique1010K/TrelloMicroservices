@@ -54,10 +54,10 @@ public class OperationProjectServiceImpl implements OperationProjectService {
     }
 
     @Override
-    public Optional<Operation> findLatestOperationByWorkspaceIdAndIdempotencyKeyAndType(UUID workspaceId,
-            UUID idempotencyKey, OperationType type) {
-        return operationRepository.findFirstByWorkspaceIdAndIdempotencyKeyAndTypeOrderByCreatedAtDesc(workspaceId,
-                idempotencyKey, type);
+    public Optional<Operation> findLatestOperationByWorkspaceIdAndBoardNameAndType(UUID workspaceId, String name,
+            OperationType type) {
+        return operationRepository.findFirstByWorkspaceIdAndBoardNameAndTypeOrderByCreatedAtDesc(workspaceId,
+                name, type);
     }
 
     @Override
@@ -137,5 +137,11 @@ public class OperationProjectServiceImpl implements OperationProjectService {
     public boolean existsOperationByTypeAndWorkspaceIdAndBoardName(OperationType operationType, UUID workspaceId,
             String boardName) {
         return operationRepository.existsByTypeAndWorkspaceIdAndBoardName(operationType, workspaceId, boardName);
+    }
+
+    @Override
+    public List<Operation> findOperationsByStatusesListOrderByWorkspaceIdAscAndCreatedAtAsc(
+            List<OperationStatus> statuses) {
+        return operationRepository.findByStatusInOrderByWorkspaceIdAscCreatedAtAscIdAsc(statuses);
     }
 }

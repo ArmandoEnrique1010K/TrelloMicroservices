@@ -261,8 +261,7 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
     @Transactional(rollbackFor = Exception.class)
     @Override
     public Operation registerCreateBoard(UUID workspaceId, UUID ownerUserId,
-            BoardRequest boardRequest,
-            UUID idempotencyKey)
+            BoardRequest boardRequest)
             throws WorkspaceNotFoundException, OperationCompensatedException {
 
         String name = boardRequest.getName();
@@ -274,9 +273,9 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
 
         // 1. Comprobar si ya se registró esta misma solicitud.
         Optional<Operation> existing = operationProjectService
-                .findLatestOperationByWorkspaceIdAndIdempotencyKeyAndType(
+                .findLatestOperationByWorkspaceIdAndBoardNameAndType(
                         workspaceId,
-                        idempotencyKey,
+                        name,
                         OperationType.CREATE_BOARD);
 
         Operation reusable = operationRegisterUtils
@@ -310,7 +309,6 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
         operation.setBoardDescription(description);
         operation.setOwnerUserId(ownerUserId);
         operation.setWorkspaceId(workspaceId);
-        operation.setIdempotencyKey(idempotencyKey);
 
         // 5. Persistir la operación antes de ejecutar la creación.
         operationProjectService.saveOperation(operation);
