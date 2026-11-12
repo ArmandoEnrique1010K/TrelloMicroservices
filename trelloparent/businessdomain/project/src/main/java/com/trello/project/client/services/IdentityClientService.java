@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+import com.trello.project.client.dto.response.ServiceTokenResponse;
 import com.trello.project.client.dto.response.UserResponse;
 
 public interface IdentityClientService {
@@ -12,4 +13,6 @@ public interface IdentityClientService {
     List<UserResponse> listAllUsersByEmailAndExcludingIds(
             String email,
             List<UUID> excludedUsersIds);
+
+    ServiceTokenResponse generateInternalToken();
 }

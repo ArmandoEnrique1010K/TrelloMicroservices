@@ -10,16 +10,22 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
-
-import com.trello.project.client.config.FeignClientConfig;
+import com.trello.project.client.config.WorkflowFeignConfig;
 import com.trello.project.client.fallback.WorkflowBoardCommandClientFallbackFactory;
 
-@FeignClient(name = "businessdomain-workflow-board-command", url = "${services.workflow.url}", configuration = FeignClientConfig.class, fallbackFactory = WorkflowBoardCommandClientFallbackFactory.class)
+@FeignClient(name = "businessdomain-workflow-board-command", url = "${services.workflow.url}",
+        // La configuracion utiliza la clase de WorkflowFeignConfig, no la de
+        // FeignClientConfig
+        // configuration = FeignClientConfig.class,
+
+        // Lo mismo pasa con WorkflowBoardAccessComandClient
+        configuration = WorkflowFeignConfig.class, fallbackFactory = WorkflowBoardCommandClientFallbackFactory.class)
 public interface WorkflowBoardCommandClient {
     // Si hay parametros dinamicos se utiliza @PathVariable
-    @PostMapping("/boards/{boardId}")
+    @PostMapping("/boards/{boardId}/user/{userId}")
     ResponseEntity<Void> addBoardAndBoardAccessUserOwner(
             @PathVariable("boardId") UUID boardId,
+            @PathVariable("userId") UUID userId,
             @RequestHeader("X-Operation-Id") UUID operationId);
 
     @DeleteMapping("/boards/{boardId}")

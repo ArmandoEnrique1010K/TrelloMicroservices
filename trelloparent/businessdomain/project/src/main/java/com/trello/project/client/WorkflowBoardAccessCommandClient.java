@@ -9,17 +9,22 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
-
-import com.trello.project.client.config.FeignClientConfig;
+import com.trello.project.client.config.WorkflowFeignConfig;
 import com.trello.project.client.enums.WorkflowRole;
 import com.trello.project.client.fallback.WorkflowBoardAccessCommandClientFallbackFactory;
 
 // Como todas las peticiones tratan de hacer modificaciones en la base de datos, el name termina en "-command"
-@FeignClient(name = "businessdomain-workflow-board-accesses-command", url = "${services.workflow.url}", configuration = FeignClientConfig.class, fallbackFactory = WorkflowBoardAccessCommandClientFallbackFactory.class)
+@FeignClient(name = "businessdomain-workflow-board-accesses-command", url = "${services.workflow.url}",
+
+        // configuration = FeignClientConfig.class,
+        configuration = WorkflowFeignConfig.class,
+
+        fallbackFactory = WorkflowBoardAccessCommandClientFallbackFactory.class)
 public interface WorkflowBoardAccessCommandClient {
-    @PostMapping("/board-accesses/board/{boardId}/role/{roleName}")
+    @PostMapping("/board-accesses/board/{boardId}/user/{userId}/role/{roleName}")
     ResponseEntity<Void> addBoardAccess(
             @PathVariable("boardId") UUID boardId,
+            @PathVariable("userId") UUID userId,
             @PathVariable("roleName") WorkflowRole roleName,
             // Se pasa el ID de operación por los encabezados
             // Identifica la operación que se esta ejecutando

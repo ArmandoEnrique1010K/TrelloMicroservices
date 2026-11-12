@@ -7,7 +7,9 @@ import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 
+import com.trello.project.client.IdentityAuthCommandClient;
 import com.trello.project.client.IdentityUserQueryClient;
+import com.trello.project.client.dto.response.ServiceTokenResponse;
 import com.trello.project.client.dto.response.UserResponse;
 
 import io.github.resilience4j.retry.annotation.Retry;
@@ -17,9 +19,13 @@ import io.github.resilience4j.retry.annotation.Retry;
 public class IdentityClientServiceImpl implements IdentityClientService {
 
     private final IdentityUserQueryClient identityUserQueryClient;
+    private final IdentityAuthCommandClient identityAuthCommandClient;
 
-    public IdentityClientServiceImpl(IdentityUserQueryClient identityUserQueryClient) {
+    public IdentityClientServiceImpl(
+            IdentityUserQueryClient identityUserQueryClient,
+            IdentityAuthCommandClient identityAuthCommandClient) {
         this.identityUserQueryClient = identityUserQueryClient;
+        this.identityAuthCommandClient = identityAuthCommandClient;
     }
 
     // Retry se encarga de volver a ejecutar este método cuando se
@@ -93,5 +99,10 @@ public class IdentityClientServiceImpl implements IdentityClientService {
     public List<UserResponse> listAllUsersByEmailAndExcludingIds(String email,
             List<UUID> excludedUsersIds) {
         return identityUserQueryClient.listAllUsersByEmailAndExcludingIds(email, excludedUsersIds);
+    }
+
+    @Override
+    public ServiceTokenResponse generateInternalToken() {
+        return identityAuthCommandClient.generateInternalToken();
     }
 }

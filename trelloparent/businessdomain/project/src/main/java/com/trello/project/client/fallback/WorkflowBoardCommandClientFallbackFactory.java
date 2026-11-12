@@ -25,7 +25,7 @@ public class WorkflowBoardCommandClientFallbackFactory implements FallbackFactor
         return new WorkflowBoardCommandClient() {
 
             @Override
-            public ResponseEntity<Void> addBoardAndBoardAccessUserOwner(UUID boardId, UUID operationId) {
+            public ResponseEntity<Void> addBoardAndBoardAccessUserOwner(UUID boardId, UUID userId, UUID operationId) {
                 log.error("Error relacionado con addBoardAndBoardAccessUserOwner");
 
                 throw new ServiceUnavailableException();

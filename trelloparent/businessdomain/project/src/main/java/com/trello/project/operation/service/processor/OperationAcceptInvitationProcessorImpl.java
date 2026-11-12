@@ -101,6 +101,7 @@ public class OperationAcceptInvitationProcessorImpl
                         operation.getUserId());
 
         UUID boardId = invitation.getBoard().getId();
+        UUID userId = operation.getUserId();
 
         // 2. Convertir el rol del microservicio Project al enum que utiliza
         // Workflow para gestionar los permisos de acceso al tablero.
@@ -120,6 +121,7 @@ public class OperationAcceptInvitationProcessorImpl
             // Crear el permiso de acceso correspondiente en Workflow.
             workflowClientService.addBoardAccess(
                     boardId,
+                    userId,
                     workflowRole,
                     operation.getId());
         } else if (!memberWasActive) {
@@ -127,7 +129,7 @@ public class OperationAcceptInvitationProcessorImpl
             // Reactivar su permiso de acceso en Workflow.
             workflowClientService.activateBoardAccess(
                     boardId,
-                    operation.getUserId(),
+                    userId,
                     workflowRole,
                     // Debe enviar el rol antiguo para guardarlo
                     oldRole,

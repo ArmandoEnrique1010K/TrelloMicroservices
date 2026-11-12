@@ -29,8 +29,8 @@ public class WorkflowClientServiceImpl implements WorkflowClientService {
     }
 
     @Override
-    public void addBoardAccess(UUID boardId, WorkflowRole roleName, UUID operationId) {
-        workflowBoardAccessCommandClient.addBoardAccess(boardId, roleName, operationId);
+    public void addBoardAccess(UUID boardId, UUID userId, WorkflowRole roleName, UUID operationId) {
+        workflowBoardAccessCommandClient.addBoardAccess(boardId, userId, roleName, operationId);
     }
 
     @Override
@@ -55,8 +55,8 @@ public class WorkflowClientServiceImpl implements WorkflowClientService {
     }
 
     @Override
-    public void addBoardAndBoardAccessUserOwner(UUID boardId, UUID operationId) {
-        workflowBoardCommandClient.addBoardAndBoardAccessUserOwner(boardId, operationId);
+    public void addBoardAndBoardAccessUserOwner(UUID boardId, UUID userId, UUID operationId) {
+        workflowBoardCommandClient.addBoardAndBoardAccessUserOwner(boardId, userId, operationId);
     }
 
     @Override

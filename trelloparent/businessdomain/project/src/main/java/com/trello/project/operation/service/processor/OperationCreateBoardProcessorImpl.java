@@ -87,7 +87,7 @@ public class OperationCreateBoardProcessorImpl
 
         // Llama al metodo para añadir tablero y permiso de acceso del usuario
         // propietario administrador
-        workflowClientService.addBoardAndBoardAccessUserOwner(boardId, operation.getId());
+        workflowClientService.addBoardAndBoardAccessUserOwner(boardId, ownerUserId, operation.getId());
     }
 
     @Override

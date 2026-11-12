@@ -9,6 +9,7 @@ public interface WorkflowClientService {
 
     void addBoardAccess(
             UUID boardId,
+            UUID userId,
             WorkflowRole roleName,
             UUID operationId);
 
@@ -32,7 +33,7 @@ public interface WorkflowClientService {
             WorkflowRole oldRoleName,
             UUID operationId);
 
-    void addBoardAndBoardAccessUserOwner(UUID boardId, UUID operationId);
+    void addBoardAndBoardAccessUserOwner(UUID boardId, UUID userId, UUID operationId);
 
     void deleteBoardAndBoardAccesses(UUID boardId, UUID operationId);
 

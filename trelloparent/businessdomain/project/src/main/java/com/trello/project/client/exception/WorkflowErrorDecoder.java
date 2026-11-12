@@ -23,30 +23,33 @@ public class WorkflowErrorDecoder implements ErrorDecoder {
 
     @Override
     public Exception decode(String methodKey, Response response) {
+
+        if (response.body() == null) {
+            return defaultDecoder.decode(methodKey, response);
+        }
+
         // Leer la respuesta estandarizada de Workflow.
-        if (response.body() != null) {
-            try (var inputStream = response.body().asInputStream()) {
+        try (var inputStream = response.body().asInputStream()) {
 
-                RemoteApiError error = objectMapper.readValue(
-                        inputStream,
-                        RemoteApiError.class);
+            RemoteApiError error = objectMapper.readValue(
+                    inputStream,
+                    RemoteApiError.class);
 
-                // Identificar el error mediante su tipo estable (campo type)
-                if ("/errors/board-accesses/already-exists"
-                        .equals(error.type())) {
-                    return new RemoteBoardAccessAlreadyExistsException();
-                }
-
-                if ("/errors/board-accesses-not-found"
-                        .equals(error.type())) {
-                    return new RemoteBoardAccessNotFoundException();
-                }
-
-            } catch (IOException e) {
-                // Si no se puede interpretar el cuerpo,
-                // utilizar el comportamiento predeterminado de Feign.
-                return new BusinessRuleException();
+            // Identificar el error mediante su tipo estable (campo type)
+            if ("/errors/board-accesses/already-exists"
+                    .equals(error.type())) {
+                return new RemoteBoardAccessAlreadyExistsException();
             }
+
+            if ("/errors/board-accesses-not-found"
+                    .equals(error.type())) {
+                return new RemoteBoardAccessNotFoundException();
+            }
+
+        } catch (IOException e) {
+            // Si no se puede interpretar el cuerpo,
+            // utilizar el comportamiento predeterminado de Feign.
+            return new BusinessRuleException();
         }
 
         // Mantener el comportamiento normal para otros errores HTTP.

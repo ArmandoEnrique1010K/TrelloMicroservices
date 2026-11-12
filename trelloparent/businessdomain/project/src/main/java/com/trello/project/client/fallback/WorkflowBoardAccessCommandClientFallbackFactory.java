@@ -26,7 +26,8 @@ public class WorkflowBoardAccessCommandClientFallbackFactory
         return new WorkflowBoardAccessCommandClient() {
 
             @Override
-            public ResponseEntity<Void> addBoardAccess(UUID boardId, WorkflowRole roleName, UUID operationId) {
+            public ResponseEntity<Void> addBoardAccess(UUID boardId, UUID userId, WorkflowRole roleName,
+                    UUID operationId) {
                 log.error("Error relacionado con addBoardAccess");
 
                 throw new ServiceUnavailableException();
