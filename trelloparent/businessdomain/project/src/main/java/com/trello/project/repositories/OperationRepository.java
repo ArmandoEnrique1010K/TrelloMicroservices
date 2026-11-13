@@ -7,8 +7,10 @@ import java.util.UUID;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
 
 import com.trello.project.entities.Operation;
+import com.trello.project.enums.CleanupStatus;
 import com.trello.project.enums.OperationStatus;
 import com.trello.project.enums.OperationType;
 
@@ -67,14 +69,31 @@ public interface OperationRepository extends JpaRepository<Operation, UUID> {
 
     List<Operation> findByType(OperationStatus operationStatus);
 
+    List<Operation> findByBoardId(UUID boardId);
+
     // No olvidar la anotación para que pueda ejecutar la operación de borrado
     // fisico
     @Modifying
     void deleteAllByStatus(OperationStatus status);
 
+    @Modifying
+    void deleteAllByBoardId(UUID boardId);
+
     boolean existsByTypeAndWorkspaceIdAndBoardName(OperationType operationType, UUID workspaceId, String boardName);
 
-    // Borrar operaciones completadas
+    @Modifying
+    @Query("""
+            UPDATE Operation o
+            SET o.status = :status,
+                o.cleanupStatus = :cleanupStatus
+            WHERE o.boardId = :boardId
+            AND o.id <> :excludedOperationId
+            """)
+    void cancelOperationsByBoardId(
+            UUID boardId,
+            UUID excludedOperationId,
+            OperationStatus status,
+            CleanupStatus cleanupStatus); // Borrar operaciones completadas
     // void deleteByBoardIdAndRecipientUserIdAndSenderUserId(
     // UUID boardId,
     // UUID recipientUserId,
@@ -87,4 +106,18 @@ public interface OperationRepository extends JpaRepository<Operation, UUID> {
     // """)
     // void deleteAcceptedInvitations(@Param("now") LocalDateTime now);
 
+    List<Operation> findByBoardIdAndStatus(UUID boardId, OperationStatus status);
+
+    // Actualizar operacion, cambiar el estado de cleanupStatus por boardId y status
+    @Modifying
+    @Query("""
+            UPDATE Operation o
+            SET o.cleanupStatus = :cleanupStatus
+            WHERE o.boardId = :boardId
+            AND o.status = :operationStatus
+            """)
+    void updateCleanupStatusByBoardIdAndStatus(
+            UUID boardId,
+            OperationStatus operationStatus,
+            CleanupStatus cleanupStatus);
 }

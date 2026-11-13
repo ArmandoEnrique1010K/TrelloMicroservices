@@ -12,4 +12,6 @@ public interface OperationDeleteBoardAndBoardAccessesService {
 
     void revertDeleteBoardAndBoardAccesses(UUID operationId)
             throws OperationNotFoundException, OperationConflictException, BoardNotFoundException;
+
+    void cancelAllOperationsByBoardId(UUID boardId);
 }

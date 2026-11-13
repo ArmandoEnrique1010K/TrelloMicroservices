@@ -69,7 +69,7 @@ public class OperationRegisterUtils {
             // La operación anterior finalizó correctamente. No se reutiliza;
             // se continúa con el flujo para registrar una nueva operación
             // de aceptación de la invitación.
-            case COMPLETED, LOGICAL_DELETE_COMPLETED -> {
+            case COMPLETED, LOGICAL_DELETE_COMPLETED, CANCELED -> {
                 return null;
             }
         }

@@ -6,6 +6,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import com.trello.project.entities.Operation;
+import com.trello.project.enums.CleanupStatus;
 import com.trello.project.enums.OperationStatus;
 import com.trello.project.enums.OperationType;
 
@@ -54,4 +55,10 @@ public interface OperationProjectService {
     boolean existsOperationByTypeAndWorkspaceIdAndBoardName(OperationType operationType, UUID workspaceId,
             String boardName);
 
+    void cancelAllOperationsByBoardId(UUID boardId, UUID excludedOperationId);
+
+    List<Operation> findOperationsByBoardIdAndStatus(UUID boardId, OperationStatus status);
+
+    void updateOperationCleanupStatusByBoardIdAndStatus(CleanupStatus cleanupStatus, UUID boardId,
+            OperationStatus operationStatus);
 }

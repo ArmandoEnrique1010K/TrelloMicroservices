@@ -93,4 +93,9 @@ public class OperationDeleteBoardAndBoardAccessesServiceImpl
         operation.setCompletedAt(LocalDateTime.now());
         operationWorkflowService.saveOperation(operation);
     }
+
+    @Override
+    public void cancelAllOperationsByBoardId(UUID boardId) {
+        operationWorkflowService.changeStatusOperationsByBoardId(boardId, OperationStatus.CANCELED);
+    }
 }

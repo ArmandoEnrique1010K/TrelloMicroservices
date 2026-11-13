@@ -6,6 +6,7 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 
 import com.trello.workflow.entities.Operation;
+import com.trello.workflow.enums.OperationStatus;
 import com.trello.workflow.repositories.OperationRepository;
 
 @Service
@@ -28,5 +29,10 @@ public class OperationWorkflowServiceImpl implements OperationWorkflowService {
     @Override
     public Operation saveOperation(Operation operation) {
         return operationRepository.save(operation);
+    }
+
+    @Override
+    public void changeStatusOperationsByBoardId(UUID boardId, OperationStatus status) {
+        operationRepository.updateStatusByBoardId(boardId, status);
     }
 }

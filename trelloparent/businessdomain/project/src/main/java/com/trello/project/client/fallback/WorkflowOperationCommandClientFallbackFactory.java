@@ -63,6 +63,12 @@ public class WorkflowOperationCommandClientFallbackFactory implements FallbackFa
                 log.error("Error relacionado con revertDeleteAllBoardsAndMultipleBoardAccesses");
                 throw new ServiceUnavailableException();
             }
+
+            @Override
+            public ResponseEntity<Void> cancelOperationsByBoardId(UUID boardId) {
+                log.error("Error relacionado con cancelOperationsByBoardId");
+                throw new ServiceUnavailableException();
+            }
         };
     }
 }

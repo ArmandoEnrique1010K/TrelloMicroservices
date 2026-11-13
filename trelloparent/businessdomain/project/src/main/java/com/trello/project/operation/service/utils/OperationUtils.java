@@ -95,4 +95,12 @@ public class OperationUtils {
 
         operationProjectService.saveOperation(operation);
     }
+
+    public void markCanceled(Operation operation) {
+        operation.setStatus(OperationStatus.CANCELED);
+        operation.setCompletedAt(null);
+        operation.setNextAutomaticAttemptAt(null);
+
+        operationProjectService.saveOperation(operation);
+    }
 }

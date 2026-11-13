@@ -5,6 +5,7 @@ import java.util.UUID;
 
 import org.hibernate.annotations.UpdateTimestamp;
 
+import com.trello.project.enums.CleanupStatus;
 import com.trello.project.enums.OperationStatus;
 import com.trello.project.enums.OperationType;
 import com.trello.project.enums.Role;
@@ -80,6 +81,7 @@ public class Operation {
     // (ejecutor de tareas en segundo plano)
     private int automaticAttempts;
 
+    // TODO: ELIMINAR ESTE CAMPO
     // Fecha del siguiente intento automatico por máquina
     private LocalDateTime nextAutomaticAttemptAt;
 
@@ -95,4 +97,8 @@ public class Operation {
     // Fecha de actualización
     @UpdateTimestamp
     private LocalDateTime updatedAt;
+
+    // Estado de limpieza de operación
+    @Enumerated(EnumType.STRING)
+    private CleanupStatus cleanupStatus;
 }

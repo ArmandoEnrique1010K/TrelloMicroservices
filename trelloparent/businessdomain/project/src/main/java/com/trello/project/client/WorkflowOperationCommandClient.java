@@ -36,7 +36,11 @@ public interface WorkflowOperationCommandClient {
     ResponseEntity<Void> revertDeleteBoardAndBoardAccesses(
             @RequestHeader("X-Operation-Id") UUID operationId);
 
-    @PostMapping("/revert-delete-all-boards-and-multiple-board-accesses")
+    @PostMapping("/operations/revert-delete-all-boards-and-multiple-board-accesses")
     ResponseEntity<Void> revertDeleteAllBoardsAndMultipleBoardAccesses(
             @RequestHeader("X-Operation-Id") UUID operationId);
+
+    @PostMapping("/operations/cancel-operations-board")
+    ResponseEntity<Void> cancelOperationsByBoardId(
+            @RequestHeader("X-Board-Id") UUID boardId);
 }

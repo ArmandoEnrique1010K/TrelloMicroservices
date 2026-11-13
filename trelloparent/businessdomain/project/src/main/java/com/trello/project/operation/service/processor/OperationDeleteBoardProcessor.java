@@ -16,4 +16,6 @@ public interface OperationDeleteBoardProcessor {
             throws OperationNotFoundException, OperationConflictException, OperationCompensatedException,
             BusinessRuleException, WorkspaceNotFoundException, BoardNotFoundException, OperationNotPendingException,
             OperationManualReviewException;
+
+    void processCancelOperationsByBoardId(UUID boardId, UUID operationId);
 }

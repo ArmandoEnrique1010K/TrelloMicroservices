@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.trello.project.entities.Operation;
+import com.trello.project.enums.CleanupStatus;
 import com.trello.project.enums.OperationStatus;
 import com.trello.project.enums.OperationType;
 import com.trello.project.operation.exception.OperationNotFoundException;
@@ -90,6 +91,10 @@ public class OperationProjectServiceImpl implements OperationProjectService {
         // - COMPENSATION_COMPLETED: los cambios fueron revertidos en ambos
         // microservicios.
         //
+
+        // TODO: ¿INCLUIR EL ESTADO DE CANCELED?
+        // CANCELED: la operacion fue cancelada
+
         // LOCAL_COMPENSATION_COMPLETED no se incluye porque, aunque Project ya revirtió
         // sus cambios, todavía falta completar la compensación en Workflow.
         List<OperationStatus> completedStatuses = List.of(
@@ -143,5 +148,28 @@ public class OperationProjectServiceImpl implements OperationProjectService {
     public List<Operation> findOperationsByStatusesListOrderByWorkspaceIdAscAndCreatedAtAsc(
             List<OperationStatus> statuses) {
         return operationRepository.findByStatusInOrderByWorkspaceIdAscCreatedAtAscIdAsc(statuses);
+    }
+
+    // Cancelar operaciones de forma local
+    @Transactional
+    @Override
+    public void cancelAllOperationsByBoardId(UUID boardId, UUID excludedOperationId) {
+        operationRepository.cancelOperationsByBoardId(
+                boardId,
+                excludedOperationId,
+                OperationStatus.CANCELED,
+                CleanupStatus.EXECUTION_PENDING);
+    }
+
+    @Override
+    public List<Operation> findOperationsByBoardIdAndStatus(UUID boardId, OperationStatus status) {
+        return operationRepository.findByBoardIdAndStatus(boardId, status);
+    }
+
+    @Transactional
+    @Override
+    public void updateOperationCleanupStatusByBoardIdAndStatus(CleanupStatus cleanupStatus, UUID boardId,
+            OperationStatus operationStatus) {
+        operationRepository.updateCleanupStatusByBoardIdAndStatus(boardId, operationStatus, cleanupStatus);
     }
 }

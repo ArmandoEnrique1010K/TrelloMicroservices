@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 
 import com.trello.project.client.services.WorkflowClientService;
 import com.trello.project.entities.Operation;
+import com.trello.project.enums.CleanupStatus;
 import com.trello.project.enums.OperationStatus;
 import com.trello.project.enums.OperationType;
 import com.trello.project.exception.BoardNotFoundException;
@@ -117,6 +118,46 @@ public class OperationDeleteBoardProcessorImpl
         } catch (ServiceUnavailableException e) {
             operationUtils.markLocalCompensationCompleted(operation);
             throw new OperationCompensatedException();
+        }
+    }
+
+    @Override
+    public void processCancelOperationsByBoardId(UUID boardId, UUID operationId) {
+
+        try {
+
+            // Indicar que se está ejecutando la limpieza remota.
+            operationProjectService.updateOperationCleanupStatusByBoardIdAndStatus(
+                    CleanupStatus.EXECUTING,
+                    boardId,
+                    OperationStatus.CANCELED);
+
+            workflowClientService.cancelOperationsByBoardId(boardId);
+
+            // Confirmar que la limpieza remota terminó correctamente.
+            operationProjectService.updateOperationCleanupStatusByBoardIdAndStatus(
+                    CleanupStatus.COMPLETED,
+                    boardId,
+                    OperationStatus.CANCELED);
+
+        } catch (ServiceUnavailableException e) {
+
+            log.warn(
+                    "Unable to cancel operations associated with board {} in Workflow. Operation {} will require a retry.",
+                    boardId,
+                    operationId);
+
+            // REVERTIR ESTADO DE OPERACIONES EN PROJECT CAMPO CLEANUP A PENDING
+
+            // Vuelve al estado original, implica que no se pudo realizar el llamado en el
+            // microservicio Workflow para cancelar la operacioin
+            // Restaurar el estado de limpieza para permitir un nuevo intento.
+            operationProjectService.updateOperationCleanupStatusByBoardIdAndStatus(
+                    CleanupStatus.PENDING,
+                    boardId,
+                    OperationStatus.CANCELED);
+
+            throw e;
         }
     }
 }

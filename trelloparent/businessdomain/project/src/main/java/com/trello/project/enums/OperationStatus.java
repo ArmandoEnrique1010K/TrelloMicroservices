@@ -47,5 +47,10 @@ public enum OperationStatus {
     // Existe una inconsistencia que requiere revisión
     // La operación no puede continuar de forma segura mediante el flujo automático
     // y requiere revisión o intervención manual.
-    MANUAL_INTERVENTION_REQUIRED
+    MANUAL_INTERVENTION_REQUIRED,
+
+    // Operacion cancelada, luego de terminar una operacion de tipo DELETE_BOARD o
+    // DELETE_WORKSPACE, las demás operaciones asociadas al mismo Board o Workflow
+    // se colocaran con este estado
+    CANCELED
 }

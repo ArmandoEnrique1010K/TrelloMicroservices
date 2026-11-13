@@ -115,4 +115,9 @@ public class WorkflowClientServiceImpl implements WorkflowClientService {
     public void revertDeleteAllBoardsByIdsAndMultipleBoardAccesses(UUID operationId) {
         workflowOperationCommandClient.revertDeleteAllBoardsAndMultipleBoardAccesses(operationId);
     }
+
+    @Override
+    public void cancelOperationsByBoardId(UUID boardId) {
+        workflowOperationCommandClient.cancelOperationsByBoardId(boardId);
+    }
 }

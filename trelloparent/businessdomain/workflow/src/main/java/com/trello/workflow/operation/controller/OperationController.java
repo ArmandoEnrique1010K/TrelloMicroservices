@@ -566,4 +566,13 @@ public class OperationController {
                 .revertDeleteAllBoardsAndMultipleBoardAccesses(operationId);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).body(null);
     }
+
+    @PostMapping("/cancel-operations-board")
+    public ResponseEntity<Void> cancelOperationsByBoardId(
+            @RequestHeader("X-Board-Id") UUID boardId) {
+
+        operationDeleteBoardAndBoardAccessesService.cancelAllOperationsByBoardId(boardId);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).body(null);
+    }
+
 }

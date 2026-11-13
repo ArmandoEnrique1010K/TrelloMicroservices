@@ -52,4 +52,6 @@ public interface WorkflowClientService {
     void revertDeleteBoardAndBoardAccesses(UUID operationId);
 
     void revertDeleteAllBoardsByIdsAndMultipleBoardAccesses(UUID operationId);
+
+    void cancelOperationsByBoardId(UUID boardId);
 }

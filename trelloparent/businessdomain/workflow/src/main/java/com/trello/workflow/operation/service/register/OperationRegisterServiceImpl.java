@@ -395,7 +395,7 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
             }
 
             // Impedir el reintento de operaciones que no están pendientes.
-            case CREATED, PROCESSING, COMPLETED -> {
+            case CREATED, PROCESSING, COMPLETED, CANCELED -> {
                 throw new OperationNotPendingException();
             }
 

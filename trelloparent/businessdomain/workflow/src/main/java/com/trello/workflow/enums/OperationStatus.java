@@ -12,4 +12,7 @@ public enum OperationStatus {
 
     // La operación original terminó correctamente.
     COMPLETED,
+
+    // La operación fue cancelada
+    CANCELED
 }
