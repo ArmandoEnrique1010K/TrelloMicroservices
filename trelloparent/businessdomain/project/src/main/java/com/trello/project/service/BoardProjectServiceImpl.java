@@ -9,6 +9,7 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 
 import com.trello.project.entities.Board;
+import com.trello.project.enums.BoardStatus;
 import com.trello.project.enums.Role;
 import com.trello.project.exception.BoardNotFoundException;
 import com.trello.project.exception.MemberNotFoundException;
@@ -35,7 +36,7 @@ public class BoardProjectServiceImpl implements BoardProjectService {
         workspaceRepository.findByIdAndOwnerUserIdAndStatusTrue(workspaceId, ownerUserId)
                 .orElseThrow(WorkspaceNotFoundException::new);
 
-        return boardRepository.findByWorkspaceIdAndStatusTrueOrderByCreatedAtDesc(workspaceId);
+        return boardRepository.findByWorkspaceIdAndStatusOrderByCreatedAtDesc(workspaceId, BoardStatus.ACTIVE);
     }
 
     @Override
@@ -44,7 +45,7 @@ public class BoardProjectServiceImpl implements BoardProjectService {
         workspaceRepository.findById(workspaceId)
                 .orElseThrow(WorkspaceNotFoundException::new);
 
-        return boardRepository.existsByWorkspaceIdAndNameAndStatusTrue(workspaceId, name);
+        return boardRepository.existsByWorkspaceIdAndNameAndStatus(workspaceId, name, BoardStatus.ACTIVE);
     }
 
     @Override
@@ -56,7 +57,8 @@ public class BoardProjectServiceImpl implements BoardProjectService {
         workspaceRepository.findById(workspaceId)
                 .orElseThrow(WorkspaceNotFoundException::new);
 
-        return boardRepository.existsByWorkspaceIdAndNameAndIdNotAndStatusTrue(workspaceId, name, boardId);
+        return boardRepository.existsByWorkspaceIdAndNameAndIdNotAndStatus(workspaceId, name, boardId,
+                BoardStatus.ACTIVE);
     }
 
     @Override
@@ -75,7 +77,7 @@ public class BoardProjectServiceImpl implements BoardProjectService {
     @Override
     public Board findBoardByIdAndOwnerUserIdAndActive(UUID boardId, UUID ownerUserId)
             throws WorkspaceNotFoundException, BoardNotFoundException {
-        Board board = boardRepository.findByIdAndStatusTrue(boardId)
+        Board board = boardRepository.findByIdAndStatus(boardId, BoardStatus.ACTIVE)
                 .orElseThrow(BoardNotFoundException::new);
 
         workspaceRepository.findByIdAndOwnerUserIdAndStatusTrue(
@@ -114,7 +116,8 @@ public class BoardProjectServiceImpl implements BoardProjectService {
         return boardRepository.findBoardAccessibleByUser(
                 boardId,
                 userId,
-                Set.of(Role.ADMIN, Role.MEMBER)).orElseThrow(
+                Set.of(Role.ADMIN, Role.MEMBER),
+                BoardStatus.ACTIVE).orElseThrow(
                         BoardNotFoundException::new);
     }
 
@@ -123,7 +126,7 @@ public class BoardProjectServiceImpl implements BoardProjectService {
             UUID userId)
             throws WorkspaceNotFoundException, BoardNotFoundException, MemberNotFoundException {
 
-        Board board = boardRepository.findByIdAndStatusTrue(boardId)
+        Board board = boardRepository.findByIdAndStatus(boardId, BoardStatus.ACTIVE)
                 .orElseThrow(BoardNotFoundException::new);
 
         // Si uno de los ID de userId, no coincide con el ID del miembro quiere decir
@@ -140,11 +143,13 @@ public class BoardProjectServiceImpl implements BoardProjectService {
 
     @Override
     public List<Board> findAllBoardsByMemberActiveTrueAndMemberUserId(UUID memberUserId) {
-        return boardRepository.findBoardByMemberActiveTrueAndMemberUserIdAndOrderByMemberJoinedAt(memberUserId);
+        return boardRepository.findBoardByMemberActiveTrueAndMemberUserIdAndOrderByMemberJoinedAt(memberUserId,
+                BoardStatus.ACTIVE);
     }
 
     @Override
-    public void changeStatusBoardById(UUID boardId, UUID ownerUserId, boolean status)
+    public void changeStatusBoardById(UUID boardId, UUID ownerUserId,
+            BoardStatus status)
             throws BoardNotFoundException {
         Board board = boardRepository.findById(boardId)
                 .orElseThrow(BoardNotFoundException::new);
@@ -153,7 +158,8 @@ public class BoardProjectServiceImpl implements BoardProjectService {
     }
 
     @Override
-    public Board findBoardByWorkspaceIdAndName(UUID workspaceId, String name) {
-        return boardRepository.findBoardByWorkspaceIdAndName(workspaceId, name);
+    public Board findBoardByIdWithLock(UUID boardId) {
+        return boardRepository.findByIdWithLock(boardId)
+                .orElseThrow(BoardNotFoundException::new);
     }
 }

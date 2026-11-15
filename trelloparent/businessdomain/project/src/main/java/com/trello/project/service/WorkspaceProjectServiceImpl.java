@@ -9,6 +9,7 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 
 import com.trello.project.entities.Workspace;
+import com.trello.project.enums.BoardStatus;
 import com.trello.project.exception.WorkspaceNotFoundException;
 
 @Service
@@ -71,6 +72,7 @@ public class WorkspaceProjectServiceImpl implements WorkspaceProjectService {
         workspaceRepository.delete(workspace);
     }
 
+    // TODO: URGENTE, CAMBIAR EL PARAMETRO STATUS
     @Override
     public void changeStatusWorkspaceById(UUID workspaceId, UUID ownerUserId, boolean status)
             throws WorkspaceNotFoundException {
@@ -84,7 +86,8 @@ public class WorkspaceProjectServiceImpl implements WorkspaceProjectService {
         if (workspace.getBoards() != null) {
             workspace.getBoards().forEach(board -> {
                 if (board != null) {
-                    board.setStatus(status);
+                    // TODO: CAMBIAR EL ESTADO
+                    board.setStatus(BoardStatus.DELETED);
                     boardRepository.save(board);
                 }
             });

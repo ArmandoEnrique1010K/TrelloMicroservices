@@ -4,9 +4,13 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
+import com.trello.project.enums.BoardStatus;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
@@ -46,7 +50,10 @@ public class Board {
     private LocalDateTime createdAt;
 
     // Estado del tablero, si es false quiere decir que fue eliminado logicamente
-    private boolean status;
+    // private boolean status;
+
+    @Enumerated(EnumType.STRING)
+    private BoardStatus status;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "workspace_id", nullable = false)

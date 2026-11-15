@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.trello.project.entities.Board;
 import com.trello.project.entities.Operation;
 import com.trello.project.entities.Workspace;
+import com.trello.project.enums.BoardStatus;
 import com.trello.project.enums.OperationStatus;
 import com.trello.project.exception.BoardNotFoundException;
 import com.trello.project.exception.WorkspaceNotFoundException;
@@ -69,7 +70,7 @@ public class OperationCreateBoardServiceImpl
         board.setName(boardName);
         board.setDescription(boardDescription);
         board.setWorkspace(workspace);
-        board.setStatus(true);
+        board.setStatus(BoardStatus.ACTIVE);
 
         // Se guarda la fecha de creación aqui (no es la misma fecha de la operación)
         board.setCreatedAt(LocalDateTime.now());
