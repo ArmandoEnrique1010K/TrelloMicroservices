@@ -9,6 +9,7 @@ import com.trello.project.exception.MemberInactiveException;
 import com.trello.project.exception.MemberNotFoundException;
 import com.trello.project.exception.WorkspaceNotFoundException;
 import com.trello.project.invitation.exception.InvitationConfirmedException;
+import com.trello.project.member.exception.MemberRoleAlreadyExistsException;
 import com.trello.project.operation.exception.OperationCompensatedException;
 
 import java.util.UUID;
@@ -21,7 +22,7 @@ public interface OperationRegisterService {
             throws InvitationNotFoundException, InvitationConfirmedException;
 
     Operation registerChangeRoleMember(Role role, UUID memberId, UUID ownerUserId)
-            throws MemberNotFoundException, MemberInactiveException;
+            throws MemberNotFoundException, MemberInactiveException, MemberRoleAlreadyExistsException;
 
     Operation registerDeactivateMember(UUID memberId, UUID ownerUserId)
             throws MemberNotFoundException, MemberInactiveException;

@@ -176,6 +176,17 @@ public class MemberRestController {
                                 "type": "/errors/member-inactive"
                             }
                             """),
+                    @ExampleObject(name = "No se puede reutilizar el rol anterior como el nuevo rol", summary = "El nuevo rol del miembro no puede coincidir con el rol anterior", value = """
+                            {
+                                "detail": "The role already exists for this member",
+                                "fields": null,
+                                "instance": null,
+                                "message": "Elija otro rol para el miembro",
+                                "status": 409,
+                                "title": "Member role already exists",
+                                "type": "/errors/member/role-already-exists"
+                            }
+                            """),
                     @ExampleObject(name = "Los datos enviados no coinciden con los datos de la operación", summary = "Los datos enviados no coinciden con los datos de la operación", value = """
                             {
                                     "detail": "The data related to the operation do not match the requested data",

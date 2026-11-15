@@ -10,6 +10,7 @@ import com.trello.project.exception.MemberInactiveException;
 import com.trello.project.exception.MemberNotFoundException;
 import com.trello.project.member.dto.response.MemberResponse;
 import com.trello.project.member.dto.response.UserMemberResponse;
+import com.trello.project.member.exception.MemberRoleAlreadyExistsException;
 import com.trello.project.operation.exception.OperationCompensatedException;
 import com.trello.project.operation.exception.OperationConflictException;
 import com.trello.project.operation.exception.OperationManualReviewException;
@@ -27,7 +28,8 @@ public interface MemberService {
     // SAGA PATTERN
     // Cambiar rol de miembro (solamente permitido por el administrador del tablero)
     MemberResponse changeRoleMemberById(Role role, UUID memberId, UUID ownerUserId)
-            throws MemberNotFoundException, MemberInactiveException, OperationNotPendingException,
+            throws MemberNotFoundException, MemberInactiveException,
+            MemberRoleAlreadyExistsException, OperationNotPendingException,
             OperationNotFoundException, OperationConflictException, OperationManualReviewException,
             OperationCompensatedException, BusinessRuleException;
 

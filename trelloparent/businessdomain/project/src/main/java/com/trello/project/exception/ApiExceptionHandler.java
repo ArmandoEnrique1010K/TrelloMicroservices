@@ -13,6 +13,7 @@ import com.trello.project.board.exception.BoardAlreadyExistsException;
 import com.trello.project.common.StandarizedApiExceptionResponse;
 import com.trello.project.invitation.exception.InvitationAlreadyExistsException;
 import com.trello.project.invitation.exception.InvitationConfirmedException;
+import com.trello.project.member.exception.MemberRoleAlreadyExistsException;
 import com.trello.project.operation.exception.OperationCompensatedException;
 import com.trello.project.operation.exception.OperationConflictException;
 import com.trello.project.operation.exception.OperationManualReviewException;
@@ -283,6 +284,24 @@ public class ApiExceptionHandler {
                 "The member has been removed",
                 null,
                 "Ha ocurrido un error");
+
+        return ResponseEntity.status(status).body(standarizedApiExceptionResponse);
+    }
+
+    // Excepción de rol de miembro no alterado
+    @ExceptionHandler(MemberRoleAlreadyExistsException.class)
+    public ResponseEntity<StandarizedApiExceptionResponse> handleMemberRoleAlreadyExistsException(
+            MemberRoleAlreadyExistsException ex) {
+
+        HttpStatus status = HttpStatus.CONFLICT;
+
+        StandarizedApiExceptionResponse standarizedApiExceptionResponse = new StandarizedApiExceptionResponse(
+                "/errors/member/role-already-exists",
+                "Member role already exists",
+                status.value(),
+                "The role already exists for this member",
+                null,
+                "Elija otro rol para el miembro");
 
         return ResponseEntity.status(status).body(standarizedApiExceptionResponse);
     }

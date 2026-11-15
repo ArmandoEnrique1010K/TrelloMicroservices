@@ -26,6 +26,7 @@ import com.trello.project.exception.MemberNotFoundException;
 import com.trello.project.exception.ServiceUnavailableException;
 import com.trello.project.member.dto.response.MemberResponse;
 import com.trello.project.member.dto.response.UserMemberResponse;
+import com.trello.project.member.exception.MemberRoleAlreadyExistsException;
 import com.trello.project.member.mapper.UserMemberResponseMapper;
 import com.trello.project.operation.exception.OperationCompensatedException;
 import com.trello.project.operation.exception.OperationConflictException;
@@ -102,7 +103,8 @@ public class MemberServiceImpl implements MemberService {
 
     @Override
     public MemberResponse changeRoleMemberById(Role role, UUID memberId, UUID ownerUserId)
-            throws MemberNotFoundException, MemberInactiveException, OperationNotPendingException,
+            throws MemberNotFoundException, MemberInactiveException,
+            MemberRoleAlreadyExistsException, OperationNotPendingException,
             OperationNotFoundException, OperationConflictException, OperationManualReviewException,
             OperationCompensatedException, BusinessRuleException {
 

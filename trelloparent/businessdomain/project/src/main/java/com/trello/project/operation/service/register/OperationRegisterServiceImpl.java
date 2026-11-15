@@ -23,6 +23,7 @@ import com.trello.project.exception.MemberInactiveException;
 import com.trello.project.exception.MemberNotFoundException;
 import com.trello.project.exception.WorkspaceNotFoundException;
 import com.trello.project.invitation.exception.InvitationConfirmedException;
+import com.trello.project.member.exception.MemberRoleAlreadyExistsException;
 import com.trello.project.operation.exception.OperationCompensatedException;
 import com.trello.project.operation.service.utils.OperationRegisterUtils;
 import com.trello.project.service.BoardProjectService;
@@ -191,7 +192,7 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
     @Transactional(rollbackFor = Exception.class)
     @Override
     public Operation registerChangeRoleMember(Role role, UUID memberId, UUID ownerUserId)
-            throws MemberNotFoundException, MemberInactiveException {
+            throws MemberNotFoundException, MemberInactiveException, MemberRoleAlreadyExistsException {
 
         // Validar logica de negocio
         Member findedMember = memberProjectService.findMemberActiveByIdAndOwnerUserId(memberId, ownerUserId);
@@ -205,13 +206,27 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
             throw new BoardNotFoundException();
         }
 
-        // Buscar operación existente
-        Optional<Operation> existing = operationProjectService.findLatestOperationByMemberIdAndType(memberId,
-                OperationType.CHANGE_ROLE_MEMBER);
+        // Primero debe buscar la ultima operación de cambio de rol
+        // Buscar la última operación de cambio de rol
+        Optional<Operation> existing = operationProjectService
+                .findLatestOperationByMemberIdAndType(
+                        memberId,
+                        OperationType.CHANGE_ROLE_MEMBER);
 
         Operation reusable = operationRegisterUtils
                 .findReusableOperation(existing);
 
+        // Determinar el rol de referencia
+        Role currentRole = reusable != null
+                ? reusable.getNewRole()
+                : findedMember.getRole();
+
+        // Validar que el nuevo rol sea diferente
+        if (currentRole == role) {
+            throw new MemberRoleAlreadyExistsException();
+        }
+
+        // Si existe la ultima operación
         if (reusable != null) {
             // Actualizar el nuevo rol en la operación
             reusable.setNewRole(role);
