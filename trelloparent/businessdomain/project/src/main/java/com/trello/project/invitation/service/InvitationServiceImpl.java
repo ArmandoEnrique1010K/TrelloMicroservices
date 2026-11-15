@@ -275,13 +275,6 @@ public class InvitationServiceImpl implements InvitationService {
     // modificaciones de negocio que se realicen posteriormente; dicho de otro modo,
     // no va a llevar la anotación @Transactional en este método
 
-    // TODO: FALTA IMPLEMENTAR
-    // Flujo de ejecución para el procesamiento en segundo plano:
-    // 1. REGISTER: registrar la operación en la base de datos.
-    // 2. HANDLER (modo AUTOMATIC): ejecutar el procesamiento automático.
-    // 3. PROCESSOR: procesar la operación según su estado y gestionar
-    // la continuación del flujo de la saga.
-
     @Override
     public void acceptInvitation(UUID invitationId, UUID recipientUserId)
             throws InvitationNotFoundException, InvitationConfirmedException, OperationNotPendingException,

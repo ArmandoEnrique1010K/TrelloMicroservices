@@ -5,7 +5,9 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.trello.project.entities.Board;
 import com.trello.project.entities.Operation;
+import com.trello.project.enums.BoardStatus;
 import com.trello.project.enums.OperationStatus;
 import com.trello.project.exception.BoardNotFoundException;
 import com.trello.project.exception.WorkspaceNotFoundException;
@@ -45,11 +47,19 @@ public class OperationDeleteBoardServiceImpl implements OperationDeleteBoardServ
         UUID boardId = operation.getBoardId();
         UUID ownerUserId = operation.getOwnerUserId();
 
+        // Bloqueo pesimista
+        Board board = boardProjectService.findBoardByIdWithLock(boardId);
+
+        if (board.getStatus() != BoardStatus.ACTIVE) {
+            throw new BoardNotFoundException();
+        }
+
         // Verificar si existe tablero
         boardProjectService.findBoardByIdAndOwnerUserIdAndActive(boardId, ownerUserId);
 
+        // TODO: ESTADO DELETING O DELETED
         // En lugar de borrar el tablero se va a cambiar su estado
-        boardProjectService.changeStatusBoardById(boardId, ownerUserId, false);
+        boardProjectService.changeStatusBoardById(boardId, ownerUserId, BoardStatus.DELETING);
 
         operationProjectService.saveOperation(operation);
     }
@@ -67,6 +77,6 @@ public class OperationDeleteBoardServiceImpl implements OperationDeleteBoardServ
         UUID ownerUserId = operation.getOwnerUserId();
 
         // A su vez este metodo busca si existe el tablero por su ID y lo guarda
-        boardProjectService.changeStatusBoardById(boardId, ownerUserId, true);
+        boardProjectService.changeStatusBoardById(boardId, ownerUserId, BoardStatus.ACTIVE);
     }
 }

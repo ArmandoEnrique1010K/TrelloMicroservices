@@ -11,15 +11,18 @@ import com.trello.project.entities.Board;
 import com.trello.project.entities.Invitation;
 import com.trello.project.entities.Member;
 import com.trello.project.entities.Operation;
+import com.trello.project.enums.BoardStatus;
 import com.trello.project.enums.OperationStatus;
 import com.trello.project.enums.Role;
 import com.trello.project.enums.Status;
+import com.trello.project.exception.BoardNotFoundException;
 import com.trello.project.exception.InvitationNotFoundException;
 import com.trello.project.exception.MemberNotFoundException;
 import com.trello.project.invitation.exception.InvitationConfirmedException;
 import com.trello.project.operation.exception.OperationNotFoundException;
 import com.trello.project.operation.exception.OperationNotPendingException;
 import com.trello.project.operation.service.utils.OperationHandlerUtils;
+import com.trello.project.service.BoardProjectService;
 import com.trello.project.service.InvitationProjectService;
 import com.trello.project.service.MemberProjectService;
 import com.trello.project.service.OperationProjectService;
@@ -34,16 +37,19 @@ public class OperationAcceptInvitationServiceImpl implements OperationAcceptInvi
     private final InvitationProjectService invitationProjectService;
     private final MemberProjectService memberProjectService;
     private final OperationHandlerUtils operationHandlerUtils;
+    private final BoardProjectService boardProjectService;
 
     public OperationAcceptInvitationServiceImpl(
             OperationProjectService operationProjectService,
             InvitationProjectService invitationProjectService,
             MemberProjectService memberProjectService,
-            OperationHandlerUtils operationHandlerUtils) {
+            OperationHandlerUtils operationHandlerUtils,
+            BoardProjectService boardProjectService) {
         this.operationProjectService = operationProjectService;
         this.invitationProjectService = invitationProjectService;
         this.memberProjectService = memberProjectService;
         this.operationHandlerUtils = operationHandlerUtils;
+        this.boardProjectService = boardProjectService;
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -59,6 +65,13 @@ public class OperationAcceptInvitationServiceImpl implements OperationAcceptInvi
         UUID boardId = operation.getBoardId();
         UUID recipientUserId = operation.getUserId();
         UUID invitationId = operation.getInvitationId();
+
+        // Bloqueo pesimista
+        Board board = boardProjectService.findBoardByIdWithLock(boardId);
+
+        if (board.getStatus() != BoardStatus.ACTIVE) {
+            throw new BoardNotFoundException();
+        }
 
         // 2. Recuperar la invitación y comprobar que todavía pueda aceptarse.
         // Si ya fue confirmada, no se deben aplicar nuevamente los cambios.
@@ -80,7 +93,7 @@ public class OperationAcceptInvitationServiceImpl implements OperationAcceptInvi
         Optional<Member> optionalMember = memberProjectService
                 .findOptionalMemberByBoardIdAndUserId(boardId, recipientUserId);
 
-        Board board = invitation.getBoard();
+        // Board board = invitation.getBoard();
 
         // 5. Aplicar los cambios correspondientes al miembro:
         // activar el registro existente y actualizar su rol, o crear

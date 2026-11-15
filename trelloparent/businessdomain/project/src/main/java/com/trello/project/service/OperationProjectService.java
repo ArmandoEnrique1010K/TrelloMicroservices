@@ -56,6 +56,8 @@ public interface OperationProjectService {
     boolean existsOperationByTypeAndWorkspaceIdAndBoardName(OperationType operationType, UUID workspaceId,
             String boardName);
 
+    boolean existsOperationByTypeAndInvitationId(OperationType operationType, UUID invitationId);
+
     void cancelAllOperationsByBoardId(UUID boardId, UUID excludedOperationId);
 
     List<Operation> findOperationsByBoardIdAndStatus(UUID boardId, OperationStatus status);

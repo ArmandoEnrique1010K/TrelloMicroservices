@@ -88,7 +88,8 @@ public interface BoardRepository extends JpaRepository<Board, UUID> {
             @Param("userId") UUID userId,
             @Param("status") BoardStatus status);
 
-    // Bloquea la fila del tablero para escritura hasta que finalice la transacción.
+    // Bloquea la fila del tablero para escritura hasta que finalice la transacción
+    // (bloqueo pesimista)
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT b FROM Board b WHERE b.id = :boardId")
     Optional<Board> findByIdWithLock(UUID boardId);

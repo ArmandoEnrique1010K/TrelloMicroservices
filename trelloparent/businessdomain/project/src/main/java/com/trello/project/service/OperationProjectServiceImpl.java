@@ -147,6 +147,11 @@ public class OperationProjectServiceImpl implements OperationProjectService {
     }
 
     @Override
+    public boolean existsOperationByTypeAndInvitationId(OperationType operationType, UUID invitationId) {
+        return operationRepository.existsByTypeAndInvitationId(operationType, invitationId);
+    }
+
+    @Override
     public List<Operation> findOperationsByStatusesListOrderByWorkspaceIdAscAndCreatedAtAsc(
             List<OperationStatus> statuses) {
         return operationRepository.findByStatusInOrderByWorkspaceIdAscCreatedAtAscIdAsc(statuses);
@@ -244,4 +249,5 @@ public class OperationProjectServiceImpl implements OperationProjectService {
 
         return updatedRows == 1;
     }
+
 }

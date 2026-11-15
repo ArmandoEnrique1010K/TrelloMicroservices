@@ -5,15 +5,19 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.trello.project.entities.Board;
 import com.trello.project.entities.Member;
 import com.trello.project.entities.Operation;
+import com.trello.project.enums.BoardStatus;
 import com.trello.project.enums.OperationStatus;
 import com.trello.project.enums.Role;
+import com.trello.project.exception.BoardNotFoundException;
 import com.trello.project.exception.MemberInactiveException;
 import com.trello.project.exception.MemberNotFoundException;
 import com.trello.project.operation.exception.OperationNotFoundException;
 import com.trello.project.operation.exception.OperationNotPendingException;
 import com.trello.project.operation.service.utils.OperationHandlerUtils;
+import com.trello.project.service.BoardProjectService;
 import com.trello.project.service.InvitationProjectService;
 import com.trello.project.service.MemberProjectService;
 import com.trello.project.service.OperationProjectService;
@@ -24,16 +28,19 @@ public class OperationDeactivateMemberServiceImpl implements OperationDeactivate
     private final InvitationProjectService invitationProjectService;
     private final MemberProjectService memberProjectService;
     private final OperationHandlerUtils operationHandlerUtils;
+    private final BoardProjectService boardProjectService;
 
     public OperationDeactivateMemberServiceImpl(
             OperationProjectService operationProjectService,
             InvitationProjectService invitationProjectService,
             MemberProjectService memberProjectService,
-            OperationHandlerUtils operationHandlerUtils) {
+            OperationHandlerUtils operationHandlerUtils,
+            BoardProjectService boardProjectService) {
         this.operationProjectService = operationProjectService;
         this.invitationProjectService = invitationProjectService;
         this.memberProjectService = memberProjectService;
         this.operationHandlerUtils = operationHandlerUtils;
+        this.boardProjectService = boardProjectService;
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -49,6 +56,13 @@ public class OperationDeactivateMemberServiceImpl implements OperationDeactivate
         UUID userId = operation.getUserId();
         UUID memberId = operation.getMemberId();
         UUID ownerUserId = operation.getOwnerUserId();
+
+        // Bloqueo pesimista
+        Board board = boardProjectService.findBoardByIdWithLock(boardId);
+
+        if (board.getStatus() != BoardStatus.ACTIVE) {
+            throw new BoardNotFoundException();
+        }
 
         // Buscar miembro
         Member findedMember = memberProjectService.findMemberActiveByIdAndOwnerUserId(memberId, ownerUserId);

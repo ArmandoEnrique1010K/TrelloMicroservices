@@ -12,6 +12,7 @@ import com.trello.project.entities.Board;
 import com.trello.project.entities.Invitation;
 import com.trello.project.entities.Member;
 import com.trello.project.entities.Operation;
+import com.trello.project.entities.Workspace;
 import com.trello.project.enums.BoardStatus;
 import com.trello.project.enums.OperationType;
 import com.trello.project.enums.Role;
@@ -92,6 +93,21 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
         // que se asignará al usuario al aceptar la invitación.
         Role invitationRole = invitation.getRole();
 
+        // Obtener el tablero asociado a la invitación.
+        Board findedBoard = invitation.getBoard();
+        UUID boardId = findedBoard.getId();
+
+        // Bloqueo pesimista: evita que otra transacción modifique simultáneamente
+        // el estado del tablero mientras se registra esta operación.
+        Board board = boardProjectService.findBoardByIdWithLock(boardId);
+
+        // Verificar que el tablero siga habilitado.
+        // Si está en proceso de eliminación o ya fue eliminado, no se permiten nuevas
+        // operaciones.
+        if (board.getStatus() != BoardStatus.ACTIVE) {
+            throw new BoardNotFoundException();
+        }
+
         // 2. Buscar una operación previa de aceptación de la invitación que
         // pueda reutilizarse para continuar un intento anterior.
         Optional<Operation> existing = operationProjectService
@@ -111,9 +127,14 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
             return reusable;
         }
 
-        // 3. Obtener el tablero asociado a la invitación.
-        Board findedBoard = invitation.getBoard();
-        UUID boardId = findedBoard.getId();
+        // 3. Se verifica que exista la invitación por ID en la operación
+        if (operationProjectService.existsOperationByTypeAndInvitationId(OperationType.ACCEPT_INVITATION,
+                invitationId)) {
+            log.info("LA INVITACION EXISTE DESDE LA OPERACIÓN");
+            throw new OperationCompensatedException();
+        }
+
+        // Obtener espacio de trabajo
         UUID workspaceId = findedBoard.getWorkspace().getId();
 
         // 4. Consultar si ya existe un registro de miembro para el usuario
@@ -177,13 +198,9 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
 
         UUID boardId = findedMember.getBoard().getId();
 
-        // Bloqueo pesimista: evita que otra transacción modifique simultáneamente
-        // el estado del tablero mientras se registra esta operación.
+        // Bloqueo pesimista
         Board board = boardProjectService.findBoardByIdWithLock(boardId);
 
-        // Verificar que el tablero siga habilitado.
-        // Si está en proceso de eliminación o ya fue eliminado, no se permiten nuevas
-        // operaciones.
         if (board.getStatus() != BoardStatus.ACTIVE) {
             throw new BoardNotFoundException();
         }
@@ -242,6 +259,16 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
 
         Member findedMember = memberProjectService.findMemberActiveByIdAndOwnerUserId(memberId, ownerUserId);
 
+        Board findedBoard = findedMember.getBoard();
+        UUID boardId = findedBoard.getId();
+
+        // Bloqueo pesimista
+        Board board = boardProjectService.findBoardByIdWithLock(boardId);
+
+        if (board.getStatus() != BoardStatus.ACTIVE) {
+            throw new BoardNotFoundException();
+        }
+
         Optional<Operation> existing = operationProjectService.findLatestOperationByMemberIdAndType(memberId,
                 OperationType.DEACTIVATE_MEMBER);
 
@@ -252,8 +279,6 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
             return reusable;
         }
 
-        Board findedBoard = findedMember.getBoard();
-        UUID boardId = findedBoard.getId();
         UUID userId = findedMember.getUserId();
         UUID workspaceId = findedBoard.getWorkspace().getId();
 
@@ -281,6 +306,14 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
 
         String name = boardRequest.getName();
         String description = boardRequest.getDescription();
+
+        // Bloqueo pesimista del espacio de trabajo
+        Workspace workspace = workspaceProjectService.findWorkspaceByIdWithLock(workspaceId);
+
+        // TODO: CORREGIR ESTADO
+        if (workspace.isStatus() == false) {
+            throw new WorkspaceNotFoundException();
+        }
 
         workspaceProjectService.findWorkspaceByIdAndOwnerUserIdAndStatusTrue(
                 workspaceId,

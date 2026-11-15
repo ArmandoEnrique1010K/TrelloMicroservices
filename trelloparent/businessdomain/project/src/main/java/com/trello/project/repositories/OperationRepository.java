@@ -83,6 +83,8 @@ public interface OperationRepository extends JpaRepository<Operation, UUID> {
 
     boolean existsByTypeAndWorkspaceIdAndBoardName(OperationType operationType, UUID workspaceId, String boardName);
 
+    boolean existsByTypeAndInvitationId(OperationType operationType, UUID invitationId);
+
     @Modifying
     @Query("""
                 UPDATE Operation o

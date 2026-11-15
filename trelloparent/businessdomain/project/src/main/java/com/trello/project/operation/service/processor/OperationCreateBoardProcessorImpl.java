@@ -93,7 +93,6 @@ public class OperationCreateBoardProcessorImpl
     @Override
     protected void processLocalCompensation(Operation operation) {
         if (operation.getStatus() != OperationStatus.COMPENSATION_PENDING) {
-
             log.info("OPERACION NO PENDIENTE DESDE processLocalCompensation");
             throw new OperationNotPendingException();
         }
@@ -111,11 +110,8 @@ public class OperationCreateBoardProcessorImpl
             }
             operationUtils.markLocalCompensationCompleted(updatedOperation);
 
-            // Sincronizar el objeto original.
-            // operation.setStatus(updatedOperation.getStatus());
-
         } catch (OperationManualReviewException e) {
-            throw e;
+            log.info("EXCEPTION: " + e);
         } catch (Exception exception) {
             operationUtils.markManualReview(operation, exception);
 

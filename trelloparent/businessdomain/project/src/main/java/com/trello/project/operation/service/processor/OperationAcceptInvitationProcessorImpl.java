@@ -149,6 +149,7 @@ public class OperationAcceptInvitationProcessorImpl
         // La compensación local solo puede iniciarse cuando la operación
         // se encuentra en COMPENSATION_PENDING.
         if (operation.getStatus() != OperationStatus.COMPENSATION_PENDING) {
+            log.info("OPERACION NO PENDIENTE DESDE processLocalCompensation");
             throw new OperationNotPendingException();
         }
 
@@ -176,8 +177,8 @@ public class OperationAcceptInvitationProcessorImpl
             // El siguiente paso del proceso será compensar los cambios
             // remotos en Workflow, sin repetir esta reversión local.
             operationUtils.markLocalCompensationCompleted(updatedOperation);
-            // } catch (OperationManualReviewException e) {
-            // log.info("EXCEPTION: " + e);
+        } catch (OperationManualReviewException e) {
+            log.info("EXCEPTION: " + e);
         } catch (Exception exception) {
             // Si se produce un error durante la compensación local, marcar
             // la operación para revisión manual, ya que no se debe asumir
@@ -193,13 +194,18 @@ public class OperationAcceptInvitationProcessorImpl
     // que la compensación local ya se completó.
     @Override
     protected void processRemoteCompensation(Operation operation) {
+        Operation updatedOperation = findOperation(operation.getId());
+
         // La compensación remota solo puede ejecutarse cuando los cambios
         // locales ya se han revertido correctamente.
-        if (operation.getStatus() != OperationStatus.LOCAL_COMPENSATION_COMPLETED) {
+        if (updatedOperation.getStatus() != OperationStatus.LOCAL_COMPENSATION_COMPLETED) {
+            log.info("OPERACION NO PENDIENTE DESDE processRemoteCompensation");
             throw new OperationNotPendingException();
         }
 
         try {
+            operationUtils.markCompensationInProgress(operation);
+
             if (operation.getMemberActive() == null) {
                 // El miembro no existía antes de la aceptación.
                 // Revertir la creación del permiso de acceso en Workflow.
@@ -233,7 +239,7 @@ public class OperationAcceptInvitationProcessorImpl
             // Workflow no está disponible para completar la compensación remota.
             // Los cambios locales ya se revirtieron, por lo que debe conservarse
             // LOCAL_COMPENSATION_COMPLETED para reintentar desde la etapa remota.
-            operationUtils.markLocalCompensationCompleted(operation);
+            operationUtils.markLocalCompensationCompletedFromServiceUnavailable(operation);
 
             // Informar que la operación original ha sido compensada localmente,
             // pero que la compensación remota todavía requiere ser completada.

@@ -46,6 +46,7 @@ public class OperationCreateBoardServiceImpl
     public void applyCreateBoard(UUID operationId, boolean automatic)
             throws OperationNotFoundException, OperationNotPendingException,
             WorkspaceNotFoundException {
+
         Operation operation = operationHandlerUtils
                 .prepareExecution(operationId, automatic);
 
@@ -55,10 +56,17 @@ public class OperationCreateBoardServiceImpl
         UUID workspaceId = operation.getWorkspaceId();
         UUID boardId = operation.getBoardId();
 
+        Workspace workspace = workspaceProjectService.findWorkspaceByIdWithLock(workspaceId);
+
         // Lógica de negocio
-        Workspace workspace = workspaceProjectService.findWorkspaceByIdAndOwnerUserIdAndStatusTrue(
-                workspaceId,
-                ownerUserId);
+        // workspaceProjectService.findWorkspaceByIdAndOwnerUserIdAndStatusTrue(
+        // workspaceId,
+        // ownerUserId);
+
+        if (!workspace.getOwnerUserId().equals(ownerUserId)
+                || !workspace.isStatus()) {
+            throw new WorkspaceNotFoundException();
+        }
 
         if (boardProjectService.existsBoardByWorkspaceIdAndName(workspaceId,
                 boardName)) {

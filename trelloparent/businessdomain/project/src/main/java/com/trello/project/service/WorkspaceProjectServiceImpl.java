@@ -96,4 +96,10 @@ public class WorkspaceProjectServiceImpl implements WorkspaceProjectService {
         workspaceRepository.save(workspace);
     }
 
+    @Override
+    public Workspace findWorkspaceByIdWithLock(UUID workspaceId) {
+        return workspaceRepository.findByIdWithLock(workspaceId)
+                .orElseThrow(WorkspaceNotFoundException::new);
+    }
+
 }

@@ -29,4 +29,6 @@ public interface WorkspaceProjectService {
 
     void changeStatusWorkspaceById(UUID workspaceId, UUID ownerUserId, boolean status)
             throws WorkspaceNotFoundException;
+
+    Workspace findWorkspaceByIdWithLock(UUID workspaceId);
 }

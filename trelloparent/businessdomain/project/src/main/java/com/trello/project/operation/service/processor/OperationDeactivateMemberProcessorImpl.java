@@ -85,6 +85,7 @@ public class OperationDeactivateMemberProcessorImpl extends AbstractOperationPro
     @Override
     protected void processLocalCompensation(Operation operation) {
         if (operation.getStatus() != OperationStatus.COMPENSATION_PENDING) {
+            log.info("OPERACION NO PENDIENTE DESDE processLocalCompensation");
             throw new OperationNotPendingException();
         }
 
@@ -101,8 +102,8 @@ public class OperationDeactivateMemberProcessorImpl extends AbstractOperationPro
             }
             operationUtils.markLocalCompensationCompleted(updatedOperation);
 
-            // } catch (OperationManualReviewException e) {
-            // throw e;
+        } catch (OperationManualReviewException e) {
+            log.info("EXCEPTION: " + e);
         } catch (Exception exception) {
             operationUtils.markManualReview(operation, exception);
 
@@ -115,15 +116,20 @@ public class OperationDeactivateMemberProcessorImpl extends AbstractOperationPro
     // DESDE EL MICROSERVICIO WORKFLOW
     @Override
     protected void processRemoteCompensation(Operation operation) {
-        if (operation.getStatus() != OperationStatus.LOCAL_COMPENSATION_COMPLETED) {
+        Operation updatedOperation = findOperation(operation.getId());
+
+        if (updatedOperation.getStatus() != OperationStatus.LOCAL_COMPENSATION_COMPLETED) {
+            log.info("OPERACION NO PENDIENTE DESDE processRemoteCompensation");
             throw new OperationNotPendingException();
         }
 
         try {
+            operationUtils.markCompensationInProgress(operation);
             workflowClientService.revertDeactivateBoardAccess(operation.getId());
             operationUtils.markCompensationCompleted(operation);
-        } catch (ServiceUnavailableException e) {
-            operationUtils.markLocalCompensationCompleted(operation);
+        } catch (ServiceUnavailableException exception) {
+            operationUtils.markLocalCompensationCompletedFromServiceUnavailable(operation);
+            log.info("EXCEPTION: " + exception);
             throw new OperationCompensatedException();
         }
     }

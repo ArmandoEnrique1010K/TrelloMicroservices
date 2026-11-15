@@ -80,6 +80,7 @@ public class OperationDeleteBoardProcessorImpl
     @Override
     protected void processLocalCompensation(Operation operation) {
         if (operation.getStatus() != OperationStatus.COMPENSATION_PENDING) {
+            log.info("OPERACION NO PENDIENTE DESDE processLocalCompensation");
             throw new OperationNotPendingException();
         }
 
@@ -95,8 +96,8 @@ public class OperationDeleteBoardProcessorImpl
                 throw new OperationManualReviewException();
             }
             operationUtils.markLocalCompensationCompleted(updatedOperation);
-            // } catch (OperationManualReviewException e) {
-            // throw e;
+        } catch (OperationManualReviewException e) {
+            log.info("EXCEPTION: " + e);
         } catch (Exception exception) {
             operationUtils.markManualReview(operation, exception);
 
@@ -109,19 +110,25 @@ public class OperationDeleteBoardProcessorImpl
     // DESDE EL MICROSERVICIO WORKFLOW
     @Override
     protected void processRemoteCompensation(Operation operation) {
-        if (operation.getStatus() != OperationStatus.LOCAL_COMPENSATION_COMPLETED) {
+        Operation updatedOperation = findOperation(operation.getId());
+
+        if (updatedOperation.getStatus() != OperationStatus.LOCAL_COMPENSATION_COMPLETED) {
+            log.info("OPERACION NO PENDIENTE DESDE processRemoteCompensation");
             throw new OperationNotPendingException();
         }
 
         try {
+            operationUtils.markCompensationInProgress(operation);
             workflowClientService.revertDeleteBoardAndBoardAccesses(operation.getId());
             operationUtils.markCompensationCompleted(operation);
-        } catch (ServiceUnavailableException e) {
-            operationUtils.markLocalCompensationCompleted(operation);
+        } catch (ServiceUnavailableException exception) {
+            operationUtils.markLocalCompensationCompletedFromServiceUnavailable(operation);
+            log.info("EXCEPTION: " + exception);
             throw new OperationCompensatedException();
         }
     }
 
+    // TODO: REVISAR ESTE METODO
     @Override
     public void processCancelOperationsByBoardId(UUID boardId, UUID operationId) {
 
