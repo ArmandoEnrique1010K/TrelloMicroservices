@@ -85,4 +85,10 @@ public class OperationDeleteAllBoardsAndMultipleBoardAccessesServiceImpl
         operation.setCompletedAt(LocalDateTime.now());
         operationWorkflowService.saveOperation(operation);
     }
+
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public void cancelAllOperationsByBoardsIds(List<UUID> boardsIds) {
+        operationWorkflowService.changeStatusOperationsByBoardsIds(boardsIds, OperationStatus.CANCELED);
+    }
 }

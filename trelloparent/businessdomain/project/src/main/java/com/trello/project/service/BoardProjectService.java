@@ -28,6 +28,8 @@ public interface BoardProjectService {
     Board findBoardByIdAndOwnerUserIdAndActive(UUID boardId, UUID ownerUserId)
             throws WorkspaceNotFoundException, BoardNotFoundException;
 
+    Board findBoardByIdAndOwnerUserIdAndBoardStatus(UUID boardId, UUID ownerUserId, BoardStatus status);
+
     Board saveBoard(Board board);
 
     void deleteBoardByIdAndOwnerUserId(UUID boardId, UUID ownerUserId)

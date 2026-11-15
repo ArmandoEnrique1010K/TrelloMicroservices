@@ -1,5 +1,6 @@
 package com.trello.workflow.services;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -12,4 +13,6 @@ public interface OperationWorkflowService {
     Operation saveOperation(Operation operation);
 
     void changeStatusOperationsByBoardId(UUID boardId, OperationStatus status);
+
+    void changeStatusOperationsByBoardsIds(List<UUID> boardsIds, OperationStatus status);
 }

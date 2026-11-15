@@ -47,19 +47,24 @@ public class OperationDeleteBoardServiceImpl implements OperationDeleteBoardServ
         UUID boardId = operation.getBoardId();
         UUID ownerUserId = operation.getOwnerUserId();
 
-        // Bloqueo pesimista
+        // Bloqueo pesimista para coordinar la eliminación con otras operaciones.
         Board board = boardProjectService.findBoardByIdWithLock(boardId);
 
+        log.info("Bloqueo pesimista");
+
+        // El estado puede ser ACTIVE DESDE ESTE MOMENTO
         if (board.getStatus() != BoardStatus.ACTIVE) {
+            log.info("TABLERO NO ENCONTRADO DESDE applyDeleteBoard");
             throw new BoardNotFoundException();
         }
 
-        // Verificar si existe tablero
-        boardProjectService.findBoardByIdAndOwnerUserIdAndActive(boardId, ownerUserId);
+        // Marcar el tablero como DELETING para impedir nuevas operaciones.
+        boardProjectService.changeStatusBoardById(boardId, ownerUserId,
+                BoardStatus.DELETING);
 
-        // TODO: ESTADO DELETING O DELETED
-        // En lugar de borrar el tablero se va a cambiar su estado
-        boardProjectService.changeStatusBoardById(boardId, ownerUserId, BoardStatus.DELETING);
+        // Verificar si existe tablero
+        // boardProjectService.findBoardByIdAndOwnerUserIdAndBoardStatus(boardId,
+        // ownerUserId, BoardStatus.DELETING);
 
         operationProjectService.saveOperation(operation);
     }

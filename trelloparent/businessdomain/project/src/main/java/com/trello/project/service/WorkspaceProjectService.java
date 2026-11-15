@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.UUID;
 
 import com.trello.project.entities.Workspace;
+import com.trello.project.enums.BoardStatus;
 import com.trello.project.exception.WorkspaceNotFoundException;
 
 public interface WorkspaceProjectService {
@@ -27,7 +28,9 @@ public interface WorkspaceProjectService {
     void deleteWorkspaceByIdAndOwnerUserId(UUID workspaceId, UUID ownerUserId)
             throws WorkspaceNotFoundException;
 
-    void changeStatusWorkspaceById(UUID workspaceId, UUID ownerUserId, boolean status)
+    void changeStatusWorkspaceById(UUID workspaceId, UUID ownerUserId, boolean workspaceStatus,
+            BoardStatus expectedBoardStatus,
+            BoardStatus convertBoardStatus)
             throws WorkspaceNotFoundException;
 
     Workspace findWorkspaceByIdWithLock(UUID workspaceId);

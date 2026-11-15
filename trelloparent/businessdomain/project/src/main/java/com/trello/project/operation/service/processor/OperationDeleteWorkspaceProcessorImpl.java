@@ -10,6 +10,8 @@ import org.springframework.stereotype.Service;
 import com.trello.project.client.services.WorkflowClientService;
 import com.trello.project.entities.Operation;
 import com.trello.project.entities.Workspace;
+import com.trello.project.enums.BoardStatus;
+import com.trello.project.enums.CleanupStatus;
 import com.trello.project.enums.OperationStatus;
 import com.trello.project.enums.OperationType;
 import com.trello.project.exception.BusinessRuleException;
@@ -87,11 +89,16 @@ public class OperationDeleteWorkspaceProcessorImpl
         }
 
         workflowClientService.deleteAllBoardsByIdsAndMultipleBoardAccesses(boardsIds, operation.getId());
+
+        // Cambiar el estado de todos los tableros
+        workspaceProjectService.changeStatusWorkspaceById(workspaceId, ownerUserId, false, BoardStatus.DELETING,
+                BoardStatus.DELETED);
     }
 
     @Override
     protected void processLocalCompensation(Operation operation) {
         if (operation.getStatus() != OperationStatus.COMPENSATION_PENDING) {
+            log.info("OPERACION NO PENDIENTE DESDE processLocalCompensation");
             throw new OperationNotPendingException();
         }
 
@@ -107,8 +114,8 @@ public class OperationDeleteWorkspaceProcessorImpl
                 throw new OperationManualReviewException();
             }
             operationUtils.markLocalCompensationCompleted(updatedOperation);
-            // } catch (OperationManualReviewException e) {
-            // throw e;
+        } catch (OperationManualReviewException e) {
+            log.info("EXCEPTION: " + e);
         } catch (Exception exception) {
             operationUtils.markManualReview(operation, exception);
 
@@ -121,16 +128,73 @@ public class OperationDeleteWorkspaceProcessorImpl
     // DESDE EL MICROSERVICIO WORKFLOW
     @Override
     protected void processRemoteCompensation(Operation operation) {
-        if (operation.getStatus() != OperationStatus.LOCAL_COMPENSATION_COMPLETED) {
+        Operation updatedOperation = findOperation(operation.getId());
+
+        if (updatedOperation.getStatus() != OperationStatus.LOCAL_COMPENSATION_COMPLETED) {
+            log.info("OPERACION NO PENDIENTE DESDE processRemoteCompensation");
             throw new OperationNotPendingException();
         }
 
         try {
+            operationUtils.markCompensationInProgress(operation);
             workflowClientService.revertDeleteAllBoardsByIdsAndMultipleBoardAccesses(operation.getId());
             operationUtils.markCompensationCompleted(operation);
-        } catch (ServiceUnavailableException e) {
-            operationUtils.markLocalCompensationCompleted(operation);
+        } catch (ServiceUnavailableException exception) {
+            operationUtils.markLocalCompensationCompletedFromServiceUnavailable(operation);
+            log.info("EXCEPTION: " + exception);
             throw new OperationCompensatedException();
+        }
+    }
+
+    @Override
+    public void processCancelOperationsByWorkspaceId(UUID workspaceId, UUID operationId) {
+        try {
+
+            // Indicar que se está ejecutando la limpieza remota.
+            operationProjectService.updateOperationCleanupStatusByWorkspaceIdAndStatus(
+                    CleanupStatus.EXECUTING,
+                    workspaceId,
+                    OperationStatus.CANCELED);
+
+            Operation operation = findOperation(operationId);
+            UUID ownerUserId = operation.getOwnerUserId();
+
+            List<UUID> boardsIds = new ArrayList<>();
+            Workspace workspace = workspaceProjectService.findWorkspaceByIdAndOwnerUserId(workspaceId, ownerUserId);
+
+            if (workspace != null && workspace.getBoards() != null) {
+                boardsIds = workspace.getBoards().stream()
+                        .filter(board -> board != null && board.getId() != null)
+                        .map(board -> board.getId())
+                        .collect(Collectors.toList());
+            }
+
+            workflowClientService.cancelOperationsByBoardsIds(boardsIds);
+
+            // Confirmar que la limpieza remota terminó correctamente.
+            operationProjectService.updateOperationCleanupStatusByWorkspaceIdAndStatus(
+                    CleanupStatus.COMPLETED,
+                    workspaceId,
+                    OperationStatus.CANCELED);
+
+        } catch (ServiceUnavailableException e) {
+
+            log.warn(
+                    "Unable to cancel operations associated with many boards {} in Workflow. Operation {} will require a retry.",
+                    workspaceId,
+                    operationId);
+
+            // REVERTIR ESTADO DE OPERACIONES EN PROJECT CAMPO CLEANUP A PENDING
+
+            // Vuelve al estado original, implica que no se pudo realizar el llamado en el
+            // microservicio Workflow para cancelar la operacioin
+            // Restaurar el estado de limpieza para permitir un nuevo intento.
+            operationProjectService.updateOperationCleanupStatusByWorkspaceIdAndStatus(
+                    CleanupStatus.PENDING,
+                    workspaceId,
+                    OperationStatus.CANCELED);
+
+            throw e;
         }
     }
 }

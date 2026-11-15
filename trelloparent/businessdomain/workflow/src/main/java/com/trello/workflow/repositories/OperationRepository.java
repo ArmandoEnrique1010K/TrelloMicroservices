@@ -23,8 +23,25 @@ public interface OperationRepository extends JpaRepository<Operation, UUID> {
 
     // Actualizar el estado de todas las operaciones de un tablero
     @Modifying
-    @Query("UPDATE Operation o SET o.status = :status WHERE o.boardId = :boardId")
-    int updateStatusByBoardId(@Param("boardId") UUID boardId, @Param("status") OperationStatus status);
+    @Query("""
+            UPDATE Operation o
+            SET o.status=:status
+            WHERE o.boardId=:boardId
+            """)
+    int updateStatusByBoardId(
+            @Param("boardId") UUID boardId,
+            @Param("status") OperationStatus status);
+
+    // Actualizar el estado de todas las operaciones de varios tableros.
+    @Modifying
+    @Query("""
+            UPDATE Operation o
+            SET o.status = :status
+            WHERE o.boardId IN :boardsIds
+            """)
+    int updateStatusByBoardsIds(
+            @Param("boardsIds") List<UUID> boardsIds,
+            @Param("status") OperationStatus status);
 
     // TODO: DEFINIR UN METODO PARA LISTAR TODAS LAS OPERACIONES CON ESTADO
     // COMPLETED QUE SEAN DE TIPO ELIMINAR TABLERO O VARIOS TABLEROS Y QUE TENGAN EL

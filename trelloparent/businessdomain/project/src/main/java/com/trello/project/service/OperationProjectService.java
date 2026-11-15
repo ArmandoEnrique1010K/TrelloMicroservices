@@ -60,9 +60,14 @@ public interface OperationProjectService {
 
     void cancelAllOperationsByBoardId(UUID boardId, UUID excludedOperationId);
 
+    void cancelAllOperationsByWorkspaceId(UUID workspaceId, UUID excludedOperationId);
+
     List<Operation> findOperationsByBoardIdAndStatus(UUID boardId, OperationStatus status);
 
     void updateOperationCleanupStatusByBoardIdAndStatus(CleanupStatus cleanupStatus, UUID boardId,
+            OperationStatus operationStatus);
+
+    void updateOperationCleanupStatusByWorkspaceIdAndStatus(CleanupStatus cleanupStatus, UUID workspaceId,
             OperationStatus operationStatus);
 
     boolean tryMarkOperation(UUID operationId, OperationStatus expectedStatus, OperationStatus newStatus);

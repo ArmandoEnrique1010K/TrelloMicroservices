@@ -74,23 +74,28 @@ public class WorkspaceProjectServiceImpl implements WorkspaceProjectService {
 
     // TODO: URGENTE, CAMBIAR EL PARAMETRO STATUS
     @Override
-    public void changeStatusWorkspaceById(UUID workspaceId, UUID ownerUserId, boolean status)
+    public void changeStatusWorkspaceById(UUID workspaceId, UUID ownerUserId, boolean workspaceStatus,
+            BoardStatus expectedBoardStatus,
+            BoardStatus convertBoardStatus)
             throws WorkspaceNotFoundException {
         Workspace workspace = workspaceRepository
                 .findByIdAndOwnerUserId(workspaceId, ownerUserId)
                 .orElseThrow(WorkspaceNotFoundException::new);
 
-        workspace.setStatus(status);
+        workspace.setStatus(workspaceStatus);
 
-        // Cambiar el estado de cada tablero asociado al workspace
+        // Pueden haber tableros con estado DELETED, es por ello que se tiene 3 estados
+        // en board:
+        // ACTIVE, DELETING y DELETED
+
+        // Filtrar tableros que tengan estado ACTIVE
         if (workspace.getBoards() != null) {
-            workspace.getBoards().forEach(board -> {
-                if (board != null) {
-                    // TODO: CAMBIAR EL ESTADO
-                    board.setStatus(BoardStatus.DELETED);
-                    boardRepository.save(board);
-                }
-            });
+            workspace.getBoards().stream()
+                    .filter(board -> board != null && board.getStatus() == expectedBoardStatus)
+                    .forEach(board -> {
+                        board.setStatus(convertBoardStatus);
+                        boardRepository.save(board);
+                    });
         }
 
         workspaceRepository.save(workspace);

@@ -1,10 +1,12 @@
 package com.trello.workflow.operation.controller;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -567,11 +569,24 @@ public class OperationController {
         return ResponseEntity.status(HttpStatus.NO_CONTENT).body(null);
     }
 
+    // TODO: AÑADIR API RESPONSES
+    @Operation(summary = "Cancela todas las operaciones que pertenecen a un tablero por su ID", description = "Cancela todas las operaciones que pertenecen a un tablero por su ID")
+    @SecurityRequirement(name = "bearerAuth")
     @PostMapping("/cancel-operations-board")
     public ResponseEntity<Void> cancelOperationsByBoardId(
             @RequestHeader("X-Board-Id") UUID boardId) {
 
         operationDeleteBoardAndBoardAccessesService.cancelAllOperationsByBoardId(boardId);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).body(null);
+    }
+
+    @Operation(summary = "Cancela todas las operaciones que pertenecen a varios tableros por una lista de IDs", description = "Cancela todas las operaciones que pertenecen a varios tableros por una lista de IDs")
+    @SecurityRequirement(name = "bearerAuth")
+    @PostMapping("/cancel-operations-boards")
+    public ResponseEntity<Void> cancelOperationsByBoardsIds(
+            @RequestBody List<UUID> boardsIds) {
+
+        operationDeleteAllBoardsAndMultipleBoardAccessesService.cancelAllOperationsByBoardsIds(boardsIds);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).body(null);
     }
 

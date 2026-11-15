@@ -1,5 +1,6 @@
 package com.trello.workflow.services;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -34,5 +35,10 @@ public class OperationWorkflowServiceImpl implements OperationWorkflowService {
     @Override
     public void changeStatusOperationsByBoardId(UUID boardId, OperationStatus status) {
         operationRepository.updateStatusByBoardId(boardId, status);
+    }
+
+    @Override
+    public void changeStatusOperationsByBoardsIds(List<UUID> boardsIds, OperationStatus status) {
+        operationRepository.updateStatusByBoardsIds(boardsIds, status);
     }
 }

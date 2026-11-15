@@ -94,6 +94,7 @@ public class OperationDeleteBoardAndBoardAccessesServiceImpl
         operationWorkflowService.saveOperation(operation);
     }
 
+    @Transactional(rollbackFor = Exception.class)
     @Override
     public void cancelAllOperationsByBoardId(UUID boardId) {
         operationWorkflowService.changeStatusOperationsByBoardId(boardId, OperationStatus.CANCELED);

@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 
 import com.trello.project.client.services.WorkflowClientService;
 import com.trello.project.entities.Operation;
+import com.trello.project.enums.BoardStatus;
 import com.trello.project.enums.CleanupStatus;
 import com.trello.project.enums.OperationStatus;
 import com.trello.project.enums.OperationType;
@@ -75,6 +76,9 @@ public class OperationDeleteBoardProcessorImpl
         // El estado del tablero no importa
         boardProjectService.findBoardByIdAndOwnerUserId(boardId, ownerUserId);
         workflowClientService.deleteBoardAndBoardAccesses(boardId, operation.getId());
+
+        // Cambiar el estado del tablero a DELETED
+        boardProjectService.changeStatusBoardById(boardId, ownerUserId, BoardStatus.DELETED);
     }
 
     @Override

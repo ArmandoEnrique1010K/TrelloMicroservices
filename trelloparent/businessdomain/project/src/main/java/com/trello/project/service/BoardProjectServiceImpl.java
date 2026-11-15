@@ -88,6 +88,20 @@ public class BoardProjectServiceImpl implements BoardProjectService {
     }
 
     @Override
+    public Board findBoardByIdAndOwnerUserIdAndBoardStatus(UUID boardId, UUID ownerUserId, BoardStatus status)
+            throws WorkspaceNotFoundException, BoardNotFoundException {
+        Board board = boardRepository.findByIdAndStatus(boardId,
+                status)
+                .orElseThrow(BoardNotFoundException::new);
+
+        workspaceRepository.findByIdAndOwnerUserIdAndStatusTrue(
+                board.getWorkspace().getId(),
+                ownerUserId).orElseThrow(WorkspaceNotFoundException::new);
+
+        return board;
+    }
+
+    @Override
     public Board saveBoard(Board board) {
         return boardRepository.save(board);
     }

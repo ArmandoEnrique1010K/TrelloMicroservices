@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.trello.project.entities.Operation;
+import com.trello.project.enums.BoardStatus;
 import com.trello.project.enums.OperationStatus;
 import com.trello.project.exception.WorkspaceNotFoundException;
 import com.trello.project.operation.exception.OperationNotFoundException;
@@ -44,7 +45,8 @@ public class OperationDeleteWorkspaceServiceImpl implements OperationDeleteWorks
 
         // En lugar de eliminar el espacio de trabajo se va a cambiar su estado
         // Además del estado de todos los tableros incluidos
-        workspaceProjectService.changeStatusWorkspaceById(workspaceId, ownerUserId, false);
+        workspaceProjectService.changeStatusWorkspaceById(workspaceId, ownerUserId, false, BoardStatus.ACTIVE,
+                BoardStatus.DELETING);
 
         operationProjectService.saveOperation(operation);
     }
@@ -62,6 +64,6 @@ public class OperationDeleteWorkspaceServiceImpl implements OperationDeleteWorks
         UUID ownerUserId = operation.getOwnerUserId();
 
         workspaceProjectService.changeStatusWorkspaceById(workspaceId, ownerUserId,
-                true);
+                true, BoardStatus.DELETING, BoardStatus.ACTIVE);
     }
 }

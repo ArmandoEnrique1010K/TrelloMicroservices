@@ -101,6 +101,22 @@ public interface OperationRepository extends JpaRepository<Operation, UUID> {
             OperationStatus status,
             CleanupStatus cleanupStatus);
 
+    @Modifying
+    @Query("""
+                UPDATE Operation o
+                SET o.status = :status,
+                    o.cleanupStatus = :cleanupStatus
+                WHERE o.workspaceId = :workspaceId
+                AND o.id <> :excludedOperationId
+                AND o.status IN :allowedStatuses
+            """)
+    void cancelAllByWorkspaceId(
+            UUID workspaceId,
+            UUID excludedOperationId,
+            List<OperationStatus> allowedStatuses,
+            OperationStatus status,
+            CleanupStatus cleanupStatus);
+
     // Borrar operaciones completadas
     // void deleteByBoardIdAndRecipientUserIdAndSenderUserId(
     // UUID boardId,
@@ -125,6 +141,18 @@ public interface OperationRepository extends JpaRepository<Operation, UUID> {
             AND o.status = :operationStatus
             """)
     void updateCleanupStatusByBoardIdAndStatus(
+            UUID boardId,
+            OperationStatus operationStatus,
+            CleanupStatus cleanupStatus);
+
+    @Modifying
+    @Query("""
+            UPDATE Operation o
+            SET o.cleanupStatus = :cleanupStatus
+            WHERE o.workspaceId = :workspaceId
+            AND o.status = :operationStatus
+            """)
+    void updateCleanupStatusByWorkspaceIdAndStatus(
             UUID boardId,
             OperationStatus operationStatus,
             CleanupStatus cleanupStatus);

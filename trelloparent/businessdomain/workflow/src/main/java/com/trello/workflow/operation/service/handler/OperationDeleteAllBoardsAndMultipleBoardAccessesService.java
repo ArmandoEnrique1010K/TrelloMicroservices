@@ -1,5 +1,6 @@
 package com.trello.workflow.operation.service.handler;
 
+import java.util.List;
 import java.util.UUID;
 
 import com.trello.workflow.operation.exception.OperationConflictException;
@@ -11,4 +12,6 @@ public interface OperationDeleteAllBoardsAndMultipleBoardAccessesService {
 
     void revertDeleteAllBoardsAndMultipleBoardAccesses(UUID operationId)
             throws OperationNotFoundException, OperationConflictException;
+
+    void cancelAllOperationsByBoardsIds(List<UUID> boardsIds);
 }

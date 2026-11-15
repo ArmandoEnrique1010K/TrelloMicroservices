@@ -1,10 +1,12 @@
 package com.trello.project.client;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 
 import com.trello.project.client.config.WorkflowFeignConfig;
@@ -43,4 +45,8 @@ public interface WorkflowOperationCommandClient {
     @PostMapping("/operations/cancel-operations-board")
     ResponseEntity<Void> cancelOperationsByBoardId(
             @RequestHeader("X-Board-Id") UUID boardId);
+
+    @PostMapping("/operations/cancel-operations-boards")
+    ResponseEntity<Void> cancelOperationsByBoardsIds(
+            @RequestBody List<UUID> boardsIds);
 }

@@ -39,7 +39,7 @@ public interface WorkspaceRepository extends JpaRepository<Workspace, UUID> {
 
     // Bloqueo pesimista cuando se busca un espacio de trabajo
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @Query("SELECT w FROM Workspace b WHERE w.id = :workspaceId")
+    @Query("SELECT w FROM Workspace w WHERE w.id = :workspaceId")
     Optional<Workspace> findByIdWithLock(UUID workspaceId);
 
 }

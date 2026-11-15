@@ -15,4 +15,6 @@ public interface OperationDeleteWorkspaceProcessor {
             throws OperationNotFoundException, OperationConflictException, OperationCompensatedException,
             BusinessRuleException, WorkspaceNotFoundException, OperationNotPendingException,
             OperationManualReviewException;
+
+    void processCancelOperationsByWorkspaceId(UUID workspaceId, UUID operationId);
 }

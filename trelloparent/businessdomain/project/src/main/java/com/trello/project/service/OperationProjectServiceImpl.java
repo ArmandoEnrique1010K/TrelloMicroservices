@@ -170,12 +170,30 @@ public class OperationProjectServiceImpl implements OperationProjectService {
                 OperationStatus.EXECUTION_PENDING,
                 OperationStatus.EXECUTING,
                 OperationStatus.COMPENSATION_PENDING,
-                OperationStatus.COMPENSATION_COMPLETED,
-
-                OperationStatus.LOCAL_COMPENSATION_COMPLETED);
+                OperationStatus.LOCAL_COMPENSATION_COMPLETED,
+                OperationStatus.COMPENSATION_COMPLETED);
 
         operationRepository.cancelAllByBoardId(
                 boardId,
+                excludedOperationId,
+                allowedStatuses,
+                OperationStatus.CANCELED,
+                CleanupStatus.EXECUTION_PENDING);
+    }
+
+    @Transactional
+    @Override
+    public void cancelAllOperationsByWorkspaceId(UUID workspaceId, UUID excludedOperationId) {
+        List<OperationStatus> allowedStatuses = List.of(
+                OperationStatus.REGISTERED,
+                OperationStatus.EXECUTION_PENDING,
+                OperationStatus.EXECUTING,
+                OperationStatus.COMPENSATION_PENDING,
+                OperationStatus.LOCAL_COMPENSATION_COMPLETED,
+                OperationStatus.COMPENSATION_COMPLETED);
+
+        operationRepository.cancelAllByWorkspaceId(
+                workspaceId,
                 excludedOperationId,
                 allowedStatuses,
                 OperationStatus.CANCELED,
@@ -192,6 +210,13 @@ public class OperationProjectServiceImpl implements OperationProjectService {
     public void updateOperationCleanupStatusByBoardIdAndStatus(CleanupStatus cleanupStatus, UUID boardId,
             OperationStatus operationStatus) {
         operationRepository.updateCleanupStatusByBoardIdAndStatus(boardId, operationStatus, cleanupStatus);
+    }
+
+    @Transactional
+    @Override
+    public void updateOperationCleanupStatusByWorkspaceIdAndStatus(CleanupStatus cleanupStatus, UUID workspaceId,
+            OperationStatus operationStatus) {
+        operationRepository.updateCleanupStatusByWorkspaceIdAndStatus(workspaceId, operationStatus, cleanupStatus);
     }
 
     // Ejecuta la transición de estado en una transacción independiente,

@@ -1,5 +1,6 @@
 package com.trello.project.client.fallback;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.cloud.openfeign.FallbackFactory;
@@ -67,6 +68,12 @@ public class WorkflowOperationCommandClientFallbackFactory implements FallbackFa
             @Override
             public ResponseEntity<Void> cancelOperationsByBoardId(UUID boardId) {
                 log.error("Error relacionado con cancelOperationsByBoardId");
+                throw new ServiceUnavailableException();
+            }
+
+            @Override
+            public ResponseEntity<Void> cancelOperationsByBoardsIds(List<UUID> boardsIds) {
+                log.error("Error relacionado con cancelOperationsByBoardsIds");
                 throw new ServiceUnavailableException();
             }
         };

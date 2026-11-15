@@ -120,4 +120,9 @@ public class WorkflowClientServiceImpl implements WorkflowClientService {
     public void cancelOperationsByBoardId(UUID boardId) {
         workflowOperationCommandClient.cancelOperationsByBoardId(boardId);
     }
+
+    @Override
+    public void cancelOperationsByBoardsIds(List<UUID> boardsIds) {
+        workflowOperationCommandClient.cancelOperationsByBoardsIds(boardsIds);
+    }
 }

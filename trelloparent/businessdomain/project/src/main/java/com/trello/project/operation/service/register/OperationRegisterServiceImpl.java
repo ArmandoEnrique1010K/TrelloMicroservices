@@ -368,17 +368,28 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
         return operation;
     }
 
+    // TODO: PROBAR LOS 4 METODOS RESTANTES PARA EL TABLERO
     @Transactional(rollbackFor = Exception.class)
     @Override
     public Operation registerDeleteBoard(UUID ownerUserId, UUID boardId)
             throws WorkspaceNotFoundException, BoardNotFoundException {
 
-        // Obtener el tablero mediante bloqueo pesimista y validar su propietario.
-        Board board = beginDeleteBoard(boardId, ownerUserId);
+        // Bloqueo pesimista para coordinar el inicio de la eliminación
+        // con otras operaciones que intenten modificar el mismo tablero.
 
-        // Board findedBoard =
-        // boardProjectService.findBoardByIdAndOwnerUserIdAndActive(boardId,
-        // ownerUserId);
+        // Obtener el tablero mediante bloqueo pesimista y validar su propietario.
+        Board board = boardProjectService.findBoardByIdWithLock(boardId);
+
+        // Validar que el tablero pertenezca al propietario.
+        if (!board.getWorkspace().getOwnerUserId().equals(ownerUserId)) {
+            throw new WorkspaceNotFoundException();
+        }
+
+        // Impedir que se inicie la eliminación si el tablero ya no está activo.
+        if (board.getStatus() != BoardStatus.ACTIVE) {
+            log.info("TABLERO NO ENCONTRADO DESDE registerDeleteBoard");
+            throw new BoardNotFoundException();
+        }
 
         Optional<Operation> existing = operationProjectService.findLatestOperationByBoardIdAndType(boardId,
                 OperationType.DELETE_BOARD);
@@ -399,42 +410,33 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
         operation.setOwnerUserId(ownerUserId);
         operation.setWorkspaceId(workspaceId);
 
+        // Marcar el tablero como DELETING para impedir nuevas operaciones.
+
+        // Impedir nuevas operaciones sobre el tablero.
+        // boardProjectService.changeStatusBoardById(boardId, ownerUserId,
+        // BoardStatus.DELETING);
+
+        // Registrar la operación SAGA.
         operationProjectService.saveOperation(operation);
+
+        log.info("Operación guardada");
+
         return operation;
     }
-
-    private Board beginDeleteBoard(UUID boardId, UUID ownerUserId) {
-
-        // Bloqueo pesimista para coordinar el inicio de la eliminación
-        // con otras operaciones que intenten modificar el mismo tablero.
-        Board board = boardProjectService.findBoardByIdWithLock(boardId);
-
-        // Validar que el tablero pertenezca al propietario.
-        if (!board.getWorkspace().getOwnerUserId().equals(ownerUserId)) {
-            throw new WorkspaceNotFoundException();
-        }
-
-        // Impedir que se inicie la eliminación si el tablero ya no está activo.
-        if (board.getStatus() != BoardStatus.ACTIVE) {
-            throw new BoardNotFoundException();
-        }
-
-        // Marcar el tablero como DELETING para impedir nuevas operaciones.
-        board.setStatus(BoardStatus.DELETING);
-
-        boardProjectService.saveBoard(board);
-
-        return board;
-    }
-
-    //
 
     @Transactional(rollbackFor = Exception.class)
     @Override
     public Operation registerDeleteWorkspace(UUID ownerUserId, UUID workspaceId)
             throws WorkspaceNotFoundException {
 
-        workspaceProjectService.findWorkspaceByIdAndOwnerUserIdAndStatusTrue(workspaceId, ownerUserId);
+        // if (workspace.isStatus() == false) {
+        // log.info("ESPACIO DE TRABAJO NO ENCONTRADO DESDE registerDeleteWorkspace");
+        // throw new WorkspaceNotFoundException();
+        // }
+
+        // La validación se realiza internamente en el siguiente metodo
+        workspaceProjectService.findWorkspaceByIdAndOwnerUserIdAndStatusTrue(workspaceId,
+                ownerUserId);
 
         Optional<Operation> existing = operationProjectService
                 .findLatestOperationByWorkspaceIdAndType(
@@ -457,5 +459,4 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
         operationProjectService.saveOperation(operation);
         return operation;
     }
-
 }
