@@ -36,8 +36,9 @@ public interface OperationProjectService {
 
     Optional<Operation> findLatestOperationByWorkspaceIdAndType(UUID workspaceId, OperationType type);
 
-    List<Operation> findOperationsByStatusesListOrderByNextAutomaticAttemptAtAscWorkspaceIdAsc(
-            List<OperationStatus> statuses);
+    // List<Operation>
+    // findOperationsByStatusesListOrderByNextAutomaticAttemptAtAscWorkspaceIdAsc(
+    // List<OperationStatus> statuses);
 
     List<Operation> findOperationsByStatusesListOrderByWorkspaceIdAscAndCreatedAtAsc(List<OperationStatus> statuses);
 
@@ -61,4 +62,26 @@ public interface OperationProjectService {
 
     void updateOperationCleanupStatusByBoardIdAndStatus(CleanupStatus cleanupStatus, UUID boardId,
             OperationStatus operationStatus);
+
+    boolean tryMarkOperation(UUID operationId, OperationStatus expectedStatus, OperationStatus newStatus);
+
+    // METODO PARA ESTABLECER LOS CAMPOS completedAt Y nextAutomaticAttemptAt COMO
+    // NULLS
+    boolean tryMarkOperationAndClearCompletedAtAndNextAutomaticAttemptAt(UUID operationId,
+            OperationStatus expectedStatus,
+            OperationStatus newStatus);
+
+    // METODO PARA ESTABLECER completedAt CON LA FECHA Y HORA ACTUAL Y
+    // nextAutomaticAttemptAt COMO NULL
+    boolean tryMarkOperationAndSetCompletedAtNowAndClearNextAutomaticAttemptAt(UUID operationId,
+            OperationStatus expectedStatus, OperationStatus newStatus);
+
+    // METODO PARA ESTABLECER completedAt COMO NULL Y nextAutomaticAttemptAt EN 30
+    // SEGUNDOS LUEGO DE LA HORA ACTUAL
+    boolean tryMarkOperationAndSetCompletedAtNullAndNextAutomaticAttemptAtIn30Seconds(UUID operationId,
+            OperationStatus expectedStatus, OperationStatus newStatus);
+
+    // METODO PARA ESTABLECER completedAt COMO NULL Y nextAutomaticAttemptAt EN 30
+    // SEGUNDOS LUEGO DE LA HORA ACTUAL
+
 }

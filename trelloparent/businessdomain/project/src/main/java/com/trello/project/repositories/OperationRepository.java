@@ -8,6 +8,7 @@ import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import com.trello.project.entities.Operation;
 import com.trello.project.enums.CleanupStatus;
@@ -42,9 +43,10 @@ public interface OperationRepository extends JpaRepository<Operation, UUID> {
 
     // Y tambien por ID de espacio de trabajo, dado que los 6 tipos de operaciones
     // guardan el ID de espacio de trabajo
-    List<Operation> findByStatusInAndNextAutomaticAttemptAtLessThanOrderByNextAutomaticAttemptAtAscWorkspaceIdAsc(
-            List<OperationStatus> statuses,
-            LocalDateTime currentDate);
+    // List<Operation>
+    // findByStatusInAndNextAutomaticAttemptAtLessThanOrderByNextAutomaticAttemptAtAscWorkspaceIdAsc(
+    // List<OperationStatus> statuses,
+    // LocalDateTime currentDate);
 
     List<Operation> findByStatusInOrderByWorkspaceIdAscCreatedAtAscIdAsc(
             List<OperationStatus> statuses);
@@ -83,17 +85,21 @@ public interface OperationRepository extends JpaRepository<Operation, UUID> {
 
     @Modifying
     @Query("""
-            UPDATE Operation o
-            SET o.status = :status,
-                o.cleanupStatus = :cleanupStatus
-            WHERE o.boardId = :boardId
-            AND o.id <> :excludedOperationId
+                UPDATE Operation o
+                SET o.status = :status,
+                    o.cleanupStatus = :cleanupStatus
+                WHERE o.boardId = :boardId
+                AND o.id <> :excludedOperationId
+                AND o.status IN :allowedStatuses
             """)
-    void cancelOperationsByBoardId(
+    void cancelAllByBoardId(
             UUID boardId,
             UUID excludedOperationId,
+            List<OperationStatus> allowedStatuses,
             OperationStatus status,
-            CleanupStatus cleanupStatus); // Borrar operaciones completadas
+            CleanupStatus cleanupStatus);
+
+    // Borrar operaciones completadas
     // void deleteByBoardIdAndRecipientUserIdAndSenderUserId(
     // UUID boardId,
     // UUID recipientUserId,
@@ -120,4 +126,36 @@ public interface OperationRepository extends JpaRepository<Operation, UUID> {
             UUID boardId,
             OperationStatus operationStatus,
             CleanupStatus cleanupStatus);
+
+    // Actualiza el estado únicamente si la operación conserva el estado esperado.
+    // La actualización condicional es atómica y evita que dos ejecutores
+    // reclamen simultáneamente la misma operación.
+    @Modifying
+    @Query("""
+                UPDATE Operation o
+                SET o.status = :newStatus
+                WHERE o.id = :operationId
+                AND o.status = :expectedStatus
+            """)
+    int updateStatusIfCurrent(
+            @Param("operationId") UUID operationId,
+            @Param("expectedStatus") OperationStatus expectedStatus,
+            @Param("newStatus") OperationStatus newStatus);
+
+    @Modifying
+    @Query("""
+                UPDATE Operation o
+                SET o.status = :newStatus,
+                    o.completedAt = :completedAt,
+                    o.nextAutomaticAttemptAt = :nextAutomaticAttemptAt
+                WHERE o.id = :operationId
+                AND o.status = :expectedStatus
+            """)
+    int updateStatusAndDatesIfCurrent(
+            @Param("operationId") UUID operationId,
+            @Param("expectedStatus") OperationStatus expectedStatus,
+            @Param("newStatus") OperationStatus newStatus,
+            @Param("completedAt") LocalDateTime completedAt,
+            @Param("nextAutomaticAttemptAt") LocalDateTime nextAutomaticAttemptAt);
+
 }

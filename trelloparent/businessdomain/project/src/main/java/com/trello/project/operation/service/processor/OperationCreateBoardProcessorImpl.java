@@ -93,6 +93,8 @@ public class OperationCreateBoardProcessorImpl
     @Override
     protected void processLocalCompensation(Operation operation) {
         if (operation.getStatus() != OperationStatus.COMPENSATION_PENDING) {
+
+            log.info("OPERACION NO PENDIENTE DESDE processLocalCompensation");
             throw new OperationNotPendingException();
         }
 
@@ -109,8 +111,11 @@ public class OperationCreateBoardProcessorImpl
             }
             operationUtils.markLocalCompensationCompleted(updatedOperation);
 
-            // } catch (OperationManualReviewException e) {
-            // throw e;
+            // Sincronizar el objeto original.
+            // operation.setStatus(updatedOperation.getStatus());
+
+        } catch (OperationManualReviewException e) {
+            throw e;
         } catch (Exception exception) {
             operationUtils.markManualReview(operation, exception);
 
@@ -123,15 +128,22 @@ public class OperationCreateBoardProcessorImpl
     // DESDE EL MICROSERVICIO WORKFLOW
     @Override
     protected void processRemoteCompensation(Operation operation) {
-        if (operation.getStatus() != OperationStatus.LOCAL_COMPENSATION_COMPLETED) {
+
+        log.info("ESTADO DE OPERACIÓN 1 : " + operation.getStatus());
+        Operation updatedOperation = findOperation(operation.getId());
+        log.info("ESTADO DE OPERACIÓN 2 : " + updatedOperation.getStatus());
+
+        if (updatedOperation.getStatus() != OperationStatus.LOCAL_COMPENSATION_COMPLETED) {
+            log.info("OPERACION NO PENDIENTE DESDE processRemoteCompensation");
             throw new OperationNotPendingException();
         }
 
         try {
+            operationUtils.markCompensationInProgress(operation);
             workflowClientService.revertAddBoardAndBoardAccessUserOwner(operation.getId());
             operationUtils.markCompensationCompleted(operation);
         } catch (ServiceUnavailableException exception) {
-            operationUtils.markLocalCompensationCompleted(operation);
+            operationUtils.markLocalCompensationCompletedFromServiceUnavailable(operation);
             log.info("EXCEPTION: " + exception);
             throw new OperationCompensatedException();
         }

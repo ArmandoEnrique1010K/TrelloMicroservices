@@ -6,6 +6,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.trello.project.entities.Operation;
@@ -71,16 +72,17 @@ public class OperationProjectServiceImpl implements OperationProjectService {
         return operationRepository.findFirstByWorkspaceIdAndTypeOrderByCreatedAtDesc(workspaceId, type);
     }
 
-    @Override
-    public List<Operation> findOperationsByStatusesListOrderByNextAutomaticAttemptAtAscWorkspaceIdAsc(
-            List<OperationStatus> statuses) {
-        LocalDateTime currentDate = LocalDateTime.now();
+    // @Override
+    // public List<Operation>
+    // findOperationsByStatusesListOrderByNextAutomaticAttemptAtAscWorkspaceIdAsc(
+    // List<OperationStatus> statuses) {
+    // LocalDateTime currentDate = LocalDateTime.now();
 
-        return operationRepository
-                .findByStatusInAndNextAutomaticAttemptAtLessThanOrderByNextAutomaticAttemptAtAscWorkspaceIdAsc(
-                        statuses,
-                        currentDate);
-    }
+    // return operationRepository
+    // .findByStatusInAndNextAutomaticAttemptAtLessThanOrderByNextAutomaticAttemptAtAscWorkspaceIdAsc(
+    // statuses,
+    // currentDate);
+    // }
 
     @Override
     public boolean existsPreviousOperationsByWorkspaceIdAndCreatedAt(UUID workspaceId, LocalDateTime createdAt) {
@@ -154,9 +156,23 @@ public class OperationProjectServiceImpl implements OperationProjectService {
     @Transactional
     @Override
     public void cancelAllOperationsByBoardId(UUID boardId, UUID excludedOperationId) {
-        operationRepository.cancelOperationsByBoardId(
+
+        // No se cancelan las operaciones con estado COMPLETED,
+        // MANUAL_INTERVERTION_REQUIRED, CANCELED,
+
+        List<OperationStatus> allowedStatuses = List.of(
+                OperationStatus.REGISTERED,
+                OperationStatus.EXECUTION_PENDING,
+                OperationStatus.EXECUTING,
+                OperationStatus.COMPENSATION_PENDING,
+                OperationStatus.COMPENSATION_COMPLETED,
+
+                OperationStatus.LOCAL_COMPENSATION_COMPLETED);
+
+        operationRepository.cancelAllByBoardId(
                 boardId,
                 excludedOperationId,
+                allowedStatuses,
                 OperationStatus.CANCELED,
                 CleanupStatus.EXECUTION_PENDING);
     }
@@ -171,5 +187,61 @@ public class OperationProjectServiceImpl implements OperationProjectService {
     public void updateOperationCleanupStatusByBoardIdAndStatus(CleanupStatus cleanupStatus, UUID boardId,
             OperationStatus operationStatus) {
         operationRepository.updateCleanupStatusByBoardIdAndStatus(boardId, operationStatus, cleanupStatus);
+    }
+
+    // Ejecuta la transición de estado en una transacción independiente,
+    // garantizando que el cambio quede confirmado antes de continuar.
+    // Devuelve true si la operación pudo actualizarse desde el estado esperado.
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @Override
+    public boolean tryMarkOperation(
+            UUID operationId,
+            OperationStatus expectedStatus,
+            OperationStatus newStatus) {
+
+        int updatedRows = operationRepository.updateStatusIfCurrent(
+                operationId,
+                expectedStatus,
+                newStatus);
+
+        return updatedRows == 1;
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public boolean tryMarkOperationAndClearCompletedAtAndNextAutomaticAttemptAt(UUID operationId,
+            OperationStatus expectedStatus, OperationStatus newStatus) {
+        int updatedRows = operationRepository.updateStatusAndDatesIfCurrent(
+                operationId,
+                expectedStatus,
+                newStatus, null, null);
+
+        return updatedRows == 1;
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public boolean tryMarkOperationAndSetCompletedAtNowAndClearNextAutomaticAttemptAt(UUID operationId,
+            OperationStatus expectedStatus, OperationStatus newStatus) {
+
+        LocalDateTime currentDate = LocalDateTime.now();
+
+        int updatedRows = operationRepository.updateStatusAndDatesIfCurrent(
+                operationId,
+                expectedStatus,
+                newStatus, currentDate, null);
+
+        return updatedRows == 1;
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public boolean tryMarkOperationAndSetCompletedAtNullAndNextAutomaticAttemptAtIn30Seconds(UUID operationId,
+            OperationStatus expectedStatus, OperationStatus newStatus) {
+        LocalDateTime futureCurrentDate = LocalDateTime.now().plusSeconds(30);
+
+        int updatedRows = operationRepository.updateStatusAndDatesIfCurrent(
+                operationId,
+                expectedStatus,
+                newStatus, null, futureCurrentDate);
+
+        return updatedRows == 1;
     }
 }

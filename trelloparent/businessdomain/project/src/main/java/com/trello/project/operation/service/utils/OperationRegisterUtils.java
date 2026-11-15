@@ -62,9 +62,11 @@ public class OperationRegisterUtils {
                     EXECUTING,
                     COMPENSATION_PENDING,
                     LOCAL_COMPENSATION_IN_PROGRESS,
-                    MANUAL_INTERVENTION_REQUIRED ->
-
+                    COMPENSATION_IN_PROGRESS,
+                    MANUAL_INTERVENTION_REQUIRED -> {
+                log.info("OPERACION NO PENDIENTE DESDE findReusableOperation");
                 throw new OperationNotPendingException();
+            }
 
             // La operación anterior finalizó correctamente. No se reutiliza;
             // se continúa con el flujo para registrar una nueva operación

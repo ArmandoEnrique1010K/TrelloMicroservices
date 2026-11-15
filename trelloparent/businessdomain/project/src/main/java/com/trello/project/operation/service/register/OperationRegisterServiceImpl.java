@@ -7,10 +7,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.trello.project.board.dto.request.BoardRequest;
+import com.trello.project.board.exception.BoardAlreadyExistsException;
 import com.trello.project.entities.Board;
 import com.trello.project.entities.Invitation;
 import com.trello.project.entities.Member;
 import com.trello.project.entities.Operation;
+import com.trello.project.enums.BoardStatus;
 import com.trello.project.enums.OperationType;
 import com.trello.project.enums.Role;
 import com.trello.project.enums.Status;
@@ -173,6 +175,19 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
         // Validar logica de negocio
         Member findedMember = memberProjectService.findMemberActiveByIdAndOwnerUserId(memberId, ownerUserId);
 
+        UUID boardId = findedMember.getBoard().getId();
+
+        // Bloqueo pesimista: evita que otra transacción modifique simultáneamente
+        // el estado del tablero mientras se registra esta operación.
+        Board board = boardProjectService.findBoardByIdWithLock(boardId);
+
+        // Verificar que el tablero siga habilitado.
+        // Si está en proceso de eliminación o ya fue eliminado, no se permiten nuevas
+        // operaciones.
+        if (board.getStatus() != BoardStatus.ACTIVE) {
+            throw new BoardNotFoundException();
+        }
+
         // Buscar operación existente
         Optional<Operation> existing = operationProjectService.findLatestOperationByMemberIdAndType(memberId,
                 OperationType.CHANGE_ROLE_MEMBER);
@@ -187,7 +202,7 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
         }
 
         Board findedBoard = findedMember.getBoard();
-        UUID boardId = findedBoard.getId();
+        // UUID boardId = findedBoard.getId();
         UUID userId = findedMember.getUserId();
         UUID workspaceId = findedBoard.getWorkspace().getId();
 
@@ -271,6 +286,11 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
                 workspaceId,
                 ownerUserId);
 
+        // Logica de negocio
+        if (boardProjectService.existsBoardByWorkspaceIdAndName(workspaceId, name)) {
+            throw new BoardAlreadyExistsException();
+        }
+
         // 1. Comprobar si ya se registró esta misma solicitud.
         Optional<Operation> existing = operationProjectService
                 .findLatestOperationByWorkspaceIdAndBoardNameAndType(
@@ -294,7 +314,7 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
         // WorkspaceId y Name
         if (operationProjectService.existsOperationByTypeAndWorkspaceIdAndBoardName(
                 OperationType.CREATE_BOARD, workspaceId, name)) {
-            log.info("EL TABLERO EXISTE");
+            log.info("EL TABLERO EXISTE DESDE LA OPERACIÓN");
             throw new OperationCompensatedException();
         }
 
@@ -320,8 +340,12 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
     public Operation registerDeleteBoard(UUID ownerUserId, UUID boardId)
             throws WorkspaceNotFoundException, BoardNotFoundException {
 
-        // Asegurar de que el tablero exista
-        Board findedBoard = boardProjectService.findBoardByIdAndOwnerUserIdAndActive(boardId, ownerUserId);
+        // Obtener el tablero mediante bloqueo pesimista y validar su propietario.
+        Board board = beginDeleteBoard(boardId, ownerUserId);
+
+        // Board findedBoard =
+        // boardProjectService.findBoardByIdAndOwnerUserIdAndActive(boardId,
+        // ownerUserId);
 
         Optional<Operation> existing = operationProjectService.findLatestOperationByBoardIdAndType(boardId,
                 OperationType.DELETE_BOARD);
@@ -333,7 +357,7 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
             return reusable;
         }
 
-        UUID workspaceId = findedBoard.getWorkspace().getId();
+        UUID workspaceId = board.getWorkspace().getId();
 
         Operation operation = operationRegisterUtils
                 .createOperation(OperationType.DELETE_BOARD);
@@ -345,6 +369,32 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
         operationProjectService.saveOperation(operation);
         return operation;
     }
+
+    private Board beginDeleteBoard(UUID boardId, UUID ownerUserId) {
+
+        // Bloqueo pesimista para coordinar el inicio de la eliminación
+        // con otras operaciones que intenten modificar el mismo tablero.
+        Board board = boardProjectService.findBoardByIdWithLock(boardId);
+
+        // Validar que el tablero pertenezca al propietario.
+        if (!board.getWorkspace().getOwnerUserId().equals(ownerUserId)) {
+            throw new WorkspaceNotFoundException();
+        }
+
+        // Impedir que se inicie la eliminación si el tablero ya no está activo.
+        if (board.getStatus() != BoardStatus.ACTIVE) {
+            throw new BoardNotFoundException();
+        }
+
+        // Marcar el tablero como DELETING para impedir nuevas operaciones.
+        board.setStatus(BoardStatus.DELETING);
+
+        boardProjectService.saveBoard(board);
+
+        return board;
+    }
+
+    //
 
     @Transactional(rollbackFor = Exception.class)
     @Override
@@ -374,4 +424,5 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
         operationProjectService.saveOperation(operation);
         return operation;
     }
+
 }

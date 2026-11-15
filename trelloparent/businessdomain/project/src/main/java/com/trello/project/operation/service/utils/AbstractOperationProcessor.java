@@ -8,6 +8,7 @@ import com.trello.project.enums.OperationType;
 import com.trello.project.exception.BusinessRuleException;
 import com.trello.project.exception.ServiceUnavailableException;
 import com.trello.project.operation.exception.OperationCompensatedException;
+import com.trello.project.operation.exception.OperationManualReviewException;
 import com.trello.project.operation.exception.OperationNotFoundException;
 import com.trello.project.service.OperationProjectService;
 
@@ -35,6 +36,9 @@ public abstract class AbstractOperationProcessor {
             throws OperationCompensatedException, OperationNotFoundException,
             BusinessRuleException {
 
+        // Verificar el estado de la operación
+        // Debe tener el estado de EXECUTION_PENDING para seguir
+
         // 1. Marcar la operación como EXECUTING antes de ejecutar la lógica
         // de negocio y comunicarse con el microservicio Workflow.
         operationUtils.markExecuting(operation);
@@ -53,7 +57,6 @@ public abstract class AbstractOperationProcessor {
                     || operation.getType() == OperationType.DELETE_WORKSPACE) {
 
                 operationUtils.markLogicalDeleteCompleted(operation);
-
             } else {
                 operationUtils.markCompleted(operation);
             }
@@ -107,9 +110,9 @@ public abstract class AbstractOperationProcessor {
             // | OperationManualReviewException e) {
             // throw e;
 
-            // } catch (OperationManualReviewException exceptionManualReview) {
-            // log.info("EXCEPTION: " + exceptionManualReview);
-
+        } catch (OperationManualReviewException exceptionManualReview) {
+            log.info("EXCEPTION: " + exceptionManualReview);
+            throw new OperationManualReviewException();
         } catch (Exception exception) {
             // Cualquier otro error se registra para revisión manual, dado que
             // no se ha definido aquí una estrategia segura de recuperación

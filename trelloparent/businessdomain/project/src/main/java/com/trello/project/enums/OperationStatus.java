@@ -35,6 +35,9 @@ public enum OperationStatus {
     // en Workflow.
     LOCAL_COMPENSATION_COMPLETED,
 
+    // Compensacion en el servicio remoto en progreso
+    COMPENSATION_IN_PROGRESS,
+
     // Ambos servicios compensados; se permite una nueva aceptación
     // La compensación terminó correctamente tanto en Project como en Workflow.
     COMPENSATION_COMPLETED,

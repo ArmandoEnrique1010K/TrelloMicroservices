@@ -39,7 +39,7 @@ public class OperationHandlerUtils {
         if (status != OperationStatus.REGISTERED
                 && status != OperationStatus.LOCAL_COMPENSATION_COMPLETED
                 && status != OperationStatus.COMPENSATION_COMPLETED) {
-
+            log.info("OPERACION NO PENDIENTE DESDE prepareExecution");
             throw new OperationNotPendingException();
         }
 
