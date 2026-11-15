@@ -96,8 +96,9 @@ public class OperationDeleteWorkspaceProcessorImpl
         }
 
         try {
-            operationUtils.markLocalCompensationCompleted(operation);
+            operationUtils.markLocalCompensationInProgress(operation);
             operationDeleteWorkspaceService.revertDeleteWorkspace(operation.getId());
+
             Operation updatedOperation = operationProjectService
                     .findOperationById(operation.getId())
                     .orElseThrow(OperationNotFoundException::new);

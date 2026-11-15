@@ -84,8 +84,9 @@ public class OperationDeleteBoardProcessorImpl
         }
 
         try {
-            operationUtils.markLocalCompensationCompleted(operation);
+            operationUtils.markLocalCompensationInProgress(operation);
             operationDeleteBoardService.revertDeleteBoard(operation.getId());
+
             Operation updatedOperation = operationProjectService
                     .findOperationById(operation.getId())
                     .orElseThrow(OperationNotFoundException::new);

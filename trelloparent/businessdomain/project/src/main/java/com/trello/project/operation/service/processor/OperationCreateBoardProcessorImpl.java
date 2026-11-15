@@ -97,7 +97,7 @@ public class OperationCreateBoardProcessorImpl
         }
 
         try {
-            operationUtils.markLocalCompensationCompleted(operation);
+            operationUtils.markLocalCompensationInProgress(operation);
             operationCreateBoardService.revertCreateBoard(operation.getId());
 
             Operation updatedOperation = operationProjectService

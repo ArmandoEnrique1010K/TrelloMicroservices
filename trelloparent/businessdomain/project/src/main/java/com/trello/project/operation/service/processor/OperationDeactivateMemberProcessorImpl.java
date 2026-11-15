@@ -89,7 +89,7 @@ public class OperationDeactivateMemberProcessorImpl extends AbstractOperationPro
         }
 
         try {
-            operationUtils.markLocalCompensationCompleted(operation);
+            operationUtils.markLocalCompensationInProgress(operation);
             operationDeactivateMemberService.revertDeactivateMember(operation.getId());
 
             Operation updatedOperation = operationProjectService
