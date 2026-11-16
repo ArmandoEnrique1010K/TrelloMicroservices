@@ -21,12 +21,12 @@ import com.trello.identity.service.UserIdentityService;
 @Service
 public class RefreshTokenService {
 
+    // Expirara en 30 dias el refreshToken
+    private static final long REFRESH_TOKEN_EXPIRATION = 60L * 60 * 24 * 30;
+
     private final UserIdentityService userIdentityService;
     private final RefreshTokenRepository refreshTokenRepository;
     private final JwtService jwtService;
-
-    // Expirara en 30 dias el refreshToken
-    private final long expirationTime = 60L * 60 * 24 * 30;
 
     public RefreshTokenService(
             RefreshTokenRepository refreshTokenRepository,
@@ -68,11 +68,11 @@ public class RefreshTokenService {
             throw new InvalidRefreshTokenException();
         }
 
-        // 7. Generar un nuevo Access Token
-        String accessToken = jwtService.generateAccessToken(
+        // 7. Generar un nuevo Access Token de tipo Refresh
+        String accessToken = jwtService.generateRefreshToken(
                 user.getId(),
                 user.getEmail(),
-                expirationTime);
+                REFRESH_TOKEN_EXPIRATION);
 
         // 8. Revocar el Refresh Token utilizado
         refreshToken.setRevokedAt(LocalDateTime.now());
@@ -94,7 +94,7 @@ public class RefreshTokenService {
         response.setAccessToken(accessToken);
         response.setRefreshToken(newRefreshToken);
 
-        response.setExpiresIn(expirationTime);
+        response.setExpiresIn(REFRESH_TOKEN_EXPIRATION);
 
         return response;
     }
@@ -126,7 +126,7 @@ public class RefreshTokenService {
         entity.setUser(user);
 
         entity.setExpiresAt(
-                LocalDateTime.now().plusSeconds(expirationTime));
+                LocalDateTime.now().plusSeconds(REFRESH_TOKEN_EXPIRATION));
 
         refreshTokenRepository.save(entity);
     }
@@ -162,7 +162,7 @@ public class RefreshTokenService {
         refreshToken.setUser(user);
 
         refreshToken.setExpiresAt(
-                LocalDateTime.now().plusSeconds(expirationTime));
+                LocalDateTime.now().plusSeconds(REFRESH_TOKEN_EXPIRATION));
 
         refreshTokenRepository.save(refreshToken);
 

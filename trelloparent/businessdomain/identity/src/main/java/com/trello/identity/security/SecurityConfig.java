@@ -30,7 +30,7 @@ import lombok.extern.slf4j.Slf4j;
 @Configuration
 public class SecurityConfig {
 
-    private static final String[] NO_AUTH_LIST = {
+    private static final String[] PUBLIC_ENDPOINTS = {
             "/v3/api-docs/**",
             "/swagger-ui.html",
             "/swagger-ui/**",
@@ -105,7 +105,7 @@ public class SecurityConfig {
         http.csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(NO_AUTH_LIST).permitAll()
+                        .requestMatchers(PUBLIC_ENDPOINTS).permitAll()
 
                         // Solamente debe permitir el acceso al dominio del microservicio Workflow
                         // http://localhost:8083/business/v1/swagger-ui/index.html
@@ -115,10 +115,12 @@ public class SecurityConfig {
                         // .permitAll()
 
                         // Únicamente los servicios autorizados pueden solicitar JWT internos.
+                        // Solicitar JWT interno mediante HTTP Basic
                         .requestMatchers("/auth/internal/service-token")
                         .hasAuthority("SERVICE_TOKEN_ISSUE")
 
-                        .anyRequest().authenticated())
+                        // Los demás endpoints protegidos requieren JWT de usuario.
+                        .anyRequest().hasAuthority("SCOPE_user"))
                 .authenticationProvider(serviceAuthenticationProvider)
 
                 // Habilitar HTTP Basic

@@ -19,7 +19,9 @@ import com.trello.project.client.fallback.WorkflowBoardCommandClientFallbackFact
         // configuration = FeignClientConfig.class,
 
         // Lo mismo pasa con WorkflowBoardAccessComandClient
-        configuration = WorkflowFeignConfig.class, fallbackFactory = WorkflowBoardCommandClientFallbackFactory.class)
+        configuration = WorkflowFeignConfig.class,
+
+        fallbackFactory = WorkflowBoardCommandClientFallbackFactory.class)
 public interface WorkflowBoardCommandClient {
     // Si hay parametros dinamicos se utiliza @PathVariable
     @PostMapping("/boards/{boardId}/user/{userId}")

@@ -289,6 +289,8 @@ public class AuthRestController {
         // "iss": "identity-service",
         // "sub": "project-service",
         // "aud": "workflow-service",
+        // "exp": 1794787479,
+        // "iat": 1794787179,
         // "scope": "workflow:operations"
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }

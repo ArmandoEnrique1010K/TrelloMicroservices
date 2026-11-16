@@ -13,6 +13,19 @@ import jakarta.servlet.http.HttpServletResponse;
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
+
+    private static final String[] PUBLIC_ENDPOINTS = {
+            "/swagger-ui/**",
+            "/v3/api-docs/**",
+            "/actuator/**"
+    };
+
+    private static final String[] INTERNAL_ENDPOINTS = {
+            "/boards/**",
+            "/board-accesses/**",
+            "/operations/**"
+    };
+
     @Bean
     public AuthenticationEntryPoint authenticationEntryPoint() {
         return (request, response, exception) -> {
@@ -37,15 +50,12 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
         http
-                // .csrf(AbstractHttpConfigurer::disable)
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(
-                                "/swagger-ui/**",
-                                "/v3/api-docs/**",
-                                "/actuator/**")
-                        .permitAll()
-                        .anyRequest().authenticated())
+                        .requestMatchers(PUBLIC_ENDPOINTS).permitAll()
+                        .requestMatchers(INTERNAL_ENDPOINTS).hasAuthority("SCOPE_workflow:operations")
+                        // .requestMatchers(INTERNAL_ENDPOINTS).permitAll()
+                        .anyRequest().hasAuthority("SCOPE_user"))
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .jwt(Customizer.withDefaults()).authenticationEntryPoint(authenticationEntryPoint()));
 

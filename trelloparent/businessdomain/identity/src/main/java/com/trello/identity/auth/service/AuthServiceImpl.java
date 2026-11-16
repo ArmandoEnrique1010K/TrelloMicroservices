@@ -7,6 +7,7 @@ import com.trello.identity.service.UserIdentityService;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -27,6 +28,12 @@ import com.trello.identity.exception.UserNotFoundException;
 
 @Service
 public class AuthServiceImpl implements AuthService {
+
+    // Tiempo de expiración: 15 minutos
+    private static final long ACCESS_TOKEN_EXPIRATION = 60L * 15;
+
+    // Tiempo de expiración: 30 segundos
+    // final long expirationTime = 30L;
 
     private final RefreshTokenService refreshTokenService;
     private final UserIdentityService userIdentityService;
@@ -90,7 +97,7 @@ public class AuthServiceImpl implements AuthService {
             // Normalmente authenticate devuelve un Authentication de
             // org.springframework.security.core, en este caso solo interesa el
             // procedimiento de inicio de sesión
-            authenticationManager.authenticate(
+            Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
                             authenticationRequest.getEmail(),
                             authenticationRequest.getPassword()));
@@ -108,19 +115,17 @@ public class AuthServiceImpl implements AuthService {
                 return response;
             }
 
-            // Tiempo de expiración: 15 minutos
-            final long expirationTime = 60L * 15;
+            // String accessToken = jwtService.generateAccessToken(existingUser.getId(),
+            // existingUser.getEmail(),
+            // expirationTime);
 
-            // Tiempo de expiración: 30 segundos
-            // final long expirationTime = 30L;
+            String accessToken = jwtService.generateAccessToken(authentication, ACCESS_TOKEN_EXPIRATION);
 
-            String accessToken = jwtService.generateAccessToken(existingUser.getId(), existingUser.getEmail(),
-                    expirationTime);
             String refreshToken = refreshTokenService.createRefreshToken(existingUser);
 
             response.setAccessToken(accessToken);
             response.setRefreshToken(refreshToken);
-            response.setExpiresIn(expirationTime);
+            response.setExpiresIn(ACCESS_TOKEN_EXPIRATION);
 
             return response;
 

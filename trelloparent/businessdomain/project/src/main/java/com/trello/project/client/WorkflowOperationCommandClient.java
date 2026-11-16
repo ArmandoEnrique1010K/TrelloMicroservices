@@ -12,7 +12,11 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import com.trello.project.client.config.WorkflowFeignConfig;
 import com.trello.project.client.fallback.WorkflowOperationCommandClientFallbackFactory;
 
-@FeignClient(name = "businessdomain-workflow-operation-command", url = "${services.workflow.url}", configuration = WorkflowFeignConfig.class, fallbackFactory = WorkflowOperationCommandClientFallbackFactory.class)
+@FeignClient(name = "businessdomain-workflow-operation-command", url = "${services.workflow.url}",
+
+        configuration = WorkflowFeignConfig.class,
+
+        fallbackFactory = WorkflowOperationCommandClientFallbackFactory.class)
 public interface WorkflowOperationCommandClient {
     @PostMapping("/operations/revert-add-board-access")
     ResponseEntity<Void> revertAddBoardAccess(
