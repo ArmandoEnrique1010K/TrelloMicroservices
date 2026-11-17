@@ -7,6 +7,7 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 
 import com.trello.project.entities.Operation;
+import com.trello.project.enums.CleanupStatus;
 import com.trello.project.enums.OperationStatus;
 import com.trello.project.enums.OperationType;
 import com.trello.project.exception.BoardNotFoundException;
@@ -100,6 +101,7 @@ public class OperationExecutorServiceImpl implements OperationExecutorService {
                         operation.getCreatedAt());
     }
 
+    // Ejecutar todas las operaciones que fueron compensadas
     @Override
     public void executeAllCompensatedOperations() {
 
@@ -148,51 +150,6 @@ public class OperationExecutorServiceImpl implements OperationExecutorService {
                     // llama al endpoint para revertir la operacion desde el microservicio Workflow
                     operationAcceptInvitationProcessor.processAcceptInvitationOperation(operation.getId());
 
-                    // UUID invitationId = operation.getInvitationId();
-                    // UUID recipientUserId = operation.getUserId();
-
-                    // Invitation invitation =
-                    // invitationProjectService.findInvitationByIdAndRecipientUserId(
-                    // invitationId,
-                    // recipientUserId);
-
-                    // // En el caso de que la invitación fue aceptada
-
-                    // // Se evita la excepción InvitationConfirmedException
-                    // if (invitation.getStatus() != Status.UNCONFIRMED) {
-                    // // Borra la operación de la base de datos de este microservicio
-                    // // O cambia el estado a COMPLETED
-                    // operationProjectService.deleteOperation(operation);
-
-                    // // TODO: TAMBIEN DEBE EJECUTAR EL METODO EN EL MICROSERVICIO WORKFLOW PARA
-                    // // ELIMINAR LA OPERACION
-
-                    // try {
-                    // // workflowClientService.deleteOperation(operationId)
-
-                    // } catch (ServiceUnavailableException e) {
-                    // // workflowClientService.revertOperation(operationId)
-                    // }
-
-                    // } else {
-                    // // No se llama al metodo para registrar la operacion, dado que ya se
-                    // encuentra
-                    // // en la base de datos
-
-                    // // El parametro automatic en "true", indica que se va a sumar 1 en el
-                    // contador
-                    // // de "Intentos automaticos" de la operación en la BD, nada más eso implica
-
-                    // // Ejecuta logica de negocio para aceptar la invitacion en este microservicio
-                    // operationAcceptInvitationService.applyAcceptInvitation(operation.getId(),
-                    // true);
-
-                    // // Ejecuta la logica para llamar a los endpoints del microservicio Workflow
-                    // para
-                    // // ejecutar la operacion
-                    // operationAcceptInvitationProcessor.processAcceptInvitationOperation(operation.getId());
-                    // }
-
                     // Recordar que si la operación queda en un estado LOCAL_COMPENSATION_COMPLETED
                     // o COMPENSATION_COMPLETED, va a tener una nueva fecha de reintento definida
                     // dentro del metodo, en este caso, applyAcceptInvitation
@@ -204,7 +161,6 @@ public class OperationExecutorServiceImpl implements OperationExecutorService {
                     operationChangeRoleMemberProcessor.processChangeRoleMemberOperation(operation.getId());
                     break;
 
-                // TODO: CORREGIR CADA UNO DE LOS PROBLEMAS ASOCIADOS A LOGICA DE NEGOCIO
                 case CREATE_BOARD:
                     // PROBLEMA
                     // Cuando se crea un tablero, el problema comienza cuando el usuario
@@ -219,21 +175,6 @@ public class OperationExecutorServiceImpl implements OperationExecutorService {
                     // Ejecutar la operación en Workflow.
                     operationCreateBoardProcessor.processCreateBoardOperation(operation.getId());
 
-                    // try {
-                    // // Aplicar nuevamente la lógica de negocio local.
-                    // operationCreateBoardService.applyCreateBoard(operation.getId(), true);
-
-                    // // Ejecutar la operación en Workflow.
-                    // operationCreateBoardProcessor.processCreateBoardOperation(operation.getId());
-
-                    // } catch (BoardAlreadyExistsException exception) {
-                    // // El nombre del tablero ya está ocupado por otra operación.
-
-                    // // TODO: IMPLEMENTAR EL ESTADO "CANCELLED" QUE ES LO MISMO QUE "COMPLETED"
-                    // operationProjectService.changeStatusToCompletedOperation(operation.getId());
-
-                    // // TODO: Resolver también la operación correspondiente en Workflow.
-                    // }
                     break;
                 case DEACTIVATE_MEMBER:
                     operationDeactivateMemberService.applyDeactivateMember(operation.getId(), true);
@@ -245,11 +186,11 @@ public class OperationExecutorServiceImpl implements OperationExecutorService {
 
                     operationDeleteBoardProcessor.processDeleteBoardOperation(operation.getId());
 
+                    // Cancelar las demás operaciones relacionadas con el tablero.
                     UUID boardId = operation.getBoardId();
 
                     // La operación que sera excluida sera la misma operacion por ID
 
-                    // Cancelar las demás operaciones relacionadas con el tablero.
                     // Recordar que cambia el estado a CANCELED y CleanupStatus a EXECUTION_PENDING,
                     // indicando que las operaciones fueron limpiadas
                     operationProjectService.cancelAllOperationsByBoardId(
@@ -266,11 +207,15 @@ public class OperationExecutorServiceImpl implements OperationExecutorService {
 
                 case DELETE_WORKSPACE:
                     operationDeleteWorkspaceService.applyDeleteWorkspace(operation.getId(), true);
-
-                    // TODO: ELIMINAR TODAS LAS DEMÁS OPERACIONES QUE SE VAN A REALIZAR RESPECTO A
-                    // ESTE WORKSPACE
-
                     operationDeleteWorkspaceProcessor.processDeleteWorkspaceOperation(operation.getId());
+
+                    // Cancelar las demás operaciones relacionadas con el espacio de trabajo.
+                    UUID workspaceId = operation.getWorkspaceId();
+
+                    operationProjectService.cancelAllOperationsByWorkspaceId(workspaceId, operation.getId());
+                    operationDeleteWorkspaceProcessor.processCancelOperationsByWorkspaceId(workspaceId,
+                            operation.getId());
+
                     break;
 
                 default:
@@ -342,5 +287,12 @@ public class OperationExecutorServiceImpl implements OperationExecutorService {
     public void deleteAllCompletedOperations() {
         operationProjectService.deleteAllOperationsByStatus(
                 OperationStatus.COMPLETED);
+    }
+
+    @Override
+    public void deleteAllCanceledOperations() {
+        operationProjectService.deleteAllOperationsByStatusAndCleanupStatus(
+                OperationStatus.CANCELED,
+                CleanupStatus.COMPLETED);
     }
 }

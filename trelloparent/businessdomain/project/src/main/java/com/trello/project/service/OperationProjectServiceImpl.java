@@ -275,4 +275,9 @@ public class OperationProjectServiceImpl implements OperationProjectService {
         return updatedRows == 1;
     }
 
+    @Override
+    public void deleteAllOperationsByStatusAndCleanupStatus(OperationStatus operationStatus,
+            CleanupStatus cleanupStatus) {
+        operationRepository.deleteAllByStatusAndCleanupStatus(operationStatus, cleanupStatus);
+    }
 }

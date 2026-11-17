@@ -29,10 +29,10 @@ public class OtpTokenIdentityServiceImpl implements OtpTokenIdentityService {
         otpTokenRepository.deleteTokenById(otpTokenId);
     }
 
-    @Override
     // Como este método se va a ejecutar automaticamente cada cierto tiempo debe
-    // tener un @Transactional
+    // tener un @Transactional y en el repositorio @Modifying
     @Transactional
+    @Override
     public void deleteAllOtpTokensExpired() {
         LocalDateTime now = LocalDateTime.now();
         otpTokenRepository.deleteExpiredOtpTokens(now);

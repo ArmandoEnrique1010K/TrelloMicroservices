@@ -66,4 +66,10 @@ public class OperationAutomaticExecutorScheduler {
         operationExecutorService.deleteAllCompletedOperations();
     }
 
+    @Scheduled(fixedDelay = 5, timeUnit = TimeUnit.MINUTES)
+    public void deleteCanceledOperations() {
+        log.info("ELIMINANDO OPERACIONES CANCELADAS");
+        operationExecutorService.deleteAllCanceledOperations();
+    }
+
 }

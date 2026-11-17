@@ -91,4 +91,5 @@ public interface OperationProjectService {
     // METODO PARA ESTABLECER completedAt COMO NULL Y nextAutomaticAttemptAt EN 30
     // SEGUNDOS LUEGO DE LA HORA ACTUAL
 
+    void deleteAllOperationsByStatusAndCleanupStatus(OperationStatus operationStatus, CleanupStatus cleanupStatus);
 }

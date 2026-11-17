@@ -16,13 +16,9 @@ public interface OtpTokenRepository extends JpaRepository<OtpToken, UUID> {
 
     Optional<OtpToken> findByUserEmail(String email);
 
-    @Modifying
-    @Query("""
-                DELETE FROM OtpToken o
-                WHERE o.expiresAt <= :now
-            """)
-    void deleteExpiredOtpTokens(@Param("now") LocalDateTime now);
+    OtpToken findByResetToken(UUID resetToken);
 
+    // Borrar OTP token por ID
     /*
      * Ejecuta directamente una operación DELETE sobre la base de datos.
      *
@@ -37,5 +33,11 @@ public interface OtpTokenRepository extends JpaRepository<OtpToken, UUID> {
     @Query("DELETE FROM OtpToken o WHERE o.id = :id")
     int deleteTokenById(@Param("id") UUID id);
 
-    OtpToken findByResetToken(UUID resetToken);
+    // Borrar OTP Tokens expirados
+    @Modifying
+    @Query("""
+                DELETE FROM OtpToken o
+                WHERE o.expiresAt <= :now
+            """)
+    void deleteExpiredOtpTokens(@Param("now") LocalDateTime now);
 }

@@ -16,8 +16,9 @@ public interface UserRepository extends JpaRepository<User, UUID> {
 
     Optional<User> findByOtpTokenResetToken(UUID resetToken);
 
-    // Listar por email (palabra clave), confirmed = true y excluyendo los IDs los
-    // primeros 10 por orden descendente por fecha de creación
+    // Listar por email (palabra clave), confirmed en true y excluyendo los IDs de
+    // usuarios. Tomar como resultado los primeros 10 usuarios por orden descendente
+    // por fecha de creación
     List<User> findTop10ByEmailContainingIgnoreCaseAndIdNotInAndConfirmedTrueOrderByCreatedAtDesc(String keyword,
             List<UUID> excludedIds);
 

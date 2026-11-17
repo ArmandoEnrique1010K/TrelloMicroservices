@@ -188,4 +188,7 @@ public interface OperationRepository extends JpaRepository<Operation, UUID> {
             @Param("completedAt") LocalDateTime completedAt,
             @Param("nextAutomaticAttemptAt") LocalDateTime nextAutomaticAttemptAt);
 
+    @Modifying
+    void deleteAllByStatusAndCleanupStatus(OperationStatus status, CleanupStatus cleanupStatus);
+
 }

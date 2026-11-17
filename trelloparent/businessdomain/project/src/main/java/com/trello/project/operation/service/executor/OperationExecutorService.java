@@ -13,4 +13,7 @@ public interface OperationExecutorService {
     // Se tiene en cuenta que ya se ejecutaron las operaciones de tipo
     // LOGICAL_DELETE_COMPLETED
     void deleteAllCompletedOperations();
+
+    // Borrar todas las operaciones con estado CANCELED y cleanupStatus COMPLETED
+    void deleteAllCanceledOperations();
 }
