@@ -1,5 +1,6 @@
 package com.trello.workflow.services;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -9,4 +10,6 @@ public interface HistoryWorkflowService {
     History saveHistory(History history);
 
     List<History> findAllHistoriesByTaskId(UUID taskId);
+
+    void deleteAllHistoriesByBoardStatusFalseAndBoardDeleteAtBefore(LocalDateTime expirationDate);
 }

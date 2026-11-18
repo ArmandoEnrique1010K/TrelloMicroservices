@@ -43,5 +43,4 @@ public class History {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "task_id", nullable = false)
     private Task task;
-
 }

@@ -1,5 +1,6 @@
 package com.trello.workflow.services;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 import com.trello.workflow.entities.BoardAccess;
@@ -28,4 +29,6 @@ public interface BoardAccessWorkflowService {
 
     void activateBoardAccessAndChangeRoleByBoardIdAndUserIdAndStatusTrue(UUID boardId, UUID userId, Role previousRole)
             throws BoardAccessNotFoundException;
+
+    void deleteAllBoardsAccessByBoardStatusFalseAndBoardDeleteAtBefore(LocalDateTime expirationTime);
 }

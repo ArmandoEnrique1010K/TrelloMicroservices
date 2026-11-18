@@ -1,5 +1,6 @@
 package com.trello.workflow.services;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -15,4 +16,6 @@ public interface NoteWorkflowService {
     void deleteNoteByEntity(Note note);
 
     List<Note> findAllNotesByTaskId(UUID taskId);
+
+    void deleteAllNotesByBoardStatusFalseAndBoardDeleteAtBefore(LocalDateTime expirationDate);
 }

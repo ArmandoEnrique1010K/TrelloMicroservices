@@ -1,5 +1,6 @@
 package com.trello.workflow.repositories;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -65,4 +66,16 @@ public interface BoardAccessRepository extends JpaRepository<BoardAccess, UUID> 
               AND ba.status = false
             """)
     int enableAllByBoardIds(@Param("boardsIds") List<UUID> boardsIds);
+
+    @Modifying
+    @Query("""
+            DELETE FROM BoardAccess ba
+            WHERE ba.board.id IN (
+                SELECT b.id FROM Board b
+                WHERE b.status = false
+                AND b.deletedAt <= :expirationDate
+            )
+            """)
+    int deleteAllByBoardsPendingPhysicalDeletion(
+            @Param("expirationDate") LocalDateTime expirationDate);
 }

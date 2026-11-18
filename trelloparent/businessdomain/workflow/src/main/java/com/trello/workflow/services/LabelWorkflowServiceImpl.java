@@ -1,10 +1,13 @@
 package com.trello.workflow.services;
 
 import com.trello.workflow.repositories.LabelRepository;
+
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.trello.workflow.entities.Label;
 import com.trello.workflow.exception.LabelNotFoundException;
@@ -56,6 +59,12 @@ public class LabelWorkflowServiceImpl implements LabelWorkflowService {
     public Label findLabelByIdAndBoardId(UUID labelId, UUID boardId)
             throws LabelNotFoundException {
         return labelRepository.findByIdAndBoardId(labelId, boardId).orElseThrow(LabelNotFoundException::new);
+    }
+
+    @Transactional
+    @Override
+    public void deleteAllLabelsByBoardStatusFalseAndBoardDeleteAtBefore(LocalDateTime expirationDate) {
+        labelRepository.deleteAllByBoardStatusFalseAndBoardDeletedAtBefore(expirationDate);
     }
 
 }

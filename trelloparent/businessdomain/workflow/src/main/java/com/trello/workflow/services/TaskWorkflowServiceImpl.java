@@ -2,10 +2,12 @@ package com.trello.workflow.services;
 
 import com.trello.workflow.repositories.TaskRepository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.trello.workflow.entities.Task;
 import com.trello.workflow.exception.TaskNotFoundException;
@@ -43,5 +45,17 @@ public class TaskWorkflowServiceImpl implements TaskWorkflowService {
             throws TaskNotFoundException {
         Task task = taskRepository.findById(taskId).orElseThrow(TaskNotFoundException::new);
         taskRepository.delete(task);
+    }
+
+    @Transactional
+    @Override
+    public void deleteAllTasksByBoardStatusFalseAndBoardDeleteAtBefore(LocalDateTime expirationDate) {
+        taskRepository.deleteAllByBoardsPendingPhysicalDeletion(expirationDate);
+    }
+
+    @Transactional
+    @Override
+    public void deleteAllTaskLabelRelationsByBoardStatusFalseAndBoardDeletedAtBefore(LocalDateTime expirationDate) {
+        taskRepository.deleteAllTaskLabelRelationsByBoardStatusFalseAndBoardDeletedAtBefore(expirationDate);
     }
 }

@@ -4,9 +4,11 @@ import com.trello.workflow.repositories.BoardAccessRepository;
 
 import lombok.extern.slf4j.Slf4j;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.trello.workflow.entities.BoardAccess;
 import com.trello.workflow.enums.Role;
@@ -89,5 +91,11 @@ public class BoardAccessWorkflowServiceImpl implements BoardAccessWorkflowServic
         boardAccess.setRole(previousRole);
         boardAccess.setUserActive(true);
         boardAccessRepository.save(boardAccess);
+    }
+
+    @Transactional
+    @Override
+    public void deleteAllBoardsAccessByBoardStatusFalseAndBoardDeleteAtBefore(LocalDateTime expirationTime) {
+        boardAccessRepository.deleteAllByBoardsPendingPhysicalDeletion(expirationTime);
     }
 }

@@ -2,10 +2,12 @@ package com.trello.workflow.services;
 
 import com.trello.workflow.repositories.NoteRepository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.trello.workflow.entities.Note;
 import com.trello.workflow.exception.NoteNotFoundException;
@@ -39,5 +41,11 @@ public class NoteWorkflowServiceImpl implements NoteWorkflowService {
     @Override
     public List<Note> findAllNotesByTaskId(UUID taskId) {
         return noteRepository.findByTaskIdOrderByCreatedAtDesc(taskId);
+    }
+
+    @Transactional
+    @Override
+    public void deleteAllNotesByBoardStatusFalseAndBoardDeleteAtBefore(LocalDateTime expirationDate) {
+        noteRepository.deleteAllByBoardStatusFalseAndBoardDeletedAtBefore(expirationDate);
     }
 }

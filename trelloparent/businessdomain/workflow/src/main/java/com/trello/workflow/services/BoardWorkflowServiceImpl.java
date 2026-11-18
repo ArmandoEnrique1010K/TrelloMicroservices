@@ -3,10 +3,12 @@ package com.trello.workflow.services;
 import com.trello.workflow.repositories.BoardAccessRepository;
 import com.trello.workflow.repositories.BoardRepository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.trello.workflow.entities.Board;
 import com.trello.workflow.entities.BoardAccess;
@@ -76,6 +78,7 @@ public class BoardWorkflowServiceImpl implements BoardWorkflowService {
         Board board = boardRepository.findByIdAndStatusTrue(boardId).orElseThrow(BoardNotFoundException::new);
 
         board.setStatus(false);
+        board.setDeletedAt(LocalDateTime.now());
         boardRepository.save(board);
 
         // Desactivar todos los permisos de acceso del tablero
@@ -96,6 +99,7 @@ public class BoardWorkflowServiceImpl implements BoardWorkflowService {
         Board board = boardRepository.findByIdAndStatusFalse(boardId).orElseThrow(BoardNotFoundException::new);
 
         board.setStatus(true);
+        board.setDeletedAt(null);
         boardRepository.save(board);
 
         // Activar todos los permisos de acceso del tablero
@@ -122,7 +126,10 @@ public class BoardWorkflowServiceImpl implements BoardWorkflowService {
             return;
         }
 
-        boards.forEach(board -> board.setStatus(false));
+        boards.forEach(board -> {
+            board.setStatus(false);
+            board.setDeletedAt(LocalDateTime.now());
+        });
         boardRepository.saveAll(boards);
 
         // De la lista de tableros, tomar los boardsAccess de cada uno y cambiar su
@@ -142,9 +149,19 @@ public class BoardWorkflowServiceImpl implements BoardWorkflowService {
             return;
         }
 
-        boards.forEach(board -> board.setStatus(true));
+        boards.forEach(board -> {
+            board.setStatus(true);
+            board.setDeletedAt(null);
+        });
+
         boardRepository.saveAll(boards);
 
         boardAccessRepository.enableAllByBoardIds(boardsIds);
+    }
+
+    @Transactional
+    @Override
+    public void deleteAllBoardsByStatusFalseAndDeleteAtBefore(LocalDateTime expirationTime) {
+        boardRepository.deleteAllByStatusFalseAndDeletedAtBefore(expirationTime);
     }
 }

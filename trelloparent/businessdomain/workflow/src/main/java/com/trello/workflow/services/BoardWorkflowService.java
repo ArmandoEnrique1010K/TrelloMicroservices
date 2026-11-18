@@ -1,5 +1,6 @@
 package com.trello.workflow.services;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -29,4 +30,6 @@ public interface BoardWorkflowService {
     void disableAllBoardsStatusByIdAndStatusTrueAndDisableAllBoardAccessesByStatusTrue(List<UUID> boardsIds);
 
     void enableAllBoardsStatusByIdAndStatusFalseAndEnableAllBoardAccessesByStatusFalse(List<UUID> boardsIds);
+
+    void deleteAllBoardsByStatusFalseAndDeleteAtBefore(LocalDateTime expirationTime);
 }

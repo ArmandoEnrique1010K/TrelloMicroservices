@@ -1,5 +1,6 @@
 package com.trello.workflow.services;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -24,4 +25,6 @@ public interface LabelWorkflowService {
 
     Label findLabelByIdAndBoardId(UUID labelId, UUID boardId)
             throws LabelNotFoundException;
+
+    void deleteAllLabelsByBoardStatusFalseAndBoardDeleteAtBefore(LocalDateTime expirationDate);
 }
