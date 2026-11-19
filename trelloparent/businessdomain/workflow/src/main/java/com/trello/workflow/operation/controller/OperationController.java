@@ -76,6 +76,18 @@ public class OperationController {
                     }
                     """))),
 
+            @ApiResponse(responseCode = "403", description = "No tienes permisos para acceder a este recurso", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
+                    {
+                        "detail": "You do not have the required permissions to access this resource",
+                        "fields": null,
+                        "instance": null,
+                        "message": "Ha ocurrido un error inesperado",
+                        "status": 403,
+                        "title": "Forbidden",
+                        "type": "/errors/authorization/forbidden"
+                    }
+                    """))),
+
             @ApiResponse(responseCode = "404", description = "No se ha encontrado el recurso solicitado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = {
                     @ExampleObject(name = "La operación no existe", summary = "La operación no existe", value = """
                             {
@@ -146,6 +158,18 @@ public class OperationController {
                         "status": 401,
                         "title": "Unauthorized",
                         "type": "/errors/authentication/not-authenticated"
+                    }
+                    """))),
+
+            @ApiResponse(responseCode = "403", description = "No tienes permisos para acceder a este recurso", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
+                    {
+                        "detail": "You do not have the required permissions to access this resource",
+                        "fields": null,
+                        "instance": null,
+                        "message": "Ha ocurrido un error inesperado",
+                        "status": 403,
+                        "title": "Forbidden",
+                        "type": "/errors/authorization/forbidden"
                     }
                     """))),
 
@@ -222,6 +246,18 @@ public class OperationController {
                     }
                     """))),
 
+            @ApiResponse(responseCode = "403", description = "No tienes permisos para acceder a este recurso", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
+                    {
+                        "detail": "You do not have the required permissions to access this resource",
+                        "fields": null,
+                        "instance": null,
+                        "message": "Ha ocurrido un error inesperado",
+                        "status": 403,
+                        "title": "Forbidden",
+                        "type": "/errors/authorization/forbidden"
+                    }
+                    """))),
+
             @ApiResponse(responseCode = "404", description = "No se ha encontrado el recurso solicitado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = {
                     @ExampleObject(name = "La operación no existe", summary = "La operación no existe", value = """
                             {
@@ -295,6 +331,18 @@ public class OperationController {
                     }
                     """))),
 
+            @ApiResponse(responseCode = "403", description = "No tienes permisos para acceder a este recurso", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
+                    {
+                        "detail": "You do not have the required permissions to access this resource",
+                        "fields": null,
+                        "instance": null,
+                        "message": "Ha ocurrido un error inesperado",
+                        "status": 403,
+                        "title": "Forbidden",
+                        "type": "/errors/authorization/forbidden"
+                    }
+                    """))),
+
             @ApiResponse(responseCode = "404", description = "No se ha encontrado el recurso solicitado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = {
                     @ExampleObject(name = "La operación no existe", summary = "La operación no existe", value = """
                             {
@@ -365,6 +413,18 @@ public class OperationController {
                         "status": 401,
                         "title": "Unauthorized",
                         "type": "/errors/authentication/not-authenticated"
+                    }
+                    """))),
+
+            @ApiResponse(responseCode = "403", description = "No tienes permisos para acceder a este recurso", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
+                    {
+                        "detail": "You do not have the required permissions to access this resource",
+                        "fields": null,
+                        "instance": null,
+                        "message": "Ha ocurrido un error inesperado",
+                        "status": 403,
+                        "title": "Forbidden",
+                        "type": "/errors/authorization/forbidden"
                     }
                     """))),
 
@@ -452,6 +512,18 @@ public class OperationController {
                     }
                     """))),
 
+            @ApiResponse(responseCode = "403", description = "No tienes permisos para acceder a este recurso", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
+                    {
+                        "detail": "You do not have the required permissions to access this resource",
+                        "fields": null,
+                        "instance": null,
+                        "message": "Ha ocurrido un error inesperado",
+                        "status": 403,
+                        "title": "Forbidden",
+                        "type": "/errors/authorization/forbidden"
+                    }
+                    """))),
+
             @ApiResponse(responseCode = "404", description = "No se ha encontrado el recurso solicitado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = {
                     @ExampleObject(name = "La operación no existe", summary = "La operación no existe", value = """
                             {
@@ -525,6 +597,18 @@ public class OperationController {
                     }
                     """))),
 
+            @ApiResponse(responseCode = "403", description = "No tienes permisos para acceder a este recurso", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
+                    {
+                        "detail": "You do not have the required permissions to access this resource",
+                        "fields": null,
+                        "instance": null,
+                        "message": "Ha ocurrido un error inesperado",
+                        "status": 403,
+                        "title": "Forbidden",
+                        "type": "/errors/authorization/forbidden"
+                    }
+                    """))),
+
             @ApiResponse(responseCode = "404", description = "La operación no existe", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
                         {
                             "detail": "The operation was not found in the system",
@@ -569,7 +653,23 @@ public class OperationController {
         return ResponseEntity.status(HttpStatus.NO_CONTENT).body(null);
     }
 
-    // TODO: AÑADIR API RESPONSES
+    // TODO: AÑADIR API RESPONSES INCLUYENDO ESTA RESPUESTA - 403
+
+    // @ApiResponse(responseCode = "403", description = "No tienes permisos para
+    // acceder a este recurso", content = @Content(mediaType = "application/json",
+    // schema = @Schema(implementation = StandarizedApiExceptionResponse.class),
+    // examples = @ExampleObject(value = """
+    // {
+    // "detail": "You do not have the required permissions to access this resource",
+    // "fields": null,
+    // "instance": null,
+    // "message": "Ha ocurrido un error inesperado",
+    // "status": 403,
+    // "title": "Forbidden",
+    // "type": "/errors/authorization/forbidden"
+    // }
+    // """))),
+
     @Operation(summary = "Cancela todas las operaciones que pertenecen a un tablero por su ID", description = "Cancela todas las operaciones que pertenecen a un tablero por su ID")
     @SecurityRequirement(name = "bearerAuth")
     @PostMapping("/cancel-operations-board")

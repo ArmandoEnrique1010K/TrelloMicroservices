@@ -22,7 +22,15 @@ public class OpenApiConfig {
                                 new SecurityScheme()
                                         .type(SecurityScheme.Type.HTTP)
                                         .scheme("bearer")
-                                        .bearerFormat("JWT")));
+                                        .bearerFormat("JWT"))
+
+                        // Seguridad basada en basicAuth, en operaciones internas relacionadas a Board,
+                        // BoardAccess y Operation
+                        .addSecuritySchemes(
+                                "basicAuth",
+                                new SecurityScheme()
+                                        .type(SecurityScheme.Type.HTTP)
+                                        .scheme("basic")));
     }
 
 }

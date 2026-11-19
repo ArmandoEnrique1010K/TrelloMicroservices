@@ -38,18 +38,14 @@ public interface OperationRepository extends JpaRepository<Operation, UUID> {
     Optional<Operation> findFirstByWorkspaceIdAndTypeOrderByCreatedAtDesc(UUID workspaceId, OperationType type);
 
     // Listar operaciones que tengan un estado mencionado en la lista y ordenarlas
-    // de forma ascendente (menor a mayor) por fecha de siguiente intento automatico
-    // Y que el valor "nextAutomaticAttemptAtAsc" sea menor que la fecha actual
-
-    // Y tambien por ID de espacio de trabajo, dado que los 6 tipos de operaciones
-    // guardan el ID de espacio de trabajo
-    // List<Operation>
-    // findByStatusInAndNextAutomaticAttemptAtLessThanOrderByNextAutomaticAttemptAtAscWorkspaceIdAsc(
-    // List<OperationStatus> statuses,
-    // LocalDateTime currentDate);
+    // de forma ascendente (menor a mayor) por fecha de creación e ID
 
     List<Operation> findByStatusInOrderByWorkspaceIdAscCreatedAtAscIdAsc(
             List<OperationStatus> statuses);
+
+    List<Operation> findByTypeAndStatusOrderByCompletedAtAscWorkspaceIdAsc(
+            OperationType operationType,
+            OperationStatus operationStatus);
 
     // Comprueba si existe alguna operación del mismo Workspace cuya fecha de
     // creación sea anterior a la indicada y cuyo estado no esté incluido en la
@@ -59,22 +55,8 @@ public interface OperationRepository extends JpaRepository<Operation, UUID> {
             LocalDateTime createdAt,
             List<OperationStatus> completedStatuses);
 
-    // Listar operaciones por una lista de tipos y estado de operacion, ordenados de
-    // forma ascendente por fecha de creación
-    // List<Operation> findByTypeInAndStatusOrderByCompletedAtAscWorkspaceIdAsc(
-    // List<OperationType> operationTypes,
-    // OperationStatus operationStatus);
-
-    List<Operation> findByTypeAndStatusOrderByCompletedAtAscWorkspaceIdAsc(
-            OperationType operationType,
-            OperationStatus operationStatus);
-
-    List<Operation> findByType(OperationStatus operationStatus);
-
-    List<Operation> findByBoardId(UUID boardId);
-
-    // No olvidar la anotación para que pueda ejecutar la operación de borrado
-    // fisico
+    // No olvidar la anotación @Modifying para que pueda ejecutar la operación de
+    // borrado fisico en la base de datos
     @Modifying
     void deleteAllByStatus(OperationStatus status);
 
@@ -116,21 +98,6 @@ public interface OperationRepository extends JpaRepository<Operation, UUID> {
             List<OperationStatus> allowedStatuses,
             OperationStatus status,
             CleanupStatus cleanupStatus);
-
-    // Borrar operaciones completadas
-    // void deleteByBoardIdAndRecipientUserIdAndSenderUserId(
-    // UUID boardId,
-    // UUID recipientUserId,
-    // UUID senderUserId);
-
-    // @Modifying
-    // @Query("""
-    // DELETE FROM Invitation i
-    // WHERE i.acceptedAt <= :now
-    // """)
-    // void deleteAcceptedInvitations(@Param("now") LocalDateTime now);
-
-    List<Operation> findByBoardIdAndStatus(UUID boardId, OperationStatus status);
 
     // Actualizar operacion, cambiar el estado de cleanupStatus por boardId y status
     @Modifying

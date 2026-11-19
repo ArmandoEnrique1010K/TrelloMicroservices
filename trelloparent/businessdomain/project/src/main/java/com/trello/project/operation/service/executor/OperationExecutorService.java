@@ -16,4 +16,7 @@ public interface OperationExecutorService {
 
     // Borrar todas las operaciones con estado CANCELED y cleanupStatus COMPLETED
     void deleteAllCanceledOperations();
+
+    // Eliminar invitaciones aceptadas
+    void deleteAllAcceptedInvitations();
 }

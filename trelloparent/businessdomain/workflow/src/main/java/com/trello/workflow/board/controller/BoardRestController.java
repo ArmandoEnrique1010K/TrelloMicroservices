@@ -7,8 +7,6 @@ import java.util.UUID;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-// import org.springframework.security.core.annotation.AuthenticationPrincipal;
-// import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -18,7 +16,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.trello.workflow.common.StandarizedApiExceptionResponse;
-// import com.trello.workflow.security.JwtUtils;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -41,13 +38,20 @@ public class BoardRestController {
         this.boardService = boardService;
     }
 
+    // Cada uno de estos metodos seran ejecutados mediante un llamado desde el
+    // microservicio Project sea de forma manual o automatica mediante el scheduler
+    // definido en el microservicio Project
     @Operation(summary = "Guarda una copia del tablero por su ID", description = "Crea una copia del ID del tablero")
+
+    // Tener en cuenta que solamente se coloca autenticación de tipo bearerAuth para
+    // probar si funciona el bloqueo del token introducido que tiene el alcance de
+    // "user"
     @SecurityRequirement(name = "bearerAuth")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204", description = "Se ha guardado el permiso"),
 
-            // TODO: VERIFICAR SI ESTE APIRESPONSE SERA APLICADO A LOS DEMÁS ENDPOINTS DE
-            // BOARD Y BOARDACCESS
+            // Este error solamente se puede obtener en un entorno de pruebas, cuando se
+            // decide no utilizar un JWT para iniciar sesion
             @ApiResponse(responseCode = "401", description = "El usuario no esta autenticado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
                     {
                         "detail": "Authentication is required to access this resource",
@@ -57,6 +61,23 @@ public class BoardRestController {
                         "status": 401,
                         "title": "Unauthorized",
                         "type": "/errors/authentication/not-authenticated"
+                    }
+                    """))),
+
+            // Este error se obtiene cuando el JWT no tiene el alcance de
+            // "workflow:operations"
+
+            // Siempre aparece si se trata de realizar la petición pasando el JWT de tipo
+            // bearerAuth en los encabezados
+            @ApiResponse(responseCode = "403", description = "No tienes permisos para acceder a este recurso", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
+                    {
+                        "detail": "You do not have the required permissions to access this resource",
+                        "fields": null,
+                        "instance": null,
+                        "message": "Ha ocurrido un error inesperado",
+                        "status": 403,
+                        "title": "Forbidden",
+                        "type": "/errors/authorization/forbidden"
                     }
                     """))),
 
@@ -131,6 +152,8 @@ public class BoardRestController {
                     }
                     """))),
     })
+    // Si se llamara a este metodo desde el scheduler (ejecutor de tareas en segundo
+    // plano), no debe pasar el JWT del usuario que ha sido autenticado
     @PostMapping("/{boardId}/user/{userId}")
     public ResponseEntity<Void> addBoardAndBoardAccessUserOwner(
             // @AuthenticationPrincipal Jwt jwt,

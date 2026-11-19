@@ -127,7 +127,7 @@ public class BoardProjectServiceImpl implements BoardProjectService {
     @Override
     public Board findBoardAccessibleByUser(UUID boardId, UUID userId)
             throws BoardNotFoundException {
-        return boardRepository.findBoardAccessibleByUser(
+        return boardRepository.findByBoardIdAndUserIdAndRolesAndStatus(
                 boardId,
                 userId,
                 Set.of(Role.ADMIN, Role.MEMBER),
@@ -157,7 +157,7 @@ public class BoardProjectServiceImpl implements BoardProjectService {
 
     @Override
     public List<Board> findAllBoardsByMemberActiveTrueAndMemberUserId(UUID memberUserId) {
-        return boardRepository.findBoardByMemberActiveTrueAndMemberUserIdAndOrderByMemberJoinedAt(memberUserId,
+        return boardRepository.findByMemberActiveTrueAndMemberUserIdAndOrderByMemberJoinedAt(memberUserId,
                 BoardStatus.ACTIVE);
     }
 
@@ -173,7 +173,7 @@ public class BoardProjectServiceImpl implements BoardProjectService {
 
     @Override
     public Board findBoardByIdWithLock(UUID boardId) {
-        return boardRepository.findByIdWithLock(boardId)
+        return boardRepository.findByIdWithLockBoard(boardId)
                 .orElseThrow(BoardNotFoundException::new);
     }
 }

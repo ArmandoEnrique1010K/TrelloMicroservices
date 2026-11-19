@@ -21,22 +21,12 @@ public interface BoardRepository extends JpaRepository<Board, UUID> {
 
     Optional<Board> findByIdAndStatus(UUID boardId, BoardStatus status);
 
-    // Listar todos los tableros por ID de espacio de trabajo y estado true
+    // Listar todos los tableros por ID de espacio de trabajo y estado,
     // Ordenar de forma descendente (mayor a menor) por fecha de creación
-    // List<Board> findByWorkspaceIdAndStatusTrueOrderByCreatedAtDesc(UUID
-    // workspaceId);
-
     List<Board> findByWorkspaceIdAndStatusOrderByCreatedAtDesc(UUID workspaceId, BoardStatus status);
-
-    // boolean existsByWorkspaceIdAndNameAndStatusTrue(UUID workspaceId, String
-    // name);
 
     boolean existsByWorkspaceIdAndNameAndStatus(UUID workspaceId, String name, BoardStatus status);
 
-    // boolean existsByWorkspaceIdAndNameAndIdNotAndStatusTrue(
-    // UUID workspaceId,
-    // String name,
-    // UUID boardId);
     boolean existsByWorkspaceIdAndNameAndIdNotAndStatus(
             UUID workspaceId,
             String name,
@@ -63,7 +53,7 @@ public interface BoardRepository extends JpaRepository<Board, UUID> {
                     )
                 )
             """)
-    Optional<Board> findBoardAccessibleByUser(
+    Optional<Board> findByBoardIdAndUserIdAndRolesAndStatus(
             @Param("boardId") UUID boardId,
             @Param("userId") UUID userId,
             @Param("roles") Set<Role> roles,
@@ -84,7 +74,7 @@ public interface BoardRepository extends JpaRepository<Board, UUID> {
                   AND m.active = true
                 ORDER BY m.joinedAt DESC
             """)
-    List<Board> findBoardByMemberActiveTrueAndMemberUserIdAndOrderByMemberJoinedAt(
+    List<Board> findByMemberActiveTrueAndMemberUserIdAndOrderByMemberJoinedAt(
             @Param("userId") UUID userId,
             @Param("status") BoardStatus status);
 
@@ -92,5 +82,5 @@ public interface BoardRepository extends JpaRepository<Board, UUID> {
     // (bloqueo pesimista)
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT b FROM Board b WHERE b.id = :boardId")
-    Optional<Board> findByIdWithLock(UUID boardId);
+    Optional<Board> findByIdWithLockBoard(UUID boardId);
 }

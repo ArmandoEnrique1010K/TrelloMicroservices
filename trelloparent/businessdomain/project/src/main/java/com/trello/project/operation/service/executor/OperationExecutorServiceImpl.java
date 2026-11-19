@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.trello.project.entities.Operation;
 import com.trello.project.enums.CleanupStatus;
@@ -25,6 +26,7 @@ import com.trello.project.operation.service.processor.OperationDeactivateMemberP
 import com.trello.project.operation.service.processor.OperationDeleteBoardProcessor;
 import com.trello.project.operation.service.processor.OperationDeleteWorkspaceProcessor;
 import com.trello.project.service.BoardProjectService;
+import com.trello.project.service.InvitationProjectService;
 import com.trello.project.service.OperationProjectService;
 import com.trello.project.service.WorkspaceProjectService;
 
@@ -48,6 +50,7 @@ public class OperationExecutorServiceImpl implements OperationExecutorService {
     private final OperationDeleteWorkspaceProcessor operationDeleteWorkspaceProcessor;
     private final BoardProjectService boardProjectService;
     private final WorkspaceProjectService workspaceProjectService;
+    private final InvitationProjectService invitationProjectService;
 
     public OperationExecutorServiceImpl(
             OperationProjectService operationProjectService,
@@ -64,7 +67,8 @@ public class OperationExecutorServiceImpl implements OperationExecutorService {
             OperationDeleteWorkspaceService operationDeleteWorkspaceService,
             OperationDeleteWorkspaceProcessor operationDeleteWorkspaceProcessor,
             BoardProjectService boardProjectService,
-            WorkspaceProjectService workspaceProjectService) {
+            WorkspaceProjectService workspaceProjectService,
+            InvitationProjectService invitationProjectService) {
         this.operationProjectService = operationProjectService;
         this.operationAcceptInvitationService = operationAcceptInvitationService;
         this.operationAcceptInvitationProcessor = operationAcceptInvitationProcessor;
@@ -80,6 +84,7 @@ public class OperationExecutorServiceImpl implements OperationExecutorService {
         this.operationDeleteWorkspaceProcessor = operationDeleteWorkspaceProcessor;
         this.boardProjectService = boardProjectService;
         this.workspaceProjectService = workspaceProjectService;
+        this.invitationProjectService = invitationProjectService;
     }
 
     // Comprueba si existen operaciones anteriores del mismo Workspace que todavía
@@ -283,16 +288,28 @@ public class OperationExecutorServiceImpl implements OperationExecutorService {
         }
     }
 
+    // Como este metodo estara dentro de un scheduler, se coloca Transactional
+    @Transactional(rollbackFor = Exception.class)
     @Override
     public void deleteAllCompletedOperations() {
         operationProjectService.deleteAllOperationsByStatus(
                 OperationStatus.COMPLETED);
     }
 
+    @Transactional(rollbackFor = Exception.class)
     @Override
     public void deleteAllCanceledOperations() {
+
+        // Recordar que en el campo cleanupStatus se establece COMPLETED cuando la
+        // operación esta lista para ser eliminada fisicamente de la base de datos
         operationProjectService.deleteAllOperationsByStatusAndCleanupStatus(
                 OperationStatus.CANCELED,
                 CleanupStatus.COMPLETED);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public void deleteAllAcceptedInvitations() {
+        invitationProjectService.deleteAllAcceptedInvitations();
     }
 }

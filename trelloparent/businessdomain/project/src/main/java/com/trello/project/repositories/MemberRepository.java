@@ -16,9 +16,6 @@ public interface MemberRepository extends JpaRepository<Member, UUID> {
 
     List<Member> findByActiveTrueAndBoardIdOrderByJoinedAtDesc(UUID boardId);
 
-    // boolean existsByBoardIdAndBoardWorkspaceOwnerUserIdAndRole(UUID boardId, UUID
-    // ownerUserId, Role role);
-
     Optional<Member> findByIdAndBoardWorkspaceOwnerUserId(UUID id, UUID ownerUserId);
 
     // Metodo para buscar miembro por ID de tablero, ID de usuario y estado del

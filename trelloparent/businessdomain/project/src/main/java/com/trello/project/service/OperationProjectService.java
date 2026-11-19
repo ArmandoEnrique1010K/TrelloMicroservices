@@ -36,10 +36,6 @@ public interface OperationProjectService {
 
     Optional<Operation> findLatestOperationByWorkspaceIdAndType(UUID workspaceId, OperationType type);
 
-    // List<Operation>
-    // findOperationsByStatusesListOrderByNextAutomaticAttemptAtAscWorkspaceIdAsc(
-    // List<OperationStatus> statuses);
-
     List<Operation> findOperationsByStatusesListOrderByWorkspaceIdAscAndCreatedAtAsc(List<OperationStatus> statuses);
 
     boolean existsPreviousOperationsByWorkspaceIdAndCreatedAt(UUID workspaceId, LocalDateTime createdAt);
@@ -48,10 +44,6 @@ public interface OperationProjectService {
             OperationType operationType, OperationStatus operationStatus);
 
     void deleteAllOperationsByStatus(OperationStatus operationStatus);
-
-    void deleteOperation(Operation operation);
-
-    void changeStatusToCompletedOperation(UUID operationId);
 
     boolean existsOperationByTypeAndWorkspaceIdAndBoardName(OperationType operationType, UUID workspaceId,
             String boardName);
@@ -62,8 +54,6 @@ public interface OperationProjectService {
 
     void cancelAllOperationsByWorkspaceId(UUID workspaceId, UUID excludedOperationId);
 
-    List<Operation> findOperationsByBoardIdAndStatus(UUID boardId, OperationStatus status);
-
     void updateOperationCleanupStatusByBoardIdAndStatus(CleanupStatus cleanupStatus, UUID boardId,
             OperationStatus operationStatus);
 
@@ -71,12 +61,6 @@ public interface OperationProjectService {
             OperationStatus operationStatus);
 
     boolean tryMarkOperation(UUID operationId, OperationStatus expectedStatus, OperationStatus newStatus);
-
-    // METODO PARA ESTABLECER LOS CAMPOS completedAt Y nextAutomaticAttemptAt COMO
-    // NULLS
-    boolean tryMarkOperationAndClearCompletedAtAndNextAutomaticAttemptAt(UUID operationId,
-            OperationStatus expectedStatus,
-            OperationStatus newStatus);
 
     // METODO PARA ESTABLECER completedAt CON LA FECHA Y HORA ACTUAL Y
     // nextAutomaticAttemptAt COMO NULL

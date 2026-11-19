@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.trello.workflow.entities.Label;
 import com.trello.workflow.exception.LabelNotFoundException;
@@ -61,7 +60,6 @@ public class LabelWorkflowServiceImpl implements LabelWorkflowService {
         return labelRepository.findByIdAndBoardId(labelId, boardId).orElseThrow(LabelNotFoundException::new);
     }
 
-    @Transactional
     @Override
     public void deleteAllLabelsByBoardStatusFalseAndBoardDeleteAtBefore(LocalDateTime expirationDate) {
         labelRepository.deleteAllByBoardStatusFalseAndBoardDeletedAtBefore(expirationDate);

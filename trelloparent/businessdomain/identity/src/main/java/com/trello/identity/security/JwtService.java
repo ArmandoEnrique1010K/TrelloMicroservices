@@ -23,52 +23,9 @@ public class JwtService {
         this.jwtEncoder = jwtEncoder;
     }
 
-    // public String generateAccessToken(
-    // Authentication authentication,
-    // long expiresIn) {
-
-    // CustomUserDetails userDetails = (CustomUserDetails)
-    // authentication.getPrincipal();
-
-    // Instant now = Instant.now();
-
-    // List<String> authorities = authentication.getAuthorities()
-    // .stream()
-    // .map(GrantedAuthority::getAuthority)
-    // .toList();
-
-    // String userId = userDetails.getUserId().toString();
-    // String email = userDetails.getUsername();
-
-    // JwtClaimsSet claims = JwtClaimsSet.builder()
-    // .issuer("identity-service")
-    // // El email como subject
-    // // .subject(email)
-
-    // // ID del usuario como subject
-    // // .subject(userId.toString())
-    // .subject(userId)
-    // .issuedAt(now)
-
-    // // Si se va a probar en la interfaz de Swagger por ejemplo, el token puede
-    // // tardar más de la duración especificada en caducar, esperar al menos 1
-    // minuto
-    // // más para ver que caduque
-
-    // // Expira en ... segundos
-    // .expiresAt(now.plusSeconds(expiresIn))
-    // .claim("email", email)
-    // .claim("authorities", authorities)
-    // .claim("token_type", "USER")
-
-    // .audience(List.of("workflow-service"))
-    // .build();
-
-    // return jwtEncoder
-    // .encode(JwtEncoderParameters.from(claims))
-    // .getTokenValue();
-    // }
-
+    // Método privado encargado de construir y firmar JWT de usuario.
+    // Recibe la información del usuario y el tiempo de expiración
+    // para generar un token con los claims correspondientes.
     private String generateToken(
             UUID userId,
             String email,
@@ -77,32 +34,52 @@ public class JwtService {
         Instant now = Instant.now();
 
         JwtClaimsSet claims = JwtClaimsSet.builder()
+                // Identifica al servicio emisor del JWT.
                 .issuer("identity-service")
+
+                // Identificador del usuario autenticado.
                 .subject(userId.toString())
+
+                // Servicios destinatarios que pueden aceptar este JWT.
+                // El servicio receptor también debe validar el claim aud.
                 .audience(List.of(
                         // Se sobreentiende que este JWT se utilizara tanto para este microservicio como
                         // para los demás microservicios
                         // "identity-service",
                         "project-service", "workflow-service"))
+
+                // Fecha y hora en la que el JWT dejará de ser válido.
                 .expiresAt(now.plusSeconds(expirationTime))
+
+                // Fecha y hora en la que se generó el JWT.
                 .issuedAt(now)
+
+                // Scope que identifica al token como un JWT de usuario.
+                // Spring Security lo transforma en la autoridad SCOPE_user.
                 .claim("scope", "user")
+
+                // Correo electrónico asociado al usuario.
                 .claim("email", email)
-                // .claim("authorities", authorities)
-                // .claim("token_type", "USER")
                 .build();
 
-        log.info(claims.getClaimAsString("scope"));
+        // log.info(claims.getClaimAsString("scope"));
 
+        // Firma y serializa el JWT utilizando el JwtEncoder configurado.
         return jwtEncoder.encode(
                 JwtEncoderParameters.from(claims)).getTokenValue();
     }
 
+    // Genera un JWT de acceso para un usuario autenticado.
+    // Obtiene los datos del usuario desde el Authentication recibido
+    // y delega la construcción del token al método generateToken().
     public String generateAccessToken(
             Authentication authentication,
             long expirationTime) {
 
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+
+        // Si posteriormente se implementan roles, se pueden obtener
+        // las autoridades del usuario y agregarlas como claims al JWT.
 
         // List<String> authorities = authentication.getAuthorities()
         // .stream()
@@ -118,7 +95,14 @@ public class JwtService {
                 expirationTime);
     }
 
-    // SOBRECARGA
+    // Genera un JWT de recarga (Refresh Token).
+    // Actualmente utiliza la misma estructura y los mismos claims
+    // que el JWT de acceso, pero permite establecer una expiración diferente.
+    //
+    // IMPORTANTE:
+    // Si se utiliza esta implementación, el refresh token también tendrá
+    // el scope "user". Para una separación estricta, conviene diferenciar
+    // ambos tipos de tokens mediante un claim específico y validar su uso.
     public String generateRefreshToken(
             UUID userId,
             String email,
@@ -127,53 +111,48 @@ public class JwtService {
         return generateToken(
                 userId,
                 email,
-                // Aqui se define manualmente los roles
-                // List.of("ROLE_USER"),
                 expirationTime);
     }
 
-    // public String generateAccessToken(
-    // UUID userId,
-    // String email,
-    // long expirationTime) {
-
-    // Instant now = Instant.now();
-
-    // JwtClaimsSet claims = JwtClaimsSet.builder()
-    // .issuer("identity-service")
-    // .subject(userId.toString())
-    // .issuedAt(now)
-    // .expiresAt(now.plusSeconds(expirationTime))
-    // .claim("email", email)
-
-    // .build();
-
-    // return jwtEncoder.encode(
-    // JwtEncoderParameters.from(claims)).getTokenValue();
-    // }
-
-    // Generar el JWT de servicio interno
-
+    // Genera un JWT exclusivo para la comunicación interna entre servicios.
+    // Este token no representa a un usuario, sino a un servicio autorizado.
     public ServiceTokenResponse generateServiceToken() {
 
         Instant now = Instant.now();
 
+        // Los JWT internos tienen una duración corta para reducir
+        // el tiempo de exposición ante una posible filtración.
         Instant expiresAt = now.plusSeconds(300);
 
         JwtClaimsSet claims = JwtClaimsSet.builder()
+                // Servicio responsable de emitir el token.
                 .issuer("identity-service")
+
+                // Identidad del servicio que representa el JWT.
                 .subject("project-service")
+
+                // Únicamente workflow-service está autorizado como destinatario.
                 .audience(List.of("workflow-service"))
+                // Fecha de expiración del JWT interno.
                 .expiresAt(expiresAt)
+
+                // Fecha de emisión del JWT.
                 .issuedAt(now)
+
+                // Scope exclusivo para operaciones internas de Workflow.
+                // Spring Security lo transforma en la autoridad:
+                // SCOPE_workflow:operations
                 .claim("scope", "workflow:operations")
+
                 .build();
 
-        log.info(claims.getClaimAsString("scope"));
+        // log.info(claims.getClaimAsString("scope"));
 
+        // Firma y serializa el JWT interno.
         String token = jwtEncoder.encode(
                 JwtEncoderParameters.from(claims)).getTokenValue();
 
+        // Devuelve el token y su fecha de expiración.
         ServiceTokenResponse response = new ServiceTokenResponse();
         response.setAccessToken(token);
         response.setExpiresAt(expiresAt);

@@ -184,7 +184,8 @@ public class OperationDeleteWorkspaceProcessorImpl
                     workspaceId,
                     operationId);
 
-            // REVERTIR ESTADO DE OPERACIONES EN PROJECT CAMPO CLEANUP A PENDING
+            // Revertir estado de operaciones en project, escribir en el campo cleanup el
+            // valor PENDING
 
             // Vuelve al estado original, implica que no se pudo realizar el llamado en el
             // microservicio Workflow para cancelar la operacioin

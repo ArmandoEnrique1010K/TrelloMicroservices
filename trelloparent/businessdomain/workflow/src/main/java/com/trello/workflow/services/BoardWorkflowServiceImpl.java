@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.trello.workflow.entities.Board;
 import com.trello.workflow.entities.BoardAccess;
@@ -159,7 +158,6 @@ public class BoardWorkflowServiceImpl implements BoardWorkflowService {
         boardAccessRepository.enableAllByBoardIds(boardsIds);
     }
 
-    @Transactional
     @Override
     public void deleteAllBoardsByStatusFalseAndDeleteAtBefore(LocalDateTime expirationTime) {
         boardRepository.deleteAllByStatusFalseAndDeletedAtBefore(expirationTime);

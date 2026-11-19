@@ -49,9 +49,9 @@ public class Board {
     @Column(nullable = false)
     private LocalDateTime createdAt;
 
-    // Estado del tablero, si es false quiere decir que fue eliminado logicamente
-    // private boolean status;
-
+    // Estado del tablero, si es DELETED quiere decir que fue eliminado logicamente,
+    // DELETING si esta en proceso de eliminación logica y ACTIVE si no ha sido
+    // eliminado logicamente
     @Enumerated(EnumType.STRING)
     private BoardStatus status;
 
@@ -59,10 +59,10 @@ public class Board {
     @JoinColumn(name = "workspace_id", nullable = false)
     private Workspace workspace;
 
-    @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "board", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<Member> members;
 
-    @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "board", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<Invitation> invitations;
 
 }

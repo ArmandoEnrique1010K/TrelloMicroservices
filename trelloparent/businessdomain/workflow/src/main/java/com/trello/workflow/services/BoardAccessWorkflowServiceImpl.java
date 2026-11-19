@@ -8,7 +8,6 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.trello.workflow.entities.BoardAccess;
 import com.trello.workflow.enums.Role;
@@ -93,7 +92,6 @@ public class BoardAccessWorkflowServiceImpl implements BoardAccessWorkflowServic
         boardAccessRepository.save(boardAccess);
     }
 
-    @Transactional
     @Override
     public void deleteAllBoardsAccessByBoardStatusFalseAndBoardDeleteAtBefore(LocalDateTime expirationTime) {
         boardAccessRepository.deleteAllByBoardsPendingPhysicalDeletion(expirationTime);

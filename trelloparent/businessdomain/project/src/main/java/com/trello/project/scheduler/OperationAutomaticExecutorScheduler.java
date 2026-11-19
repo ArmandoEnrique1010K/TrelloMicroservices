@@ -72,4 +72,12 @@ public class OperationAutomaticExecutorScheduler {
         operationExecutorService.deleteAllCanceledOperations();
     }
 
+    // Por cada semana se van a eliminar las invitaciones aceptadas
+    @Scheduled(fixedRate = 7, timeUnit = TimeUnit.DAYS)
+    public void deleteAcceptedInvitations() {
+        log.info("ELIMINANDO TODAS LAS INVITACIONES ACEPTADAS");
+
+        operationExecutorService.deleteAllAcceptedInvitations();
+    }
+
 }

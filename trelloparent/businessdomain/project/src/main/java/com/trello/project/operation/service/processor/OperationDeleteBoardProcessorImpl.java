@@ -132,7 +132,8 @@ public class OperationDeleteBoardProcessorImpl
         }
     }
 
-    // TODO: REVISAR ESTE METODO
+    // Método para procesar todas las operaciones que se van a cancelar por ID de
+    // tablero
     @Override
     public void processCancelOperationsByBoardId(UUID boardId, UUID operationId) {
 
@@ -159,7 +160,8 @@ public class OperationDeleteBoardProcessorImpl
                     boardId,
                     operationId);
 
-            // REVERTIR ESTADO DE OPERACIONES EN PROJECT CAMPO CLEANUP A PENDING
+            // Revertir estado de operaciones en project, escribir en el campo cleanup el
+            // valor PENDING
 
             // Vuelve al estado original, implica que no se pudo realizar el llamado en el
             // microservicio Workflow para cancelar la operacioin

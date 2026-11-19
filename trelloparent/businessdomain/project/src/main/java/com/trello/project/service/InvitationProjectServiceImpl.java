@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.trello.project.entities.Invitation;
 import com.trello.project.enums.Status;
@@ -80,8 +79,10 @@ public class InvitationProjectServiceImpl implements InvitationProjectService {
 
     // Un delete que no encuentra coincidencias simplemente afecta 0 registros
     // Las operaciones que implican un borrado en la base de datos debe llevar un
-    // transactional
-    @Transactional
+    // transactional, en este caso como este metodo es utilizado por el servicio que
+    // contiene logica de negocio, la anotación @Transactional la llevara el
+    // servicio que contiene logica de negocio
+    // @Transactional
     @Override
     public void deleteInvitationIfExistsByBoardIdAndRecipientUserId(UUID boardId, UUID recipientUserId,
             UUID senderUserId) {
@@ -89,11 +90,11 @@ public class InvitationProjectServiceImpl implements InvitationProjectService {
     }
 
     // Como este método se va a ejecutar automaticamente cada cierto tiempo debe
-    // tener un @Transactional
-    @Transactional
+    // tener un @Transactional, sea aqui o en el servicio que contiene logica de
+    // ejecución en segundo plano
     @Override
     public void deleteAllAcceptedInvitations() {
         LocalDateTime now = LocalDateTime.now();
-        invitationRepository.deleteAcceptedInvitations(now);
+        invitationRepository.deleteByAcceptedAtBefore(now);
     }
 }

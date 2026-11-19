@@ -13,7 +13,6 @@ import com.trello.project.entities.Operation;
 import com.trello.project.enums.CleanupStatus;
 import com.trello.project.enums.OperationStatus;
 import com.trello.project.enums.OperationType;
-import com.trello.project.operation.exception.OperationNotFoundException;
 import com.trello.project.repositories.OperationRepository;
 
 @Service
@@ -72,18 +71,6 @@ public class OperationProjectServiceImpl implements OperationProjectService {
         return operationRepository.findFirstByWorkspaceIdAndTypeOrderByCreatedAtDesc(workspaceId, type);
     }
 
-    // @Override
-    // public List<Operation>
-    // findOperationsByStatusesListOrderByNextAutomaticAttemptAtAscWorkspaceIdAsc(
-    // List<OperationStatus> statuses) {
-    // LocalDateTime currentDate = LocalDateTime.now();
-
-    // return operationRepository
-    // .findByStatusInAndNextAutomaticAttemptAtLessThanOrderByNextAutomaticAttemptAtAscWorkspaceIdAsc(
-    // statuses,
-    // currentDate);
-    // }
-
     @Override
     public boolean existsPreviousOperationsByWorkspaceIdAndCreatedAt(UUID workspaceId, LocalDateTime createdAt) {
         // Estados que permiten continuar con las operaciones posteriores:
@@ -117,27 +104,15 @@ public class OperationProjectServiceImpl implements OperationProjectService {
                 operationStatus);
     }
 
-    // Como este metodo estara dentro de un scheduler, se coloca Transactional
-    @Transactional
     @Override
     public void deleteAllOperationsByStatus(OperationStatus operationStatus) {
         operationRepository.deleteAllByStatus(operationStatus);
     }
 
     @Override
-    public void deleteOperation(Operation operation) {
-        operationRepository.delete(operation);
-    }
-
-    @Override
-    public void changeStatusToCompletedOperation(UUID operationId) {
-        Operation operation = operationRepository.findById(operationId).orElseThrow(
-                OperationNotFoundException::new);
-
-        operation.setStatus(OperationStatus.COMPLETED);
-        operation.setCompletedAt(LocalDateTime.now());
-        operation.setNextAutomaticAttemptAt(null);
-        operationRepository.save(operation);
+    public void deleteAllOperationsByStatusAndCleanupStatus(OperationStatus operationStatus,
+            CleanupStatus cleanupStatus) {
+        operationRepository.deleteAllByStatusAndCleanupStatus(operationStatus, cleanupStatus);
     }
 
     @Override
@@ -200,11 +175,6 @@ public class OperationProjectServiceImpl implements OperationProjectService {
                 CleanupStatus.EXECUTION_PENDING);
     }
 
-    @Override
-    public List<Operation> findOperationsByBoardIdAndStatus(UUID boardId, OperationStatus status) {
-        return operationRepository.findByBoardIdAndStatus(boardId, status);
-    }
-
     @Transactional
     @Override
     public void updateOperationCleanupStatusByBoardIdAndStatus(CleanupStatus cleanupStatus, UUID boardId,
@@ -238,17 +208,6 @@ public class OperationProjectServiceImpl implements OperationProjectService {
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public boolean tryMarkOperationAndClearCompletedAtAndNextAutomaticAttemptAt(UUID operationId,
-            OperationStatus expectedStatus, OperationStatus newStatus) {
-        int updatedRows = operationRepository.updateStatusAndDatesIfCurrent(
-                operationId,
-                expectedStatus,
-                newStatus, null, null);
-
-        return updatedRows == 1;
-    }
-
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public boolean tryMarkOperationAndSetCompletedAtNowAndClearNextAutomaticAttemptAt(UUID operationId,
             OperationStatus expectedStatus, OperationStatus newStatus) {
 
@@ -273,11 +232,5 @@ public class OperationProjectServiceImpl implements OperationProjectService {
                 newStatus, null, futureCurrentDate);
 
         return updatedRows == 1;
-    }
-
-    @Override
-    public void deleteAllOperationsByStatusAndCleanupStatus(OperationStatus operationStatus,
-            CleanupStatus cleanupStatus) {
-        operationRepository.deleteAllByStatusAndCleanupStatus(operationStatus, cleanupStatus);
     }
 }

@@ -193,7 +193,7 @@ public class AuthRestController {
                             "accessToken": "eyJ...",
                             "confirmed": true,
                             "expiresIn": 2592000,
-                            "refreshToken": "iFs..."
+                            "refreshToken": ""
                         },
                         "message": ""
                     }
@@ -253,7 +253,8 @@ public class AuthRestController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Inicio de sesión exitoso", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ServiceTokenResponse.class), examples = @ExampleObject(value = """
                     {
-                        "accessToken": "eyJ..."
+                        "accessToken": "eyJ...",
+                        "expiresAt": 300
                     }
                     """))),
             @ApiResponse(responseCode = "401", description = "Token de revalidación invalido", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
@@ -282,8 +283,6 @@ public class AuthRestController {
     @PostMapping("/internal/service-token")
     public ResponseEntity<ServiceTokenResponse> generateInternalToken() {
         ServiceTokenResponse response = authService.generateInternalToken();
-        // Pasale el username y el password tal y como esta definido en
-        // applications.properties
 
         // Desde JWT.io, al decodificar el Token obtenido, este debe obtener:
         // "iss": "identity-service",

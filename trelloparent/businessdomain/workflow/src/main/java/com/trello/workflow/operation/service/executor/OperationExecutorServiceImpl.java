@@ -47,7 +47,12 @@ public class OperationExecutorServiceImpl implements OperationExecutorService {
     @Transactional(rollbackFor = Exception.class)
     @Override
     public void deleteAllBoardsByStatusFalseAndDeletedAtMore5minutes() {
-        LocalDateTime expirationDate = LocalDateTime.now().plusMinutes(5);
+        LocalDateTime expirationDate = LocalDateTime.now().minusMinutes(5);
+
+        // A diferencia del microservicio Project en el cual se utilizaba un bucle for
+        // para eliminar fisicamente uno por uno cada "board" en la base de datos, en
+        // este caso se utilizara un metodo de eliminación masiva a la base de datos por
+        // cada una de las entidades relacionadas
 
         // Eliminar relaciones y entidades dependientes
         boardAccessWorkflowService.deleteAllBoardsAccessByBoardStatusFalseAndBoardDeleteAtBefore(expirationDate);
@@ -77,14 +82,15 @@ public class OperationExecutorServiceImpl implements OperationExecutorService {
 
         // Finalmente, eliminar los tableros
         boardWorkflowService.deleteAllBoardsByStatusFalseAndDeleteAtBefore(expirationDate);
-
     }
 
+    @Transactional(rollbackFor = Exception.class)
     @Override
     public void deleteAllCompletedOperations() {
         operationWorkflowService.deleteAllOperationsByStatus(OperationStatus.COMPLETED);
     }
 
+    @Transactional(rollbackFor = Exception.class)
     @Override
     public void deleteAllCanceledOperations() {
         operationWorkflowService.deleteAllOperationsByStatus(OperationStatus.CANCELED);

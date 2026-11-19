@@ -5,7 +5,6 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.trello.workflow.entities.Operation;
 import com.trello.workflow.enums.OperationStatus;
@@ -43,7 +42,6 @@ public class OperationWorkflowServiceImpl implements OperationWorkflowService {
         operationRepository.updateStatusByBoardsIds(boardsIds, status);
     }
 
-    @Transactional
     @Override
     public void deleteAllOperationsByStatus(OperationStatus status) {
         operationRepository.deleteAllByStatus(status);

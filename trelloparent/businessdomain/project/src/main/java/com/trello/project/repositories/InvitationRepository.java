@@ -33,9 +33,6 @@ public interface InvitationRepository extends JpaRepository<Invitation, UUID> {
 
     Optional<Invitation> findByIdAndRecipientUserId(UUID id, UUID recipientUserId);
 
-    // Optional<Invitation> findByBoardIdAndRecipientUserId(UUID boardId, UUID
-    // recipientUserId);
-
     void deleteByBoardIdAndRecipientUserIdAndSenderUserId(
             UUID boardId,
             UUID recipientUserId,
@@ -46,5 +43,7 @@ public interface InvitationRepository extends JpaRepository<Invitation, UUID> {
                 DELETE FROM Invitation i
                 WHERE i.acceptedAt <= :now
             """)
-    void deleteAcceptedInvitations(@Param("now") LocalDateTime now);
+    // Eliminar las invitaciones cuya fecha de aceptación sea anterior o igual
+    // a la fecha y hora proporcionada
+    void deleteByAcceptedAtBefore(@Param("now") LocalDateTime now);
 }

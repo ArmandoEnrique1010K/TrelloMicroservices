@@ -45,6 +45,31 @@ public class OperationUtils {
     // operationProjectService.saveOperation(operation);
     // }
 
+    public void markExecuting(Operation operation) {
+        // operation.setStatus(OperationStatus.EXECUTING);
+        // operationProjectService.saveOperation(operation);
+
+        // En este momento:
+        // operation.getStatus() == EXECUTION_PENDING
+
+        // En resumen la operación debe tener el estado de EXECUTION_PENDING para que
+        // pueda pasar al estado EXECUTING
+        boolean updated = operationProjectService.tryMarkOperation(
+                operation.getId(),
+                OperationStatus.EXECUTION_PENDING,
+                OperationStatus.EXECUTING);
+
+        if (!updated) {
+            log.info("OPERACION NO PENDIENTE DESDE markExecuting");
+            throw new OperationNotPendingException();
+        }
+
+        // La base de datos ya tiene EXECUTING.
+
+        // Sincronizar el objeto en memoria
+        operation.setStatus(OperationStatus.EXECUTING);
+    }
+
     public void markCompleted(Operation operation) {
         // operation.setStatus(OperationStatus.COMPLETED);
         // operation.setCompletedAt(LocalDateTime.now());
@@ -85,31 +110,6 @@ public class OperationUtils {
         }
 
         operation.setStatus(OperationStatus.COMPENSATION_PENDING);
-    }
-
-    public void markExecuting(Operation operation) {
-        // operation.setStatus(OperationStatus.EXECUTING);
-        // operationProjectService.saveOperation(operation);
-
-        // En este momento:
-        // operation.getStatus() == EXECUTION_PENDING
-
-        // En resumen la operación debe tener el estado de EXECUTION_PENDING para que
-        // pueda pasar al estado EXECUTING
-        boolean updated = operationProjectService.tryMarkOperation(
-                operation.getId(),
-                OperationStatus.EXECUTION_PENDING,
-                OperationStatus.EXECUTING);
-
-        if (!updated) {
-            log.info("OPERACION NO PENDIENTE DESDE markExecuting");
-            throw new OperationNotPendingException();
-        }
-
-        // La base de datos ya tiene EXECUTING.
-
-        // Sincronizar el objeto en memoria
-        operation.setStatus(OperationStatus.EXECUTING);
     }
 
     public void markLocalCompensationInProgress(Operation operation) {

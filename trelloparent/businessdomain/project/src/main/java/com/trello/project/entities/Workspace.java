@@ -32,7 +32,7 @@ public class Workspace {
     // ID del propietario del proyecto
     private UUID ownerUserId;
 
-    @OneToMany(mappedBy = "workspace", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "workspace", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<Board> boards;
 
     // @CreationTimestamp

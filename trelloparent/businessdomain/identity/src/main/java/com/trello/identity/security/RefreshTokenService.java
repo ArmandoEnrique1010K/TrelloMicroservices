@@ -80,19 +80,19 @@ public class RefreshTokenService {
         refreshTokenRepository.save(refreshToken);
 
         // 9. Generar un nuevo Refresh Token
-        String newRefreshToken = generateRefreshToken();
+        // String newRefreshToken = generateRefreshToken();
 
         // 10. Guardar el nuevo Refresh Token
-        saveRefreshToken(
-                newRefreshToken,
-                user.getId());
+        // saveRefreshToken(
+        // newRefreshToken,
+        // user.getId());
 
         // 11. Construir respuesta
         AuthenticationResponse response = new AuthenticationResponse();
 
         response.setConfirmed(user.isConfirmed());
         response.setAccessToken(accessToken);
-        response.setRefreshToken(newRefreshToken);
+        response.setRefreshToken("");
 
         response.setExpiresIn(REFRESH_TOKEN_EXPIRATION);
 
