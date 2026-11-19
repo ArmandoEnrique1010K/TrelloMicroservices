@@ -54,26 +54,24 @@ public interface OperationProjectService {
 
     void cancelAllOperationsByWorkspaceId(UUID workspaceId, UUID excludedOperationId);
 
+    void cancelAllOperationsByMemberId(UUID memberId, UUID excludedOperationId);
+
     void updateOperationCleanupStatusByBoardIdAndStatus(CleanupStatus cleanupStatus, UUID boardId,
             OperationStatus operationStatus);
 
     void updateOperationCleanupStatusByWorkspaceIdAndStatus(CleanupStatus cleanupStatus, UUID workspaceId,
             OperationStatus operationStatus);
 
+    void updateOperationCleanupStatusByMemberIdAndStatus(CleanupStatus cleanupStatus, UUID memberId,
+            OperationStatus operationStatus);
+
     boolean tryMarkOperation(UUID operationId, OperationStatus expectedStatus, OperationStatus newStatus);
 
-    // METODO PARA ESTABLECER completedAt CON LA FECHA Y HORA ACTUAL Y
-    // nextAutomaticAttemptAt COMO NULL
-    boolean tryMarkOperationAndSetCompletedAtNowAndClearNextAutomaticAttemptAt(UUID operationId,
+    boolean tryMarkOperationAndSetCompletedAtNow(UUID operationId,
             OperationStatus expectedStatus, OperationStatus newStatus);
 
-    // METODO PARA ESTABLECER completedAt COMO NULL Y nextAutomaticAttemptAt EN 30
-    // SEGUNDOS LUEGO DE LA HORA ACTUAL
-    boolean tryMarkOperationAndSetCompletedAtNullAndNextAutomaticAttemptAtIn30Seconds(UUID operationId,
+    boolean tryMarkOperationAndSetCompletedAtNull(UUID operationId,
             OperationStatus expectedStatus, OperationStatus newStatus);
-
-    // METODO PARA ESTABLECER completedAt COMO NULL Y nextAutomaticAttemptAt EN 30
-    // SEGUNDOS LUEGO DE LA HORA ACTUAL
 
     void deleteAllOperationsByStatusAndCleanupStatus(OperationStatus operationStatus, CleanupStatus cleanupStatus);
 }

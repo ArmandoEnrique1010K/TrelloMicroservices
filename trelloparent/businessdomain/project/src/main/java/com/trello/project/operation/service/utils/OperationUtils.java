@@ -26,7 +26,6 @@ public class OperationUtils {
         operation.setStatus(
                 OperationStatus.MANUAL_INTERVENTION_REQUIRED);
         operation.setCompletedAt(null);
-        operation.setNextAutomaticAttemptAt(null);
 
         log.error(
                 "Operation {} requires manual intervention. Type: {}",
@@ -37,14 +36,10 @@ public class OperationUtils {
         operationProjectService.saveOperation(operation);
     }
 
-    // public void markCanceled(Operation operation) {
-    // operation.setStatus(OperationStatus.CANCELED);
-    // operation.setCompletedAt(null);
-    // operation.setNextAutomaticAttemptAt(null);
-
-    // operationProjectService.saveOperation(operation);
-    // }
-
+    // Se utiliza la tecnica de transiciones para establecer el estado, el cual
+    // consiste en que una operación deba tener un "estado anterior" para poder
+    // establecer el nuevo estado, aunque no se va a guardar en la base de datos
+    // sino en memoria
     public void markExecuting(Operation operation) {
         // operation.setStatus(OperationStatus.EXECUTING);
         // operationProjectService.saveOperation(operation);
@@ -71,14 +66,7 @@ public class OperationUtils {
     }
 
     public void markCompleted(Operation operation) {
-        // operation.setStatus(OperationStatus.COMPLETED);
-        // operation.setCompletedAt(LocalDateTime.now());
-        // Borrar intento automatico
-        // operation.setNextAutomaticAttemptAt(null);
-
-        // operationProjectService.saveOperation(operation);
-
-        boolean updated = operationProjectService.tryMarkOperationAndSetCompletedAtNowAndClearNextAutomaticAttemptAt(
+        boolean updated = operationProjectService.tryMarkOperationAndSetCompletedAtNow(
                 operation.getId(),
                 OperationStatus.EXECUTING,
                 OperationStatus.COMPLETED);
@@ -92,14 +80,8 @@ public class OperationUtils {
     }
 
     public void markCompensationPending(Operation operation) {
-        // operation.setStatus(OperationStatus.COMPENSATION_PENDING);
-        // operation.setCompletedAt(null);
-        // operation.setNextAutomaticAttemptAt(
-        // LocalDateTime.now().plusSeconds(30));
-
-        // operationProjectService.saveOperation(operation);
         boolean updated = operationProjectService
-                .tryMarkOperationAndSetCompletedAtNullAndNextAutomaticAttemptAtIn30Seconds(
+                .tryMarkOperationAndSetCompletedAtNull(
                         operation.getId(),
                         OperationStatus.EXECUTING,
                         OperationStatus.COMPENSATION_PENDING);
@@ -113,9 +95,6 @@ public class OperationUtils {
     }
 
     public void markLocalCompensationInProgress(Operation operation) {
-        // operation.setStatus(OperationStatus.LOCAL_COMPENSATION_IN_PROGRESS);
-        // operationProjectService.saveOperation(operation);
-
         boolean updated = operationProjectService.tryMarkOperation(
                 operation.getId(),
                 OperationStatus.COMPENSATION_PENDING,
@@ -130,8 +109,6 @@ public class OperationUtils {
     }
 
     public void markLocalCompensationCompleted(Operation operation) {
-        // operation.setStatus(OperationStatus.LOCAL_COMPENSATION_COMPLETED);
-        // operationProjectService.saveOperation(operation);
         boolean updated = operationProjectService.tryMarkOperation(
                 operation.getId(),
                 OperationStatus.LOCAL_COMPENSATION_IN_PROGRESS,
@@ -147,8 +124,6 @@ public class OperationUtils {
     }
 
     public void markCompensationInProgress(Operation operation) {
-        // operation.setStatus(OperationStatus.LOCAL_COMPENSATION_COMPLETED);
-        // operationProjectService.saveOperation(operation);
         boolean updated = operationProjectService.tryMarkOperation(
                 operation.getId(),
                 OperationStatus.LOCAL_COMPENSATION_COMPLETED,
@@ -192,13 +167,7 @@ public class OperationUtils {
     }
 
     public void markLogicalDeleteCompleted(Operation operation) {
-        // operation.setStatus(OperationStatus.LOGICAL_DELETE_COMPLETED);
-        // operation.setCompletedAt(LocalDateTime.now());
-        // operation.setNextAutomaticAttemptAt(null);
-
-        // operationProjectService.saveOperation(operation);
-
-        boolean updated = operationProjectService.tryMarkOperationAndSetCompletedAtNowAndClearNextAutomaticAttemptAt(
+        boolean updated = operationProjectService.tryMarkOperationAndSetCompletedAtNow(
                 operation.getId(),
                 OperationStatus.EXECUTING,
                 OperationStatus.LOGICAL_DELETE_COMPLETED);
@@ -209,7 +178,5 @@ public class OperationUtils {
         }
 
         operation.setStatus(OperationStatus.LOGICAL_DELETE_COMPLETED);
-
     }
-
 }

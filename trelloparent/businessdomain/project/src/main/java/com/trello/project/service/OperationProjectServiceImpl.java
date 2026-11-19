@@ -79,10 +79,7 @@ public class OperationProjectServiceImpl implements OperationProjectService {
         // fisicamente los datos.
         // - COMPENSATION_COMPLETED: los cambios fueron revertidos en ambos
         // microservicios.
-        //
-
-        // TODO: ¿INCLUIR EL ESTADO DE CANCELED?
-        // CANCELED: la operacion fue cancelada
+        // - CANCELED: la operacion fue cancelada
 
         // LOCAL_COMPENSATION_COMPLETED no se incluye porque, aunque Project ya revirtió
         // sus cambios, todavía falta completar la compensación en Workflow.
@@ -90,7 +87,8 @@ public class OperationProjectServiceImpl implements OperationProjectService {
                 OperationStatus.COMPLETED,
                 OperationStatus.LOGICAL_DELETE_COMPLETED,
                 // OperationStatus.LOCAL_COMPENSATION_COMPLETED,
-                OperationStatus.COMPENSATION_COMPLETED);
+                OperationStatus.COMPENSATION_COMPLETED,
+                OperationStatus.CANCELED);
 
         return operationRepository.existsByWorkspaceIdAndCreatedAtLessThanAndStatusNotIn(workspaceId, createdAt,
                 completedStatuses);
@@ -207,30 +205,56 @@ public class OperationProjectServiceImpl implements OperationProjectService {
         return updatedRows == 1;
     }
 
+    // Ejecuta la transición de estado y establece el campo completedAt con la fecha
+    // y hora actual
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public boolean tryMarkOperationAndSetCompletedAtNowAndClearNextAutomaticAttemptAt(UUID operationId,
+    public boolean tryMarkOperationAndSetCompletedAtNow(UUID operationId,
             OperationStatus expectedStatus, OperationStatus newStatus) {
 
         LocalDateTime currentDate = LocalDateTime.now();
 
-        int updatedRows = operationRepository.updateStatusAndDatesIfCurrent(
+        int updatedRows = operationRepository.updateStatusAndCompletedAt(
                 operationId,
                 expectedStatus,
-                newStatus, currentDate, null);
+                newStatus, currentDate);
 
         return updatedRows == 1;
     }
 
+    // METODO PARA ESTABLECER completedAt COMO NULL
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public boolean tryMarkOperationAndSetCompletedAtNullAndNextAutomaticAttemptAtIn30Seconds(UUID operationId,
+    public boolean tryMarkOperationAndSetCompletedAtNull(UUID operationId,
             OperationStatus expectedStatus, OperationStatus newStatus) {
-        LocalDateTime futureCurrentDate = LocalDateTime.now().plusSeconds(30);
 
-        int updatedRows = operationRepository.updateStatusAndDatesIfCurrent(
+        int updatedRows = operationRepository.updateStatusAndCompletedAt(
                 operationId,
                 expectedStatus,
-                newStatus, null, futureCurrentDate);
+                newStatus, null);
 
         return updatedRows == 1;
+    }
+
+    @Override
+    public void cancelAllOperationsByMemberId(UUID memberId, UUID excludedOperationId) {
+        List<OperationStatus> allowedStatuses = List.of(
+                OperationStatus.REGISTERED,
+                OperationStatus.EXECUTION_PENDING,
+                OperationStatus.EXECUTING,
+                OperationStatus.COMPENSATION_PENDING,
+                OperationStatus.LOCAL_COMPENSATION_COMPLETED,
+                OperationStatus.COMPENSATION_COMPLETED);
+
+        operationRepository.cancelAllByMemberId(
+                memberId,
+                excludedOperationId,
+                allowedStatuses,
+                OperationStatus.CANCELED,
+                CleanupStatus.EXECUTION_PENDING);
+    }
+
+    @Override
+    public void updateOperationCleanupStatusByMemberIdAndStatus(CleanupStatus cleanupStatus, UUID memberId,
+            OperationStatus operationStatus) {
+        operationRepository.updateCleanupStatusByMemberIdAndStatus(memberId, operationStatus, cleanupStatus);
     }
 }

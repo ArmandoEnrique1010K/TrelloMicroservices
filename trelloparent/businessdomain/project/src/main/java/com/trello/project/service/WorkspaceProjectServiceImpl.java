@@ -72,7 +72,6 @@ public class WorkspaceProjectServiceImpl implements WorkspaceProjectService {
         workspaceRepository.delete(workspace);
     }
 
-    // TODO: URGENTE, CAMBIAR EL PARAMETRO STATUS
     @Override
     public void changeStatusWorkspaceById(UUID workspaceId, UUID ownerUserId, boolean workspaceStatus,
             BoardStatus expectedBoardStatus,

@@ -53,4 +53,9 @@ public interface WorkflowOperationCommandClient {
     @PostMapping("/operations/cancel-operations-boards")
     ResponseEntity<Void> cancelOperationsByBoardsIds(
             @RequestBody List<UUID> boardsIds);
+
+    @PostMapping("/operations/cancel-operations-member")
+    ResponseEntity<Void> cancelOperationsByMemberId(
+            @RequestHeader("X-Member-Id") UUID memberId);
+
 }

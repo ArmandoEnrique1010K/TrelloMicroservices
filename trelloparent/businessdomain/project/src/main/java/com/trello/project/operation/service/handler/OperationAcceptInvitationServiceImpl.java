@@ -66,7 +66,18 @@ public class OperationAcceptInvitationServiceImpl implements OperationAcceptInvi
         UUID recipientUserId = operation.getUserId();
         UUID invitationId = operation.getInvitationId();
 
-        // Bloqueo pesimista
+        // Volver a adquirir el bloqueo pesimista de escritura sobre el tablero.
+        //
+        // El bloqueo obtenido durante registerAcceptInvitation() ya fue liberado
+        // al finalizar aquella transacción, por lo que no protege esta etapa
+        // de ejecución.
+        //
+        // Se adquiere nuevamente para garantizar que el tablero no esté siendo
+        // modificado simultáneamente por otra transacción mientras se aplican
+        // los cambios locales de aceptación de la invitación.
+        //
+        // El bloqueo se mantiene hasta finalizar esta transacción, protegiendo
+        // las modificaciones realizadas sobre Invitation y Member.
         Board board = boardProjectService.findBoardByIdWithLock(boardId);
 
         if (board.getStatus() != BoardStatus.ACTIVE) {

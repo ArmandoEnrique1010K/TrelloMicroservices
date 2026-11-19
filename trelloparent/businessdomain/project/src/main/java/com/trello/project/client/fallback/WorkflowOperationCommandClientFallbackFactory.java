@@ -76,6 +76,12 @@ public class WorkflowOperationCommandClientFallbackFactory implements FallbackFa
                 log.error("Error relacionado con cancelOperationsByBoardsIds");
                 throw new ServiceUnavailableException();
             }
+
+            @Override
+            public ResponseEntity<Void> cancelOperationsByMemberId(UUID memberId) {
+                log.error("Error relacionado con cancelOperationsByMemberId");
+                throw new ServiceUnavailableException();
+            }
         };
     }
 }

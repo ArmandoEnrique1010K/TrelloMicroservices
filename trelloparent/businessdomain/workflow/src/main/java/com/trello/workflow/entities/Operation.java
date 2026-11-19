@@ -38,6 +38,9 @@ public class Operation {
 
     private UUID userId;
 
+    // ID de miembro
+    private UUID memberId;
+
     // Antiguo dato del usuario activo
     private Boolean oldUserActive;
 

@@ -15,4 +15,6 @@ public interface OperationDeactivateMemberProcessor {
             throws OperationNotFoundException, OperationConflictException, OperationCompensatedException,
             BusinessRuleException, MemberNotFoundException, OperationNotPendingException,
             OperationManualReviewException;
+
+    void processCancelOperationsByMemberId(UUID memberId, UUID operationId);
 }

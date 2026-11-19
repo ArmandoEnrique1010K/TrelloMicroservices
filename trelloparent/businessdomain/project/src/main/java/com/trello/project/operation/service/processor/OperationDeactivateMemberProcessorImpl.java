@@ -8,6 +8,7 @@ import com.trello.project.client.enums.WorkflowRole;
 import com.trello.project.client.services.WorkflowClientService;
 import com.trello.project.client.utils.WorkflowRoleUtils;
 import com.trello.project.entities.Operation;
+import com.trello.project.enums.CleanupStatus;
 import com.trello.project.enums.OperationStatus;
 import com.trello.project.enums.OperationType;
 import com.trello.project.enums.Role;
@@ -131,6 +132,48 @@ public class OperationDeactivateMemberProcessorImpl extends AbstractOperationPro
             operationUtils.markLocalCompensationCompletedFromServiceUnavailable(operation);
             log.info("EXCEPTION: " + exception);
             throw new OperationCompensatedException();
+        }
+    }
+
+    // Método para procesar todas las operaciones que se van a cancelar por ID de
+    // miembro
+    @Override
+    public void processCancelOperationsByMemberId(UUID memberId, UUID operationId) {
+        try {
+
+            // Indicar que se está ejecutando la limpieza remota.
+            operationProjectService.updateOperationCleanupStatusByMemberIdAndStatus(
+                    CleanupStatus.EXECUTING,
+                    memberId,
+                    OperationStatus.CANCELED);
+
+            workflowClientService.cancelOperationsByMemberId(memberId);
+
+            // Confirmar que la limpieza remota terminó correctamente.
+            operationProjectService.updateOperationCleanupStatusByMemberIdAndStatus(
+                    CleanupStatus.COMPLETED,
+                    memberId,
+                    OperationStatus.CANCELED);
+
+        } catch (ServiceUnavailableException e) {
+
+            log.warn(
+                    "Unable to cancel operations associated with member {} in Workflow. Operation {} will require a retry.",
+                    memberId,
+                    operationId);
+
+            // Revertir estado de operaciones en project, escribir en el campo cleanup el
+            // valor PENDING
+
+            // Vuelve al estado original, implica que no se pudo realizar el llamado en el
+            // microservicio Workflow para cancelar la operacioin
+            // Restaurar el estado de limpieza para permitir un nuevo intento.
+            operationProjectService.updateOperationCleanupStatusByMemberIdAndStatus(
+                    CleanupStatus.PENDING,
+                    memberId,
+                    OperationStatus.CANCELED);
+
+            throw e;
         }
     }
 }

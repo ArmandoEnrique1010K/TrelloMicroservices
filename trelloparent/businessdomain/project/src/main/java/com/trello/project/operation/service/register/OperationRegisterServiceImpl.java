@@ -98,8 +98,19 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
         Board findedBoard = invitation.getBoard();
         UUID boardId = findedBoard.getId();
 
-        // Bloqueo pesimista: evita que otra transacción modifique simultáneamente
-        // el estado del tablero mientras se registra esta operación.
+        // Bloqueo pesimista de escritura (PESSIMISTIC_WRITE).
+        //
+        // Se bloquea la fila del tablero asociado a la invitación durante
+        // el resto de esta transacción, evitando que otras transacciones
+        // adquieran simultáneamente un bloqueo de escritura incompatible
+        // sobre el mismo tablero.
+        //
+        // Esto permite coordinar operaciones concurrentes que requieren
+        // modificar o validar el estado del mismo tablero, como la aceptación
+        // de invitaciones, la eliminación del tablero o la gestión de miembros.
+        //
+        // El bloqueo se mantiene hasta que finalice la transacción actual
+        // (COMMIT o ROLLBACK), no durante toda la ejecución de la SAGA.
         Board board = boardProjectService.findBoardByIdWithLock(boardId);
 
         // Verificar que el tablero siga habilitado.
@@ -325,7 +336,6 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
         // Bloqueo pesimista del espacio de trabajo
         Workspace workspace = workspaceProjectService.findWorkspaceByIdWithLock(workspaceId);
 
-        // TODO: CORREGIR ESTADO
         if (workspace.isStatus() == false) {
             throw new WorkspaceNotFoundException();
         }
@@ -383,7 +393,6 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
         return operation;
     }
 
-    // TODO: PROBAR LOS 4 METODOS RESTANTES PARA EL TABLERO
     @Transactional(rollbackFor = Exception.class)
     @Override
     public Operation registerDeleteBoard(UUID ownerUserId, UUID boardId)

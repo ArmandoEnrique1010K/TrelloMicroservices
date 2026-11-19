@@ -99,6 +99,22 @@ public interface OperationRepository extends JpaRepository<Operation, UUID> {
             OperationStatus status,
             CleanupStatus cleanupStatus);
 
+    @Modifying
+    @Query("""
+                UPDATE Operation o
+                SET o.status = :status,
+                    o.cleanupStatus = :cleanupStatus
+                WHERE o.memberId = :memberId
+                AND o.id <> :excludedOperationId
+                AND o.status IN :allowedStatuses
+            """)
+    void cancelAllByMemberId(
+            UUID memberId,
+            UUID excludedOperationId,
+            List<OperationStatus> allowedStatuses,
+            OperationStatus status,
+            CleanupStatus cleanupStatus);
+
     // Actualizar operacion, cambiar el estado de cleanupStatus por boardId y status
     @Modifying
     @Query("""
@@ -120,7 +136,19 @@ public interface OperationRepository extends JpaRepository<Operation, UUID> {
             AND o.status = :operationStatus
             """)
     void updateCleanupStatusByWorkspaceIdAndStatus(
-            UUID boardId,
+            UUID workspaceId,
+            OperationStatus operationStatus,
+            CleanupStatus cleanupStatus);
+
+    @Modifying
+    @Query("""
+            UPDATE Operation o
+            SET o.cleanupStatus = :cleanupStatus
+            WHERE o.memberId = :memberId
+            AND o.status = :operationStatus
+            """)
+    void updateCleanupStatusByMemberIdAndStatus(
+            UUID memberId,
             OperationStatus operationStatus,
             CleanupStatus cleanupStatus);
 
@@ -143,17 +171,15 @@ public interface OperationRepository extends JpaRepository<Operation, UUID> {
     @Query("""
                 UPDATE Operation o
                 SET o.status = :newStatus,
-                    o.completedAt = :completedAt,
-                    o.nextAutomaticAttemptAt = :nextAutomaticAttemptAt
+                    o.completedAt = :completedAt
                 WHERE o.id = :operationId
                 AND o.status = :expectedStatus
             """)
-    int updateStatusAndDatesIfCurrent(
+    int updateStatusAndCompletedAt(
             @Param("operationId") UUID operationId,
             @Param("expectedStatus") OperationStatus expectedStatus,
             @Param("newStatus") OperationStatus newStatus,
-            @Param("completedAt") LocalDateTime completedAt,
-            @Param("nextAutomaticAttemptAt") LocalDateTime nextAutomaticAttemptAt);
+            @Param("completedAt") LocalDateTime completedAt);
 
     @Modifying
     void deleteAllByStatusAndCleanupStatus(OperationStatus status, CleanupStatus cleanupStatus);

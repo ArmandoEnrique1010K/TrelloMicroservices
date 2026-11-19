@@ -184,6 +184,16 @@ public class OperationExecutorServiceImpl implements OperationExecutorService {
                 case DEACTIVATE_MEMBER:
                     operationDeactivateMemberService.applyDeactivateMember(operation.getId(), true);
                     operationDeactivateMemberProcessor.processDeactivateMemberOperation(operation.getId());
+
+                    // Cancelar las demás operaciones relacionadas con el miembro
+
+                    UUID memberId = operation.getMemberId();
+
+                    operationProjectService.cancelAllOperationsByMemberId(memberId, operation.getId());
+
+                    operationDeactivateMemberProcessor.processCancelOperationsByMemberId(
+                            memberId,
+                            operation.getId());
                     break;
 
                 case DELETE_BOARD:

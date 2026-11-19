@@ -98,7 +98,6 @@ public class OperationRegisterUtils {
         // intento automático hasta que corresponda según el flujo.
         LocalDateTime currentDateTime = LocalDateTime.now();
         operation.setCreatedAt(currentDateTime);
-        operation.setNextAutomaticAttemptAt(null);
 
         return operation;
     }

@@ -81,10 +81,6 @@ public class Operation {
     // (ejecutor de tareas en segundo plano)
     private int automaticAttempts;
 
-    // Fecha del siguiente intento automatico por máquina
-    // TODO: Este campo se podria eliminar
-    private LocalDateTime nextAutomaticAttemptAt;
-
     // Fecha de completado
     // Se llena cuando el campo OperationStatus tenga el estado de "COMPLETED" o
     // "LOGICAL_DELETE_COMPLETED"

@@ -56,4 +56,6 @@ public interface WorkflowClientService {
     void cancelOperationsByBoardId(UUID boardId);
 
     void cancelOperationsByBoardsIds(List<UUID> boardsIds);
+
+    void cancelOperationsByMemberId(UUID memberId);
 }

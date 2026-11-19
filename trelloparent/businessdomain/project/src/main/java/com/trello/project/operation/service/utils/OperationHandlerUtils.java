@@ -1,6 +1,5 @@
 package com.trello.project.operation.service.utils;
 
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 import org.springframework.stereotype.Component;
@@ -55,8 +54,6 @@ public class OperationHandlerUtils {
         // los datos utilizados para controlar su procesamiento y reintentos.
         operation.setStatus(OperationStatus.EXECUTION_PENDING);
         operation.setCompletedAt(null);
-        operation.setNextAutomaticAttemptAt(
-                LocalDateTime.now().plusSeconds(30));
 
         // 5. Persistir los cambios de estado de la operación junto
         // con los datos de ejecución actualizados.
