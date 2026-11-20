@@ -275,9 +275,6 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
         return operation;
     }
 
-    // TODO: SI DE FORMA AUTOMATICA SE DESACTIVA EL MIEMBRO, ENTONCES SE DEBEN
-    // ELIMINAR LAS OPERACIONES PENDIENTES RELACIONADAS AL MIEMBRO POR ID Y
-    // OWNERUSERID
     @Transactional(rollbackFor = Exception.class)
     @Override
     public Operation registerDeactivateMember(UUID memberId, UUID ownerUserId)

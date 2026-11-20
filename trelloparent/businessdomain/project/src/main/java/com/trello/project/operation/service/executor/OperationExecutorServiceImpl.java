@@ -185,8 +185,8 @@ public class OperationExecutorServiceImpl implements OperationExecutorService {
                     operationDeactivateMemberService.applyDeactivateMember(operation.getId(), true);
                     operationDeactivateMemberProcessor.processDeactivateMemberOperation(operation.getId());
 
-                    // Cancelar las demás operaciones relacionadas con el miembro
-
+                    // Si de forma automatica se desactiva el miembro, entonces se debe cancelar las
+                    // demás operaciones relacionadas con el miembro
                     UUID memberId = operation.getMemberId();
 
                     operationProjectService.cancelAllOperationsByMemberId(memberId, operation.getId());

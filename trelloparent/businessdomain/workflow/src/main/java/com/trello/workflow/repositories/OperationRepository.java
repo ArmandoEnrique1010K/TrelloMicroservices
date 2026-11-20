@@ -43,10 +43,17 @@ public interface OperationRepository extends JpaRepository<Operation, UUID> {
             @Param("boardsIds") List<UUID> boardsIds,
             @Param("status") OperationStatus status);
 
-    // TODO: DEFINIR UN METODO PARA LISTAR TODAS LAS OPERACIONES CON ESTADO
-    // COMPLETED QUE SEAN DE TIPO ELIMINAR TABLERO O VARIOS TABLEROS Y QUE TENGAN EL
-    // ESTADO EN FALSE PARA QUE PUEDA INICIAR EL PROCESO DE ELIMINACION
     @Modifying
     void deleteAllByStatus(OperationStatus status);
+
+    @Modifying
+    @Query("""
+            UPDATE Operation o
+            SET o.status=:status
+            WHERE o.memberId=:memberId
+            """)
+    int updateStatusByMemberId(
+            @Param("memberId") UUID memberId,
+            @Param("status") OperationStatus status);
 
 }

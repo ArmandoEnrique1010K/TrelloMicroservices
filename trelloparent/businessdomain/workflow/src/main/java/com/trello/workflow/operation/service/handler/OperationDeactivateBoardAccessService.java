@@ -13,4 +13,6 @@ public interface OperationDeactivateBoardAccessService {
 
     void revertDeactivateBoardAccess(UUID operationId)
             throws OperationNotFoundException, OperationConflictException, BoardAccessNotFoundException;
+
+    void cancelAllOperationsByMemberId(UUID memberId);
 }

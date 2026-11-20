@@ -83,4 +83,10 @@ public class OperationDeactivateBoardAccessServiceImpl implements OperationDeact
         operationWorkflowService.saveOperation(operation);
     }
 
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public void cancelAllOperationsByMemberId(UUID memberId) {
+        operationWorkflowService.changeStatusOperationsByMemberId(memberId, OperationStatus.CANCELED);
+    }
+
 }

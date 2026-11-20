@@ -17,4 +17,6 @@ public interface OperationWorkflowService {
     void changeStatusOperationsByBoardsIds(List<UUID> boardsIds, OperationStatus status);
 
     void deleteAllOperationsByStatus(OperationStatus status);
+
+    void changeStatusOperationsByMemberId(UUID memberId, OperationStatus status);
 }

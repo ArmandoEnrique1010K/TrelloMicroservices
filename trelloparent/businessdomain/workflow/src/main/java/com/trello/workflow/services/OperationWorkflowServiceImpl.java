@@ -46,4 +46,9 @@ public class OperationWorkflowServiceImpl implements OperationWorkflowService {
     public void deleteAllOperationsByStatus(OperationStatus status) {
         operationRepository.deleteAllByStatus(status);
     }
+
+    @Override
+    public void changeStatusOperationsByMemberId(UUID memberId, OperationStatus status) {
+        operationRepository.updateStatusByMemberId(memberId, status);
+    }
 }

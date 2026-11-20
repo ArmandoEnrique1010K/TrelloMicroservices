@@ -30,8 +30,6 @@ public class OperationDeleteBoardAndBoardAccessesServiceImpl
         this.boardWorkflowService = boardWorkflowService;
     }
 
-    // TODO: PROGRAMAR UN SCHEDULER PARA BORRAR TABLEROS FISICAMENTE QUE TENGAN EL
-    // ESTADO FALSE
     @Transactional(rollbackFor = Exception.class)
     @Override
     public void applyDeleteBoardAndBoardAccesses(UUID operationId)

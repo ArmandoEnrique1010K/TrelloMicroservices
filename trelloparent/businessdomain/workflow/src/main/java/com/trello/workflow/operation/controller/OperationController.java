@@ -653,25 +653,47 @@ public class OperationController {
         return ResponseEntity.status(HttpStatus.NO_CONTENT).body(null);
     }
 
-    // TODO: AÑADIR API RESPONSES INCLUYENDO ESTA RESPUESTA - 403
-
-    // @ApiResponse(responseCode = "403", description = "No tienes permisos para
-    // acceder a este recurso", content = @Content(mediaType = "application/json",
-    // schema = @Schema(implementation = StandarizedApiExceptionResponse.class),
-    // examples = @ExampleObject(value = """
-    // {
-    // "detail": "You do not have the required permissions to access this resource",
-    // "fields": null,
-    // "instance": null,
-    // "message": "Ha ocurrido un error inesperado",
-    // "status": 403,
-    // "title": "Forbidden",
-    // "type": "/errors/authorization/forbidden"
-    // }
-    // """))),
-
     @Operation(summary = "Cancela todas las operaciones que pertenecen a un tablero por su ID", description = "Cancela todas las operaciones que pertenecen a un tablero por su ID")
     @SecurityRequirement(name = "bearerAuth")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Se ha cancelado todas las operaciones por ID de tablero"),
+
+            @ApiResponse(responseCode = "401", description = "El usuario no esta autenticado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
+                    {
+                        "detail": "Authentication is required to access this resource",
+                        "fields": null,
+                        "instance": null,
+                        "message": "Ha ocurrido un error inesperado",
+                        "status": 401,
+                        "title": "Unauthorized",
+                        "type": "/errors/authentication/not-authenticated"
+                    }
+                    """))),
+
+            @ApiResponse(responseCode = "403", description = "No tienes permisos para acceder a este recurso", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
+                    {
+                        "detail": "You do not have the required permissions to access this resource",
+                        "fields": null,
+                        "instance": null,
+                        "message": "Ha ocurrido un error inesperado",
+                        "status": 403,
+                        "title": "Forbidden",
+                        "type": "/errors/authorization/forbidden"
+                    }
+                    """))),
+
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
+                    {
+                      "detail": "An unexpected error occurred while processing the request",
+                      "fields": null,
+                      "instance": null,
+                      "message": "Ha ocurrido un error inesperado",
+                      "status": 500,
+                      "title": "Internal server error",
+                      "type": "/errors/internal-server-error"
+                    }
+                    """))),
+    })
     @PostMapping("/cancel-operations-board")
     public ResponseEntity<Void> cancelOperationsByBoardId(
             @RequestHeader("X-Board-Id") UUID boardId) {
@@ -682,11 +704,99 @@ public class OperationController {
 
     @Operation(summary = "Cancela todas las operaciones que pertenecen a varios tableros por una lista de IDs", description = "Cancela todas las operaciones que pertenecen a varios tableros por una lista de IDs")
     @SecurityRequirement(name = "bearerAuth")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Se ha cancelado todas las operaciones por la lista de IDs de tableros"),
+
+            @ApiResponse(responseCode = "401", description = "El usuario no esta autenticado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
+                    {
+                        "detail": "Authentication is required to access this resource",
+                        "fields": null,
+                        "instance": null,
+                        "message": "Ha ocurrido un error inesperado",
+                        "status": 401,
+                        "title": "Unauthorized",
+                        "type": "/errors/authentication/not-authenticated"
+                    }
+                    """))),
+
+            @ApiResponse(responseCode = "403", description = "No tienes permisos para acceder a este recurso", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
+                    {
+                        "detail": "You do not have the required permissions to access this resource",
+                        "fields": null,
+                        "instance": null,
+                        "message": "Ha ocurrido un error inesperado",
+                        "status": 403,
+                        "title": "Forbidden",
+                        "type": "/errors/authorization/forbidden"
+                    }
+                    """))),
+
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
+                    {
+                      "detail": "An unexpected error occurred while processing the request",
+                      "fields": null,
+                      "instance": null,
+                      "message": "Ha ocurrido un error inesperado",
+                      "status": 500,
+                      "title": "Internal server error",
+                      "type": "/errors/internal-server-error"
+                    }
+                    """))),
+    })
     @PostMapping("/cancel-operations-boards")
     public ResponseEntity<Void> cancelOperationsByBoardsIds(
             @RequestBody List<UUID> boardsIds) {
 
         operationDeleteAllBoardsAndMultipleBoardAccessesService.cancelAllOperationsByBoardsIds(boardsIds);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).body(null);
+    }
+
+    @Operation(summary = "Cancela todas las operaciones que pertenecen al mismo miembro por Id", description = "Cancela todas las operaciones que pertenecen a un miembro por ID")
+    @SecurityRequirement(name = "bearerAuth")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Se ha cancelado todas las operaciones por ID de miembro"),
+
+            @ApiResponse(responseCode = "401", description = "El usuario no esta autenticado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
+                    {
+                        "detail": "Authentication is required to access this resource",
+                        "fields": null,
+                        "instance": null,
+                        "message": "Ha ocurrido un error inesperado",
+                        "status": 401,
+                        "title": "Unauthorized",
+                        "type": "/errors/authentication/not-authenticated"
+                    }
+                    """))),
+
+            @ApiResponse(responseCode = "403", description = "No tienes permisos para acceder a este recurso", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
+                    {
+                        "detail": "You do not have the required permissions to access this resource",
+                        "fields": null,
+                        "instance": null,
+                        "message": "Ha ocurrido un error inesperado",
+                        "status": 403,
+                        "title": "Forbidden",
+                        "type": "/errors/authorization/forbidden"
+                    }
+                    """))),
+
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandarizedApiExceptionResponse.class), examples = @ExampleObject(value = """
+                    {
+                      "detail": "An unexpected error occurred while processing the request",
+                      "fields": null,
+                      "instance": null,
+                      "message": "Ha ocurrido un error inesperado",
+                      "status": 500,
+                      "title": "Internal server error",
+                      "type": "/errors/internal-server-error"
+                    }
+                    """))),
+    })
+    @PostMapping("/cancel-operations-boards")
+    public ResponseEntity<Void> cancelOperationsByMemberId(
+            @RequestHeader("X-Member-Id") UUID memberId) {
+
+        operationDeactivateBoardAccessService.cancelAllOperationsByMemberId(memberId);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).body(null);
     }
 

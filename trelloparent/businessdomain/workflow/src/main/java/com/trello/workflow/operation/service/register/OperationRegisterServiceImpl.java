@@ -176,6 +176,7 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
         operation.setStatus(OperationStatus.CREATED);
         operation.setBoardId(boardId);
         operation.setUserId(userId);
+        operation.setMemberId(userId);
         operation.setOldUserActive(true);
         operation.setOldRole(oldRole);
         operation.setNewRole(newRole);
@@ -222,6 +223,7 @@ public class OperationRegisterServiceImpl implements OperationRegisterService {
         operation.setStatus(OperationStatus.CREATED);
         operation.setBoardId(boardId);
         operation.setUserId(userId);
+        operation.setMemberId(userId);
         operation.setOldUserActive(true);
         operation.setOldRole(oldRole);
         operation.setAttempts(0);
