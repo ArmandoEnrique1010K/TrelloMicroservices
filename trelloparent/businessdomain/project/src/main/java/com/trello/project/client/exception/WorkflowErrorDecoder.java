@@ -36,14 +36,13 @@ public class WorkflowErrorDecoder implements ErrorDecoder {
                     RemoteApiError.class);
 
             // Identificar el error mediante su tipo estable (campo type)
-            if ("/errors/board-accesses/already-exists"
-                    .equals(error.type())) {
-                return new RemoteBoardAccessAlreadyExistsException();
-            }
-
             if ("/errors/board-accesses-not-found"
                     .equals(error.type())) {
                 return new RemoteBoardAccessNotFoundException();
+            }
+
+            if ("/errors/board-not-found".equals(error.type())) {
+                return new RemoteBoardNotFoundException();
             }
 
         } catch (IOException e) {

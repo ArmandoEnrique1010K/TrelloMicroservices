@@ -124,8 +124,6 @@ public class OperationDeleteWorkspaceProcessorImpl
         }
     }
 
-    // TODO: DEFINIR UN BLOQUE CATCH CON LAS EXCEPCIONES DE TIPO RUNTIME EXCEPTION
-    // DESDE EL MICROSERVICIO WORKFLOW
     @Override
     protected void processRemoteCompensation(Operation operation) {
         Operation updatedOperation = findOperation(operation.getId());
@@ -144,6 +142,9 @@ public class OperationDeleteWorkspaceProcessorImpl
             log.info("EXCEPTION: " + exception);
             throw new OperationCompensatedException();
         }
+
+        // En este caso no hay excepciones lanzadas desde el microservicio Workflow que
+        // tenga una relacion diferente que la operación
     }
 
     @Override

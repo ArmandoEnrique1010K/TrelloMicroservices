@@ -4,6 +4,7 @@ import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 
+import com.trello.project.client.exception.RemoteBoardNotFoundException;
 import com.trello.project.client.services.WorkflowClientService;
 import com.trello.project.entities.Operation;
 import com.trello.project.enums.BoardStatus;
@@ -110,8 +111,6 @@ public class OperationDeleteBoardProcessorImpl
         }
     }
 
-    // TODO: DEFINIR UN BLOQUE CATCH CON LAS EXCEPCIONES DE TIPO RUNTIME EXCEPTION
-    // DESDE EL MICROSERVICIO WORKFLOW
     @Override
     protected void processRemoteCompensation(Operation operation) {
         Operation updatedOperation = findOperation(operation.getId());
@@ -129,6 +128,10 @@ public class OperationDeleteBoardProcessorImpl
             operationUtils.markLocalCompensationCompletedFromServiceUnavailable(operation);
             log.info("EXCEPTION: " + exception);
             throw new OperationCompensatedException();
+        } catch (RemoteBoardNotFoundException exception) {
+            operationUtils.markManualReview(operation, exception);
+            log.info("EXCEPTION: " + exception);
+            throw new OperationManualReviewException();
         }
     }
 

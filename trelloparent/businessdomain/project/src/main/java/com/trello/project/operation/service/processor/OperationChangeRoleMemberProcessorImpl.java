@@ -5,6 +5,7 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 
 import com.trello.project.client.enums.WorkflowRole;
+import com.trello.project.client.exception.RemoteBoardAccessNotFoundException;
 import com.trello.project.client.services.WorkflowClientService;
 import com.trello.project.client.utils.WorkflowRoleUtils;
 import com.trello.project.entities.Member;
@@ -136,9 +137,6 @@ public class OperationChangeRoleMemberProcessorImpl
         }
     }
 
-    // // TODO: DEFINIR UN BLOQUE CATCH CON LAS EXCEPCIONES DE TIPO RUNTIME
-    // EXCEPTION
-    // // DESDE EL MICROSERVICIO WORKFLOW
     @Override
     protected void processRemoteCompensation(Operation operation) {
         Operation updatedOperation = findOperation(operation.getId());
@@ -156,6 +154,12 @@ public class OperationChangeRoleMemberProcessorImpl
             operationUtils.markLocalCompensationCompletedFromServiceUnavailable(operation);
             log.info("EXCEPTION: " + exception);
             throw new OperationCompensatedException();
+            // Recordar que aqui se define las posibles excepciones no relacionadas a
+            // Operation para establecer el estado de "MANUAL_REVIEW" en la operación
+        } catch (RemoteBoardAccessNotFoundException exception) {
+            operationUtils.markManualReview(operation, exception);
+            log.info("EXCEPTION: " + exception);
+            throw new OperationManualReviewException();
         }
     }
 }

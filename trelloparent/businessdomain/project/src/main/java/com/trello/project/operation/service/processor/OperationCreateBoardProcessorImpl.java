@@ -6,6 +6,8 @@ import org.springframework.stereotype.Service;
 
 import com.trello.project.board.dto.response.BoardResponse;
 import com.trello.project.board.mapper.BoardResponseMapper;
+import com.trello.project.client.exception.RemoteBoardAccessNotFoundException;
+import com.trello.project.client.exception.RemoteBoardNotFoundException;
 import com.trello.project.client.services.WorkflowClientService;
 import com.trello.project.entities.Board;
 import com.trello.project.entities.Operation;
@@ -120,8 +122,6 @@ public class OperationCreateBoardProcessorImpl
         }
     }
 
-    // TODO: DEFINIR UN BLOQUE CATCH CON LAS EXCEPCIONES DE TIPO RUNTIME EXCEPTION
-    // DESDE EL MICROSERVICIO WORKFLOW
     @Override
     protected void processRemoteCompensation(Operation operation) {
 
@@ -142,6 +142,10 @@ public class OperationCreateBoardProcessorImpl
             operationUtils.markLocalCompensationCompletedFromServiceUnavailable(operation);
             log.info("EXCEPTION: " + exception);
             throw new OperationCompensatedException();
+        } catch (RemoteBoardAccessNotFoundException | RemoteBoardNotFoundException exception) {
+            operationUtils.markManualReview(operation, exception);
+            log.info("EXCEPTION: " + exception);
+            throw new OperationManualReviewException();
         }
     }
 }

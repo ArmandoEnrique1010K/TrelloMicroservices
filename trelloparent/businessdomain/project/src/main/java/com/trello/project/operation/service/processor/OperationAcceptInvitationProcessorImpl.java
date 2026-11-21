@@ -5,7 +5,6 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 
 import com.trello.project.client.enums.WorkflowRole;
-import com.trello.project.client.exception.RemoteBoardAccessAlreadyExistsException;
 import com.trello.project.client.exception.RemoteBoardAccessNotFoundException;
 import com.trello.project.client.services.WorkflowClientService;
 import com.trello.project.client.utils.WorkflowRoleUtils;
@@ -245,7 +244,7 @@ public class OperationAcceptInvitationProcessorImpl
             // pero que la compensación remota todavía requiere ser completada.
             log.info("EXCEPTION: " + exception);
             throw new OperationCompensatedException();
-        } catch (RemoteBoardAccessAlreadyExistsException | RemoteBoardAccessNotFoundException exception) {
+        } catch (RemoteBoardAccessNotFoundException exception) {
             // // La respuesta de Workflow indica una inconsistencia funcional
             // // relacionada con los permisos de acceso al tablero.
             // // Registrar la operación para revisión manual, ya que no se debe
