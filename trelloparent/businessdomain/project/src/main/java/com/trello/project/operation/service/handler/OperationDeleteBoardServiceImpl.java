@@ -62,10 +62,6 @@ public class OperationDeleteBoardServiceImpl implements OperationDeleteBoardServ
         boardProjectService.changeStatusBoardById(boardId, ownerUserId,
                 BoardStatus.DELETING);
 
-        // Verificar si existe tablero
-        // boardProjectService.findBoardByIdAndOwnerUserIdAndBoardStatus(boardId,
-        // ownerUserId, BoardStatus.DELETING);
-
         operationProjectService.saveOperation(operation);
     }
 

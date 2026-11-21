@@ -28,8 +28,6 @@ public interface BoardProjectService {
     Board findBoardByIdAndOwnerUserIdAndActive(UUID boardId, UUID ownerUserId)
             throws WorkspaceNotFoundException, BoardNotFoundException;
 
-    Board findBoardByIdAndOwnerUserIdAndBoardStatus(UUID boardId, UUID ownerUserId, BoardStatus status);
-
     Board saveBoard(Board board);
 
     void deleteBoardByIdAndOwnerUserId(UUID boardId, UUID ownerUserId)
@@ -48,5 +46,6 @@ public interface BoardProjectService {
     void changeStatusBoardById(UUID boardId, UUID ownerUserId, BoardStatus status)
             throws BoardNotFoundException;
 
-    Board findBoardByIdWithLock(UUID boardId);
+    Board findBoardByIdWithLock(UUID boardId)
+            throws BoardNotFoundException;
 }

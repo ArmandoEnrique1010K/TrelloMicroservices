@@ -671,7 +671,7 @@ public class TaskServiceImpl implements TaskService {
         return response;
     }
 
-    // Mapea los campos de un
+    // Mapea los campos de un usuario
     private UserResponse mapUser(
             UserResponse user) {
 

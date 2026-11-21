@@ -47,14 +47,6 @@ public class OperationProjectServiceImpl implements OperationProjectService {
     }
 
     @Override
-    public Optional<Operation> findLatestOperationByWorkspaceIdAndOwnerUserIdAndBoardNameAndType(UUID workspaceId,
-            UUID ownerUserId, String boardName,
-            OperationType type) {
-        return operationRepository.findFirstByWorkspaceIdAndOwnerUserIdAndBoardNameAndTypeOrderByCreatedAtDesc(
-                workspaceId, ownerUserId, boardName, type);
-    }
-
-    @Override
     public Optional<Operation> findLatestOperationByWorkspaceIdAndBoardNameAndType(UUID workspaceId, String name,
             OperationType type) {
         return operationRepository.findFirstByWorkspaceIdAndBoardNameAndTypeOrderByCreatedAtDesc(workspaceId,

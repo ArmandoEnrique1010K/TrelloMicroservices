@@ -33,5 +33,6 @@ public interface WorkspaceProjectService {
             BoardStatus convertBoardStatus)
             throws WorkspaceNotFoundException;
 
-    Workspace findWorkspaceByIdWithLock(UUID workspaceId);
+    Workspace findWorkspaceByIdWithLock(UUID workspaceId)
+            throws WorkspaceNotFoundException;
 }

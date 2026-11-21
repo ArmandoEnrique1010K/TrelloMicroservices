@@ -101,7 +101,8 @@ public class WorkspaceProjectServiceImpl implements WorkspaceProjectService {
     }
 
     @Override
-    public Workspace findWorkspaceByIdWithLock(UUID workspaceId) {
+    public Workspace findWorkspaceByIdWithLock(UUID workspaceId)
+            throws WorkspaceNotFoundException {
         return workspaceRepository.findByIdWithLockWorkspace(workspaceId)
                 .orElseThrow(WorkspaceNotFoundException::new);
     }
